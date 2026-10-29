@@ -17,8 +17,8 @@
 | **Task 1** | **Project Foundation, Database Design & Landing Page** | **COMPLETE** | Monorepo setup, PostgreSQL schema (9 entities + 1 associative), Alembic migrations, database-aware `/health` probe, modern SaaS landing page, Axios API client. |
 | **Task 2** | **User Registration & Role Seeding** | **COMPLETE** | Default role seeding (`Admin`, `Campaign Manager`, `Communication Team`), `POST /auth/register` with bcrypt password hashing (72-byte safe), least-privilege enforcement, registration UI. |
 | **Task 3** | **JWT Authentication & Role-Based Access Control** | **COMPLETE** | `POST /auth/login`, `GET /auth/me`, JWT bearer tokens, active status validation, admin user governance (`/admin/users`), self-protection & last-admin safeguards, role-gated React dashboard & admin panel. |
-| **Task 4** | **Audience Database Management** | *Next* | Audience CRUD, deduplication, CSV bulk upload with row-by-row validation, language distribution stats. |
-| **Task 5** | **Audience Segmentation Engine** | *Pending* | Dynamic JSON rule compiler (AND/OR), `POST /segments/preview`, visual segment builder UI. |
+| **Task 4** | **Audience Database Management** | **COMPLETE** | Audience CRUD, deduplication, CSV & Excel bulk upload with independent row-level validation, language/channel distribution statistics, and full React management console. |
+| **Task 5** | **Audience Segmentation Engine** | *Next* | Dynamic JSON rule compiler (AND/OR), `POST /segments/preview`, visual segment builder UI. |
 | **Task 6** | **Campaign Creation & Template Library** | *Pending* | 4-step campaign wizard, template content library with `{name}` placeholders, priority workflows. |
 
 ---
@@ -257,6 +257,13 @@ psql -U postgres -c "CREATE DATABASE masscommai_dev;"
 | `GET` | `/admin/users` | Admin Only | Paginated list of users with search, role, and active-status filters |
 | `PUT` | `/admin/users/{id}/role` | Admin Only | Assign new role (`Admin`, `Campaign Manager`, `Communication Team`) |
 | `PATCH` | `/admin/users/{id}/status` | Admin Only | Activate or deactivate a user account |
+| `GET` | `/audience` | Authenticated (All Roles) | Paginated list of audience members with search, language, channel, and consent filters |
+| `GET` | `/audience/stats` | Authenticated (All Roles) | Aggregate statistics on recipients, languages, channels, and opt-in consent |
+| `POST` | `/audience` | Admin, Campaign Manager | Register single recipient with contact handle enforcement and deduplication |
+| `GET` | `/audience/{id}` | Authenticated (All Roles) | Fetch recipient profile and demographic details |
+| `PUT` | `/audience/{id}` | Admin, Campaign Manager | Update recipient demographic, location, and communication channel attributes |
+| `DELETE` | `/audience/{id}` | Admin, Campaign Manager | Permanently remove recipient from audience database |
+| `POST` | `/audience/import` | Admin, Campaign Manager | Bulk import CSV (.csv) or modern Excel (.xlsx) spreadsheets with independent row validation and reconciliation |
 | `GET` | `/docs` | Public | OpenAPI interactive Swagger documentation |
 | `GET` | `/redoc` | Public | OpenAPI ReDoc specification |
 

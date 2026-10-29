@@ -99,6 +99,15 @@ export default function Navbar() {
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
                 </Link>
+                <Link
+                  to="/audience"
+                  className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    location.pathname.startsWith('/audience') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  Audience
+                </Link>
                 {isAdmin && (
                   <Link
                     to="/admin/users"
@@ -106,7 +115,7 @@ export default function Navbar() {
                       location.pathname.startsWith('/admin') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
                     }`}
                   >
-                    <Users className="w-4 h-4" />
+                    <ShieldCheck className="w-4 h-4" />
                     User Governance
                   </Link>
                 )}
@@ -210,6 +219,13 @@ export default function Navbar() {
                   className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
                 >
                   Dashboard
+                </Link>
+                <Link
+                  to="/audience"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                >
+                  Audience Database
                 </Link>
                 {isAdmin && (
                   <Link

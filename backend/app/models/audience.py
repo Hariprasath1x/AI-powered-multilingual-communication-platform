@@ -29,7 +29,7 @@ class AudienceMember(Base, TimestampMixin):
     preferred_channel: Mapped[str] = mapped_column(
         String(30), nullable=False, default="Email", index=True
     )
-    consent_status: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    consent_status: Mapped[Optional[bool]] = mapped_column(Boolean, default=None, nullable=True)
 
     # Relationships
     messages: Mapped[List[Message]] = relationship(back_populates="audience_member")

@@ -99,20 +99,26 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Audience Management */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-              <Users className="w-5 h-5" />
-            </div>
+          <Link
+            to="/audience"
+            className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-brand-300 hover:shadow-md transition group space-y-3 block"
+          >
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Audience Database</h3>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 flex items-center gap-1">
-                <Clock className="w-3 h-3" /> Task 4
+              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition">
+                <Users className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Task 4 Ready
               </span>
             </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition">Audience Database</h3>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-1 transition" />
+            </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Recipient directory with language preferences, communication channels, and bulk CSV ingestion.
+              Recipient directory with language preferences, communication channels, and bulk CSV/Excel ingestion.
             </p>
-          </div>
+          </Link>
 
           {/* Audience Segmentation */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">

@@ -15,6 +15,16 @@ from app.schemas.user import (
     ALL_SYSTEM_ROLES,
 )
 
+from app.schemas.audience import (
+    AudienceMemberCreate,
+    AudienceMemberUpdate,
+    AudienceMemberResponse,
+    PaginatedAudienceResponse,
+    AudienceStatsResponse,
+    ImportRowError,
+    AudienceImportSummary,
+)
+
 __all__ = [
     "RoleRead",
     "UserRegisterRequest",
@@ -28,4 +38,11 @@ __all__ = [
     "DEFAULT_REGISTRATION_ROLE",
     "ALLOWED_REGISTRATION_ROLES",
     "ALL_SYSTEM_ROLES",
+    "AudienceMemberCreate",
+    "AudienceMemberUpdate",
+    "AudienceMemberResponse",
+    "PaginatedAudienceResponse",
+    "AudienceStatsResponse",
+    "ImportRowError",
+    "AudienceImportSummary",
 ]
