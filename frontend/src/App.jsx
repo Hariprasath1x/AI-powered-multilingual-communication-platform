@@ -8,6 +8,7 @@ import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import AudienceListPage from './pages/audience/AudienceListPage';
+import SegmentListPage from './pages/segments/SegmentListPage';
 import ProtectedRoute from './components/guards/ProtectedRoute';
 import AdminRoute from './components/guards/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -45,6 +46,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <AudienceListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/segments"
+                element={
+                  <ProtectedRoute>
+                    <SegmentListPage />
                   </ProtectedRoute>
                 }
               />

@@ -10,7 +10,8 @@ import {
   User as UserIcon,
   LogOut,
   LayoutDashboard,
-  Users
+  Users,
+  Layers
 } from 'lucide-react';
 import { checkHealth } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -107,6 +108,15 @@ export default function Navbar() {
                 >
                   <Users className="w-4 h-4" />
                   Audience
+                </Link>
+                <Link
+                  to="/segments"
+                  className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    location.pathname.startsWith('/segments') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
+                  }`}
+                >
+                  <Layers className="w-4 h-4" />
+                  Segments
                 </Link>
                 {isAdmin && (
                   <Link
@@ -226,6 +236,13 @@ export default function Navbar() {
                   className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
                 >
                   Audience Database
+                </Link>
+                <Link
+                  to="/segments"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                >
+                  Audience Segments
                 </Link>
                 {isAdmin && (
                   <Link

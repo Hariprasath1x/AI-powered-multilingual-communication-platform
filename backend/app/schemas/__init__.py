@@ -25,6 +25,18 @@ from app.schemas.audience import (
     AudienceImportSummary,
 )
 
+from app.schemas.segment import (
+    RuleCondition,
+    RuleGroup,
+    SegmentCreate,
+    SegmentUpdate,
+    SegmentResponse,
+    PaginatedSegmentResponse,
+    SegmentPreviewRequest,
+    SegmentPreviewResponse,
+    SUPPORTED_SEGMENT_FIELDS,
+)
+
 __all__ = [
     "RoleRead",
     "UserRegisterRequest",
@@ -45,4 +57,13 @@ __all__ = [
     "AudienceStatsResponse",
     "ImportRowError",
     "AudienceImportSummary",
+    "RuleCondition",
+    "RuleGroup",
+    "SegmentCreate",
+    "SegmentUpdate",
+    "SegmentResponse",
+    "PaginatedSegmentResponse",
+    "SegmentPreviewRequest",
+    "SegmentPreviewResponse",
+    "SUPPORTED_SEGMENT_FIELDS",
 ]

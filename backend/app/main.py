@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import health, auth, admin_users, audience
+from app.routers import health, auth, admin_users, audience, segments
 from app.db.session import SessionLocal
 from app.db.seed import seed_default_roles
 
@@ -54,6 +54,7 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(admin_users.router)
 app.include_router(audience.router)
+app.include_router(segments.router)
 
 
 @app.get("/", tags=["Root"])

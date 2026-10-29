@@ -18,7 +18,7 @@
 | **Task 2** | **User Registration & Role Seeding** | **COMPLETE** | Default role seeding (`Admin`, `Campaign Manager`, `Communication Team`), `POST /auth/register` with bcrypt password hashing (72-byte safe), least-privilege enforcement, registration UI. |
 | **Task 3** | **JWT Authentication & Role-Based Access Control** | **COMPLETE** | `POST /auth/login`, `GET /auth/me`, JWT bearer tokens, active status validation, admin user governance (`/admin/users`), self-protection & last-admin safeguards, role-gated React dashboard & admin panel. |
 | **Task 4** | **Audience Database Management** | **COMPLETE** | Audience CRUD, deduplication, CSV & Excel bulk upload with independent row-level validation, language/channel distribution statistics, and full React management console. |
-| **Task 5** | **Audience Segmentation Engine** | *Next* | Dynamic JSON rule compiler (AND/OR), `POST /segments/preview`, visual segment builder UI. |
+| **Task 5** | **Audience Segmentation Engine** | **COMPLETE** | Dynamic JSON rule compiler (AND/OR, 2-level nesting), allowlisted demographic & civic fields, tri-state consent filtering, `POST /segments/preview`, creator-ownership RBAC, and visual rule builder UI. |
 | **Task 6** | **Campaign Creation & Template Library** | *Pending* | 4-step campaign wizard, template content library with `{name}` placeholders, priority workflows. |
 
 ---
@@ -65,19 +65,27 @@ MassCommAI/
 │   │   │   └── communication.py # Message, DeliveryLog, Feedback
 │   │   ├── schemas/          # Pydantic v2 validation models
 │   │   │   ├── __init__.py
-│   │   │   └── user.py       # Registration, Login, Token, RoleUpdate, StatusUpdate schemas
+│   │   │   ├── user.py       # Registration, Login, Token, RoleUpdate, StatusUpdate schemas
+│   │   │   ├── audience.py   # Audience CRUD, stats, and bulk import schemas
+│   │   │   └── segment.py    # RuleCondition, RuleGroup, SegmentCreate/Update/Response schemas
 │   │   ├── routers/          # API Route handlers
 │   │   │   ├── __init__.py
 │   │   │   ├── health.py     # GET /health with live database probing
 │   │   │   ├── auth.py       # POST /auth/register, POST /auth/login, GET /auth/me
-│   │   │   └── admin_users.py # GET /admin/users, PUT /admin/users/{id}/role, PATCH /admin/users/{id}/status
+│   │   │   ├── admin_users.py # GET /admin/users, PUT /admin/users/{id}/role, PATCH /admin/users/{id}/status
+│   │   │   ├── audience.py   # Audience CRUD, stats, and bulk upload endpoints
+│   │   │   └── segments.py   # Rule metadata, live preview, and segment CRUD endpoints
 │   │   └── services/         # Business logic layer
 │   │       ├── __init__.py
-│   │       └── auth_service.py # Authentication, hashing, user retrieval
+│   │       ├── auth_service.py # Authentication, hashing, user retrieval
+│   │       ├── audience_service.py # Audience deduplication, stats, CSV/XLSX import
+│   │       └── segment_service.py  # Rule compiler, live matching count, RBAC ownership
 │   └── tests/                # Automated regression test suite
 │       ├── __init__.py
-│       ├── test_auth_registration.py # Task 2 registration test suite (11 tests)
-│       └── test_auth_jwt_rbac.py     # Task 3 JWT & RBAC test suite (12 tests)
+│       ├── test_auth_registration.py # Task 2 registration test suite (10 tests)
+│       ├── test_auth_jwt_rbac.py     # Task 3 JWT & RBAC test suite (11 tests)
+│       ├── test_audience_management.py # Task 4 audience CRUD & bulk import suite (14 tests)
+│       └── test_segmentation_engine.py # Task 5 rule compiler, preview & RBAC suite (16 tests)
 └── frontend/                 # React SPA (Vite + Tailwind CSS)
     ├── package.json
     ├── vite.config.js
@@ -106,12 +114,24 @@ MassCommAI/
         │   │   └── LoginPage.jsx      # SaaS login page with JWT handling
         │   ├── dashboard/
         │   │   └── DashboardPage.jsx  # Authenticated member dashboard shell
-        │   └── admin/
-        │       └── UserManagementPage.jsx # Admin user table, role assignment & account status
+        │   ├── admin/
+        │   │   └── UserManagementPage.jsx # Admin user table, role assignment & account status
+        │   ├── audience/
+        │   │   ├── AudienceListPage.jsx   # Audience directory & search/filter console
+        │   │   ├── AudienceFormModal.jsx  # Create/edit recipient modal
+        │   │   ├── AudienceImportModal.jsx # CSV/XLSX file drag-and-drop ingestion
+        │   │   └── AudienceDeleteModal.jsx # Deletion confirmation dialog
+        │   └── segments/
+        │       ├── SegmentListPage.jsx    # Segment list, rule badges, audience counts
+        │       ├── SegmentBuilderModal.jsx # Visual rule builder, logic toggle, live preview
+        │       ├── SegmentPreviewModal.jsx # Saved segment live matching recipient modal
+        │       └── SegmentDeleteModal.jsx  # Segment deletion confirmation dialog
         └── services/
             ├── api.js          # Axios client with JWT request interceptor & 401 response handling
             ├── authService.js  # Auth API calls (register, login, me)
-            └── adminService.js # Admin API calls (list users, update role, update status)
+            ├── adminService.js # Admin API calls (list users, update role, update status)
+            ├── audienceService.js # Audience CRUD, stats, CSV/XLSX import API calls
+            └── segmentService.js  # Segment CRUD, fields metadata, live preview API calls
 ```
 
 ---
@@ -264,6 +284,14 @@ psql -U postgres -c "CREATE DATABASE masscommai_dev;"
 | `PUT` | `/audience/{id}` | Admin, Campaign Manager | Update recipient demographic, location, and communication channel attributes |
 | `DELETE` | `/audience/{id}` | Admin, Campaign Manager | Permanently remove recipient from audience database |
 | `POST` | `/audience/import` | Admin, Campaign Manager | Bulk import CSV (.csv) or modern Excel (.xlsx) spreadsheets with independent row validation and reconciliation |
+| `GET` | `/segments/fields` | Authenticated (All Roles) | Supported audience segmentation fields metadata and compatible operator allowlist |
+| `POST` | `/segments/preview` | Authenticated (All Roles) | Live audience match count and sample recipient preview for arbitrary rule definitions |
+| `GET` | `/segments` | Authenticated (All Roles) | Paginated list of saved audience segments with live matching recipient counts |
+| `POST` | `/segments` | Admin, Campaign Manager | Save new audience segment with case-insensitive unique name and creator assignment |
+| `GET` | `/segments/{id}` | Authenticated (All Roles) | Fetch saved segment rules, creator details, and live audience match count |
+| `PUT` | `/segments/{id}` | Admin, Segment Owner | Update segment name, description, and filter rules (ownership strictly enforced) |
+| `DELETE` | `/segments/{id}` | Admin, Segment Owner | Permanently delete segment (ownership strictly enforced) |
+| `GET` | `/segments/{id}/preview` | Authenticated (All Roles) | Live paginated preview of matching recipients for a saved segment |
 | `GET` | `/docs` | Public | OpenAPI interactive Swagger documentation |
 | `GET` | `/redoc` | Public | OpenAPI ReDoc specification |
 
@@ -271,11 +299,26 @@ psql -U postgres -c "CREATE DATABASE masscommai_dev;"
 
 ## 7. Automated Testing
 
-Run the full backend test suite covering Tasks 1, 2, and 3:
+Run the full backend test suite covering Tasks 1, 2, 3, 4, and 5 (51 automated tests):
 
 ```bash
 # From workspace root
 PYTHONPATH=backend ./backend/.venv/bin/python -m unittest discover -s backend/tests
+```
+
+To run individual test modules:
+```bash
+# Task 2: User Registration & Role Seeding
+PYTHONPATH=backend ./backend/.venv/bin/python -m unittest backend/tests/test_auth_registration.py
+
+# Task 3: JWT Authentication & RBAC
+PYTHONPATH=backend ./backend/.venv/bin/python -m unittest backend/tests/test_auth_jwt_rbac.py
+
+# Task 4: Audience Database Management & Bulk Ingestion
+PYTHONPATH=backend ./backend/.venv/bin/python -m unittest backend/tests/test_audience_management.py
+
+# Task 5: Audience Segmentation Engine & Visual Rule Builder
+PYTHONPATH=backend ./backend/.venv/bin/python -m unittest backend/tests/test_segmentation_engine.py
 ```
 
 To run the frontend production build verification:
