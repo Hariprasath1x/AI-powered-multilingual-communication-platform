@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import LandingPage from './pages/LandingPage';
+import RegisterPage from './pages/RegisterPage';
 import PlaceholderAuth from './pages/PlaceholderAuth';
 import { logDiagnosticHealth } from './services/api';
 
@@ -19,8 +20,8 @@ export default function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<PlaceholderAuth />} />
-            <Route path="/register" element={<PlaceholderAuth />} />
             <Route path="*" element={<LandingPage />} />
           </Routes>
         </main>
@@ -29,4 +30,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
