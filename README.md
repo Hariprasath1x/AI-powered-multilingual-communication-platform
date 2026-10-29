@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # MassCommAI — AI-Powered Multilingual Public Awareness and Mass Communication Platform
 
 [![Infosys Springboard](https://img.shields.io/badge/Infosys_Springboard-Virtual_Internship-blue.svg)](https://springboard.infosys.com/)
@@ -200,3 +201,11 @@ psql -U postgres -c "CREATE DATABASE masscommai_dev;"
 - **Alembic migration conflicts:**
   Run `alembic current` and `alembic heads` inside the `backend` directory to inspect revision state.
 
+=======
+# AI-powered-multilingual-communication-platform
+
+- Selected for the Infosys Springboard Virtual Internship (September–November 2026).
+- Developing an AI-powered multilingual communication platform using **FastAPI, React.js, and Large Language Models (LLMs)**.
+- Implementing AI content generation, multilingual translation, audience segmentation, and personalized campaign management.
+- Building multi-channel communication workflows with engagement tracking, sentiment analysis, and analytics dashboards.
+>>>>>>> e12db578af2d93dc4cf346c5992c039e6d0811cd
