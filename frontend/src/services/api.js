@@ -3,6 +3,9 @@ import axios from 'axios';
 // Resolve API base URL from Vite environment or default to local FastAPI host
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
+export const AUTH_TOKEN_KEY = 'masscomm_auth_token';
+export const AUTH_USER_KEY = 'masscomm_auth_user';
+
 /**
  * Shared Axios instance configured for MassCommAI backend services.
  */
@@ -15,9 +18,36 @@ export const apiClient = axios.create({
   },
 });
 
+// Request Interceptor: Attach Bearer token if present
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response Interceptor: Handle 401 Unauthorized cleanup
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Don't clear on login attempt failures, only on protected resource authorization rejections
+      const requestUrl = error.config?.url || '';
+      if (!requestUrl.includes('/auth/login')) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Performs a health-check request to verify backend and database status.
- * @returns {Promise<{healthy: boolean, status: string, database: string, version: string, error?: string}>}
  */
 export const checkHealth = async () => {
   try {
@@ -30,7 +60,6 @@ export const checkHealth = async () => {
     };
   } catch (error) {
     if (error.response) {
-      // Server responded with an error code (e.g., 503 degraded)
       return {
         healthy: false,
         status: error.response.data?.status || 'degraded',
@@ -39,7 +68,6 @@ export const checkHealth = async () => {
         error: `HTTP ${error.response.status}`,
       };
     } else if (error.request) {
-      // Network failure or backend server offline
       return {
         healthy: false,
         status: 'unreachable',
@@ -59,12 +87,8 @@ export const checkHealth = async () => {
   }
 };
 
-// Guard flag to prevent repeated health-check requests in React StrictMode development
 let hasLoggedDiagnostic = false;
 
-/**
- * Diagnostic logger to verify connectivity during application boot.
- */
 export const logDiagnosticHealth = async () => {
   if (hasLoggedDiagnostic) return;
   hasLoggedDiagnostic = true;
@@ -95,4 +119,3 @@ export const logDiagnosticHealth = async () => {
 };
 
 export default apiClient;
-

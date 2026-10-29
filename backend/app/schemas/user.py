@@ -1,15 +1,18 @@
-"""Pydantic v2 schemas for User and Role data validation and serialization."""
+"""Pydantic v2 schemas for User, Authentication, and Role governance."""
 
 from __future__ import annotations
 import re
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator, model_validator
 
 
 # Strictly enforce Communication Team as the sole role for public registration
 DEFAULT_REGISTRATION_ROLE = "Communication Team"
 ALLOWED_REGISTRATION_ROLES = {DEFAULT_REGISTRATION_ROLE}
+
+# Valid roles in the platform
+ALL_SYSTEM_ROLES = {"Admin", "Campaign Manager", "Communication Team"}
 
 
 class RoleRead(BaseModel):
@@ -68,14 +71,12 @@ class UserRegisterRequest(BaseModel):
     def intercept_role_tampering_and_aliases(cls, data: any) -> any:
         """Reject client attempts to supply elevated role fields and handle aliases."""
         if isinstance(data, dict):
-            # Forbid explicit privileged role manipulation attempts
             for forbidden in ("role", "role_id", "role_name"):
                 if forbidden in data:
                     raise ValueError(
                         f"Field '{forbidden}' cannot be specified during public registration. "
                         "Role assignments are server-controlled."
                     )
-            # Allow 'name' as a valid alias for 'full_name'
             if "name" in data and "full_name" not in data:
                 data["full_name"] = data["name"]
         return data
@@ -91,10 +92,7 @@ class UserRegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password_strength_and_byte_length(cls, v: str) -> str:
-        """
-        Enforce password complexity and bcrypt's strict 72-byte limit.
-        Prevents unhandled 500 errors on long ASCII or multibyte UTF-8 passwords.
-        """
+        """Enforce password complexity and bcrypt's strict 72-byte limit."""
         encoded_bytes = v.encode("utf-8")
         if len(encoded_bytes) > 72:
             raise ValueError(
@@ -122,6 +120,20 @@ class UserRegisterRequest(BaseModel):
         return cleaned
 
 
+class UserLoginRequest(BaseModel):
+    """Schema for authenticating existing users."""
+
+    email: EmailStr = Field(..., description="Account email address")
+    password: str = Field(..., min_length=1, description="Account password")
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, v: str) -> str:
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
+
+
 class UserRead(BaseModel):
     """Safe user profile response schema (never exposes hashed_password)."""
 
@@ -144,3 +156,51 @@ class UserRegisterResponse(BaseModel):
     status: str = "success"
     message: str
     user: UserRead
+
+
+class TokenResponse(BaseModel):
+    """JWT authentication response schema."""
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    user: UserRead
+
+
+class UserRoleUpdateRequest(BaseModel):
+    """Administrator schema for updating a target user's role."""
+
+    role_name: str = Field(
+        ...,
+        description="New role name (Admin, Campaign Manager, Communication Team)",
+        examples=["Campaign Manager"],
+    )
+
+    @field_validator("role_name")
+    @classmethod
+    def validate_role_name(cls, v: str) -> str:
+        cleaned = v.strip()
+        if cleaned not in ALL_SYSTEM_ROLES:
+            raise ValueError(
+                f"Invalid role '{cleaned}'. Allowed roles: {', '.join(sorted(ALL_SYSTEM_ROLES))}."
+            )
+        return cleaned
+
+
+class UserStatusUpdateRequest(BaseModel):
+    """Administrator schema for activating or deactivating a target user."""
+
+    is_active: bool = Field(
+        ...,
+        description="Active status flag (True to activate, False to deactivate)",
+    )
+
+
+class PaginatedUsersResponse(BaseModel):
+    """Paginated user directory response."""
+
+    items: List[UserRead]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

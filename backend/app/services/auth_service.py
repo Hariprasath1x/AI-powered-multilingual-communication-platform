@@ -2,16 +2,51 @@
 
 import logging
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 
 from app.models.user import User, Role
 from app.schemas.user import UserRegisterRequest, DEFAULT_REGISTRATION_ROLE
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.db.seed import seed_default_roles
 
 logger = logging.getLogger("masscommai.auth")
+
+
+def authenticate_user(db: Session, email: str, password: str) -> User:
+    """
+    Authenticates a user via email and password.
+    Returns the user on success; raises 401 for invalid credentials or inactive accounts.
+    """
+    normalized_email = email.strip().lower()
+
+    stmt = (
+        select(User)
+        .options(joinedload(User.role))
+        .where(User.email == normalized_email)
+    )
+    user = db.execute(stmt).scalar_one_or_none()
+
+    # Generic invalid credentials error to avoid user enumeration
+    if not user or not verify_password(password, user.hashed_password):
+        logger.info("Authentication failed for email %s", normalized_email)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Inactive account verification
+    if not user.is_active:
+        logger.warning("Authentication rejected: deactivated account %s", normalized_email)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is deactivated. Please contact an administrator.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user
 
 
 def register_user(db: Session, request: UserRegisterRequest) -> User:
