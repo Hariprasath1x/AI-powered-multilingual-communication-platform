@@ -199,3 +199,4 @@ psql -U postgres -c "CREATE DATABASE masscommai_dev;"
   Ensure the origin `http://127.0.0.1:5173` is listed in `CORS_ORIGINS` in `backend/.env`.
 - **Alembic migration conflicts:**
   Run `alembic current` and `alembic heads` inside the `backend` directory to inspect revision state.
+

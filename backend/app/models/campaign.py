@@ -75,3 +75,4 @@ class Campaign(Base, TimestampMixin):
         back_populates="campaign",
         cascade="all, delete-orphan",
     )
+

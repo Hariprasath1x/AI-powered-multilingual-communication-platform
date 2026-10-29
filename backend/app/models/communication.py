@@ -135,3 +135,4 @@ class Feedback(Base):
     # Relationships
     campaign: Mapped[Campaign] = relationship(back_populates="feedbacks")
     audience_member: Mapped[Optional[AudienceMember]] = relationship(back_populates="feedbacks")
+

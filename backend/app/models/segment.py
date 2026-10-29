@@ -54,3 +54,4 @@ class Segment(Base, TimestampMixin):
         secondary=campaign_segments,
         back_populates="segments",
     )
+

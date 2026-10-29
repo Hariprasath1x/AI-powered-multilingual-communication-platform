@@ -169,3 +169,4 @@ erDiagram
 - **Initial Migration:** `0de49a2cf7ef_initial_schema_all_models.py`
 - **Execution Command:** `alembic upgrade head`
 - **Rollback Command:** `alembic downgrade -1`
+

@@ -47,3 +47,4 @@ class Template(Base, TimestampMixin):
     # Relationships
     creator: Mapped[User] = relationship(back_populates="created_templates")
     messages: Mapped[List[Message]] = relationship(back_populates="template")
+

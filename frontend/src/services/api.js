@@ -95,3 +95,4 @@ export const logDiagnosticHealth = async () => {
 };
 
 export default apiClient;
+

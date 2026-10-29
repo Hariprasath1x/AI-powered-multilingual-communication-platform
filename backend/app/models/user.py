@@ -48,3 +48,4 @@ class User(Base, TimestampMixin):
     created_segments: Mapped[List[Segment]] = relationship(back_populates="creator")
     created_campaigns: Mapped[List[Campaign]] = relationship(back_populates="creator")
     created_templates: Mapped[List[Template]] = relationship(back_populates="creator")
+

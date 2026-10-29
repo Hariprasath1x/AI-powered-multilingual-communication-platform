@@ -49,3 +49,4 @@ class AudienceMember(Base, TimestampMixin):
             postgresql_where=text("phone IS NOT NULL"),
         ),
     )
+
