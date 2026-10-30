@@ -1,5 +1,14 @@
 """API Routers package."""
 
-from app.routers import health, auth, admin_users, audience, segments
+from app.routers import health, auth, admin_users, audience, segments, templates, campaigns, content
 
-__all__ = ["health", "auth", "admin_users", "audience", "segments"]
+__all__ = [
+    "health",
+    "auth",
+    "admin_users",
+    "audience",
+    "segments",
+    "templates",
+    "campaigns",
+    "content",
+]

@@ -6,7 +6,9 @@ from app.db.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.campaign import Campaign
     from app.models.communication import Message
+    from app.models.content_asset import ContentAsset
 
 
 class Template(Base, TimestampMixin):
@@ -47,4 +49,9 @@ class Template(Base, TimestampMixin):
     # Relationships
     creator: Mapped[User] = relationship(back_populates="created_templates")
     messages: Mapped[List[Message]] = relationship(back_populates="template")
+    campaigns: Mapped[List[Campaign]] = relationship(back_populates="template")
+    content_assets: Mapped[List[ContentAsset]] = relationship(
+        "ContentAsset",
+        back_populates="template",
+    )
 

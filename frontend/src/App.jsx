@@ -9,6 +9,11 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import AudienceListPage from './pages/audience/AudienceListPage';
 import SegmentListPage from './pages/segments/SegmentListPage';
+import TemplateListPage from './pages/templates/TemplateListPage';
+import CampaignListPage from './pages/campaigns/CampaignListPage';
+import CampaignWizardPage from './pages/campaigns/CampaignWizardPage';
+import CampaignDetailPage from './pages/campaigns/CampaignDetailPage';
+import ContentStudioPage from './pages/content/ContentStudioPage';
 import ProtectedRoute from './components/guards/ProtectedRoute';
 import AdminRoute from './components/guards/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -54,6 +59,54 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <SegmentListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/templates"
+                element={
+                  <ProtectedRoute>
+                    <TemplateListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaigns"
+                element={
+                  <ProtectedRoute>
+                    <CampaignListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaigns/new"
+                element={
+                  <ProtectedRoute>
+                    <CampaignWizardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaigns/:id"
+                element={
+                  <ProtectedRoute>
+                    <CampaignDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaigns/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <CampaignWizardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/content"
+                element={
+                  <ProtectedRoute>
+                    <ContentStudioPage />
                   </ProtectedRoute>
                 }
               />

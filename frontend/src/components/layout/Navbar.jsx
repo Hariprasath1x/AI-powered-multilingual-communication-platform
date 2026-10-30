@@ -11,7 +11,10 @@ import {
   LogOut,
   LayoutDashboard,
   Users,
-  Layers
+  Layers,
+  FileText,
+  Megaphone,
+  Sparkles
 } from 'lucide-react';
 import { checkHealth } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -117,6 +120,33 @@ export default function Navbar() {
                 >
                   <Layers className="w-4 h-4" />
                   Segments
+                </Link>
+                <Link
+                  to="/templates"
+                  className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    location.pathname.startsWith('/templates') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  Templates
+                </Link>
+                <Link
+                  to="/campaigns"
+                  className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    location.pathname.startsWith('/campaigns') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
+                  }`}
+                >
+                  <Megaphone className="w-4 h-4" />
+                  Campaigns
+                </Link>
+                <Link
+                  to="/content"
+                  className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    location.pathname.startsWith('/content') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Content Studio
                 </Link>
                 {isAdmin && (
                   <Link
@@ -243,6 +273,27 @@ export default function Navbar() {
                   className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
                 >
                   Audience Segments
+                </Link>
+                <Link
+                  to="/templates"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                >
+                  Template Library
+                </Link>
+                <Link
+                  to="/campaigns"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                >
+                  Campaign Studio
+                </Link>
+                <Link
+                  to="/content"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                >
+                  AI Content Studio
                 </Link>
                 {isAdmin && (
                   <Link

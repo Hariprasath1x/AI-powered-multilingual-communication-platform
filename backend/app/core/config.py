@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 from pydantic import computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -22,6 +22,12 @@ class Settings(BaseSettings):
 
     # CORS
     CORS_ORIGINS: str = "http://127.0.0.1:5173,http://localhost:5173"
+
+    # AI Generation & Translation
+    GEMINI_API_KEY: Optional[str] = None
+    AI_PROVIDER: str = "auto"  # "auto", "mock", "gemini"
+    AI_MODEL_NAME: str = "gemini-2.5-flash"
+    AI_REQUEST_TIMEOUT_SECONDS: int = 30
 
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":

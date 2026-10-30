@@ -10,7 +10,9 @@ from app.db.base import Base, TimestampMixin
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.segment import Segment
+    from app.models.template import Template
     from app.models.communication import Message, Feedback
+    from app.models.content_asset import ContentAsset
 
 
 class Campaign(Base, TimestampMixin):
@@ -55,6 +57,11 @@ class Campaign(Base, TimestampMixin):
         DateTime(timezone=True),
         nullable=True,
     )
+    template_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("templates.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_by: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False,
@@ -63,6 +70,7 @@ class Campaign(Base, TimestampMixin):
 
     # Relationships
     creator: Mapped[User] = relationship(back_populates="created_campaigns")
+    template: Mapped[Optional[Template]] = relationship(back_populates="campaigns")
     segments: Mapped[List[Segment]] = relationship(
         secondary="campaign_segments",
         back_populates="campaigns",
@@ -74,5 +82,9 @@ class Campaign(Base, TimestampMixin):
     feedbacks: Mapped[List[Feedback]] = relationship(
         back_populates="campaign",
         cascade="all, delete-orphan",
+    )
+    content_assets: Mapped[List[ContentAsset]] = relationship(
+        "ContentAsset",
+        back_populates="campaign",
     )
 

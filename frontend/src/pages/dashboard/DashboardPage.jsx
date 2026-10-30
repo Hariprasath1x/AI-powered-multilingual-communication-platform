@@ -10,7 +10,9 @@ import {
   Building2, 
   ArrowRight, 
   CheckCircle2, 
-  Clock 
+  Clock,
+  FileText,
+  Sparkles
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -96,7 +98,7 @@ export default function DashboardPage() {
           Communication Modules
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           
           {/* Audience Management */}
           <Link
@@ -142,21 +144,71 @@ export default function DashboardPage() {
             </p>
           </Link>
 
-          {/* Campaign Creation */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-              <Megaphone className="w-5 h-5" />
-            </div>
+          {/* Template Library */}
+          <Link
+            to="/templates"
+            className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-brand-300 hover:shadow-md transition group space-y-3 block"
+          >
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Campaign Studio</h3>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 flex items-center gap-1">
-                <Clock className="w-3 h-3" /> Task 6
+              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition">
+                <FileText className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Task 6 Ready
               </span>
             </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition">Template Library</h3>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-1 transition" />
+            </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Multi-step campaign workflows, placeholder-aware templates, and content libraries.
+              Reusable message templates with domain categories, language variants, and citizen placeholder chips.
             </p>
-          </div>
+          </Link>
+
+          {/* Campaign Studio */}
+          <Link
+            to="/campaigns"
+            className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-brand-300 hover:shadow-md transition group space-y-3 block"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition">
+                <Megaphone className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Task 6 Ready
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition">Campaign Studio</h3>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-1 transition" />
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              4-step campaign wizard, multi-channel simulated previews, reach metrics, and lifecycle state management.
+            </p>
+          </Link>
+
+          {/* AI Content Studio */}
+          <Link
+            to="/content"
+            className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-brand-300 hover:shadow-md transition group space-y-3 block"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Task 7 Ready
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition">Content Studio</h3>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-1 transition" />
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              AI content generation from briefs, multilingual translation for 6 Indian languages, and editorial review.
+            </p>
+          </Link>
 
         </div>
       </div>

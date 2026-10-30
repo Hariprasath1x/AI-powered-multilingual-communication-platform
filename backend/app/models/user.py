@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from app.models.segment import Segment
     from app.models.campaign import Campaign
     from app.models.template import Template
+    from app.models.content_asset import ContentAsset
 
 
 class Role(Base):
@@ -48,4 +49,9 @@ class User(Base, TimestampMixin):
     created_segments: Mapped[List[Segment]] = relationship(back_populates="creator")
     created_campaigns: Mapped[List[Campaign]] = relationship(back_populates="creator")
     created_templates: Mapped[List[Template]] = relationship(back_populates="creator")
+    created_content_assets: Mapped[List[ContentAsset]] = relationship(
+        "ContentAsset",
+        foreign_keys="ContentAsset.created_by",
+        back_populates="creator",
+    )
 
