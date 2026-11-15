@@ -9,6 +9,7 @@ import {
   Eye,
   Edit2,
   Trash2,
+  Copy,
   Calendar,
   Users,
   CheckCircle2,
@@ -20,7 +21,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { listCampaigns, getCampaignMeta } from '../../services/campaignService';
+import { listCampaigns, getCampaignMeta, cloneCampaign } from '../../services/campaignService';
 import CampaignDeleteModal from './CampaignDeleteModal';
 
 export default function CampaignListPage() {
@@ -53,6 +54,7 @@ export default function CampaignListPage() {
   // Modals
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingCampaign, setDeletingCampaign] = useState(null);
+  const [cloningId, setCloningId] = useState(null);
 
   // Debounce search
   useEffect(() => {
@@ -102,6 +104,20 @@ export default function CampaignListPage() {
     setTimeout(() => setToastMessage(''), 4500);
   };
 
+  const handleClone = async (camp) => {
+    if (cloningId) return;
+    setCloningId(camp.id);
+    try {
+      const cloned = await cloneCampaign(camp.id);
+      showToast(`Campaign cloned as "${cloned.name}" (Draft).`);
+      await fetchCampaigns();
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Failed to clone campaign.');
+    } finally {
+      setCloningId(null);
+    }
+  };
+
   const canModifyCampaign = (camp) => {
     if (isAdmin) return true;
     if (isCampaignManager && camp.created_by === user?.id) return true;
@@ -148,32 +164,32 @@ export default function CampaignListPage() {
       )}
 
       {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
-              <Megaphone className="w-4 h-4" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center">
+            <Megaphone className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               Campaign Studio
             </h1>
+            <p className="text-sm text-slate-500">
+              Design multi-channel public communication campaigns with audience segmentation, template linking, and consent compliance.
+            </p>
           </div>
-          <p className="text-sm text-slate-600 max-w-2xl">
-            Design multi-channel public communication campaigns with audience segmentation, template linking, and consent compliance.
-          </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             to="/templates"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl transition shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg transition shadow-2xs"
           >
             Template Library
           </Link>
           {canCreate && (
             <Link
               to="/campaigns/new"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow-emerald-500/25 transition active:scale-[0.98] whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition active:scale-[0.98] whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
               New Campaign
@@ -312,7 +328,7 @@ export default function CampaignListPage() {
           {canCreate && (
             <Link
               to="/campaigns/new"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5" />
               Create First Campaign
@@ -329,7 +345,7 @@ export default function CampaignListPage() {
             return (
               <div
                 key={camp.id}
-                className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:border-brand-300 hover:shadow-sm transition flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:border-slate-300 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4"
               >
                 {/* Left: Info & Badges */}
                 <div className="space-y-2 flex-1">
@@ -393,6 +409,22 @@ export default function CampaignListPage() {
                     >
                       <Edit2 className="w-3.5 h-3.5 text-slate-500" /> Edit
                     </Link>
+                  )}
+
+                  {canCreate && (
+                    <button
+                      onClick={() => handleClone(camp)}
+                      disabled={cloningId === camp.id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition disabled:opacity-50"
+                      title="Clone campaign as new draft"
+                    >
+                      {cloningId === camp.id ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-500" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      )}
+                      Clone
+                    </button>
                   )}
 
                   {isOwner && isDraftOrArchived && (

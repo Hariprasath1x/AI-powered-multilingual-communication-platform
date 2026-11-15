@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, List, Optional, Any
 from datetime import datetime
-from sqlalchemy import String, Text, ForeignKey, DateTime
+from sqlalchemy import String, Text, ForeignKey, DateTime, Index, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from app.models.user import User
     from app.models.campaign import Campaign
     from app.models.template import Template
+    from app.models.content_quality import ContentQualityAssessment
+    from app.models.translation import TranslationReviewHistory
+    from app.models.content_variant import ContentVariant
 
 
 class ContentAsset(Base, TimestampMixin):
@@ -144,5 +147,34 @@ class ContentAsset(Base, TimestampMixin):
     variants: Mapped[List[ContentAsset]] = relationship(
         "ContentAsset",
         back_populates="parent",
+    )
+    personalization_variants: Mapped[List[ContentVariant]] = relationship(
+        "ContentVariant",
+        foreign_keys="[ContentVariant.source_content_id]",
+        back_populates="source_content",
+        cascade="all, delete-orphan",
+    )
+    quality_assessments: Mapped[List[ContentQualityAssessment]] = relationship(
+        "ContentQualityAssessment",
+        back_populates="content_asset",
+        cascade="all, delete-orphan",
+        order_by="desc(ContentQualityAssessment.created_at)",
+    )
+    translation_review_history: Mapped[List[TranslationReviewHistory]] = relationship(
+        "TranslationReviewHistory",
+        back_populates="content_asset",
+        cascade="all, delete-orphan",
+        order_by="TranslationReviewHistory.created_at.asc()",
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_content_asset_translation_variant",
+            "parent_id",
+            func.lower(target_language),
+            unique=True,
+            postgresql_where=text("parent_id IS NOT NULL AND target_language IS NOT NULL"),
+            sqlite_where=text("parent_id IS NOT NULL AND target_language IS NOT NULL"),
+        ),
     )
 

@@ -14,7 +14,8 @@ import {
   Layers,
   FileText,
   Megaphone,
-  Sparkles
+  Sparkles,
+  SendHorizontal
 } from 'lucide-react';
 import { checkHealth } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -52,20 +53,20 @@ export default function Navbar() {
   }[user?.role?.name || ''] || 'bg-slate-100 text-slate-800 border-slate-200';
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo & Wordmark */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:bg-brand-700 transition">
-              <MessageSquareShare className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm group-hover:bg-blue-700 transition">
+              <MessageSquareShare className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-slate-900 group-hover:text-brand-600 transition">
-                MassComm<span className="text-brand-600">AI</span>
+              <span className="text-xl font-bold tracking-tight text-slate-900">
+                MassComm<span className="text-blue-600">AI</span>
               </span>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide uppercase -mt-1">
+              <span className="text-[10px] text-slate-500 font-medium tracking-wide uppercase -mt-1 font-mono">
                 Public Awareness Engine
               </span>
             </div>
@@ -74,8 +75,8 @@ export default function Navbar() {
           {/* System Health Status Indicator */}
           <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border bg-slate-50 border-slate-200">
             <span className={`w-2 h-2 rounded-full ${systemStatus.checking ? 'bg-amber-400 animate-pulse' : systemStatus.healthy ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-            <span className="text-slate-600">Backend:</span>
-            <span className={systemStatus.healthy ? 'text-emerald-700 font-semibold' : 'text-slate-500'}>
+            <span className="text-slate-500">Backend:</span>
+            <span className={systemStatus.healthy ? 'text-emerald-700 font-semibold' : 'text-slate-600'}>
               {systemStatus.label}
             </span>
           </div>
@@ -87,7 +88,7 @@ export default function Navbar() {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors"
+                  className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   {item.name}
                 </a>
@@ -148,6 +149,15 @@ export default function Navbar() {
                   <Sparkles className="w-4 h-4" />
                   Content Studio
                 </Link>
+                <Link
+                  to="/distribution"
+                  className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    location.pathname.startsWith('/distribution') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
+                  }`}
+                >
+                  <SendHorizontal className="w-4 h-4" />
+                  Distribution
+                </Link>
                 {isAdmin && (
                   <Link
                     to="/admin/users"
@@ -191,14 +201,14 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-brand-600 transition"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition"
                   title="Task 3: Authentication"
                 >
                   Log in
                 </Link>
                 <Link
                   to="/register"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm hover:shadow-brand-500/25 transition active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition active:scale-[0.98]"
                   title="Task 2: User Registration"
                 >
                   Get Started
@@ -294,6 +304,13 @@ export default function Navbar() {
                   className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
                 >
                   AI Content Studio
+                </Link>
+                <Link
+                  to="/distribution"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                >
+                  Distribution Engine
                 </Link>
                 {isAdmin && (
                   <Link

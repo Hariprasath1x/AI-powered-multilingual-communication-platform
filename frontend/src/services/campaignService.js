@@ -33,6 +33,14 @@ export async function createCampaign(data) {
 }
 
 /**
+ * Clone an existing campaign into a new Draft campaign.
+ */
+export async function cloneCampaign(campaignId) {
+  const response = await api.post(`/campaigns/${campaignId}/clone`);
+  return response.data;
+}
+
+/**
  * Update an existing campaign (only Draft or In Review).
  */
 export async function updateCampaign(campaignId, data) {

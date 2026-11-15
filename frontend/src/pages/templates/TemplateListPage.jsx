@@ -132,18 +132,13 @@ export default function TemplateListPage() {
       )}
 
       {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center">
-              <FileText className="w-4 h-4" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Communication Template Library
-            </h1>
-          </div>
-          <p className="text-sm text-slate-600 max-w-2xl">
-            Create, manage, and standardize public awareness messages with dynamic citizen variables for multi-channel broadcasting.
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Message Templates
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Pre-approved public awareness announcement templates with dynamic citizen variables for multi-channel broadcasting.
           </p>
         </div>
 
@@ -153,7 +148,7 @@ export default function TemplateListPage() {
               setEditingTemplate(null);
               setFormModalOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow-brand-500/25 transition active:scale-[0.98] whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition active:scale-[0.98] whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             New Template
@@ -162,18 +157,18 @@ export default function TemplateListPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+      <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-subtle space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           
           {/* Search Input */}
           <div className="sm:col-span-6 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search templates by headline title, content body, or tags..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition text-slate-900"
             />
           </div>
 
@@ -185,7 +180,7 @@ export default function TemplateListPage() {
                 setSelectedCategory(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition text-slate-900"
             >
               <option value="">All Categories</option>
               {categories.map((c) => (
@@ -204,7 +199,7 @@ export default function TemplateListPage() {
                 setSelectedLanguage(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition text-slate-900"
             >
               <option value="">All Languages</option>
               <option value="en">English (en)</option>
@@ -221,7 +216,7 @@ export default function TemplateListPage() {
             <button
               onClick={fetchTemplates}
               title="Refresh templates"
-              className="w-full sm:w-auto p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex items-center justify-center"
+              className="w-full sm:w-auto p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-300 rounded-lg transition flex items-center justify-center shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -286,7 +281,7 @@ export default function TemplateListPage() {
                 setEditingTemplate(null);
                 setFormModalOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded-xl hover:bg-brand-700 transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5" />
               Create First Template
@@ -300,13 +295,13 @@ export default function TemplateListPage() {
             return (
               <div
                 key={tmpl.id}
-                className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:border-brand-300 hover:shadow-sm transition flex flex-col justify-between space-y-4"
+                className="bg-white rounded-lg border border-slate-200 p-5 shadow-subtle hover:border-slate-300 hover:shadow-elevated transition flex flex-col justify-between space-y-3"
               >
                 {/* Card Top: Badges & Actions */}
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${getCategoryBadgeClass(
+                      className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getCategoryBadgeClass(
                         tmpl.category
                       )}`}
                     >
@@ -314,7 +309,7 @@ export default function TemplateListPage() {
                     </span>
 
                     <div className="flex items-center gap-1">
-                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase font-semibold">
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase font-semibold border border-slate-200">
                         {tmpl.language}
                       </span>
                       {isOwner && (
@@ -325,7 +320,7 @@ export default function TemplateListPage() {
                               setFormModalOpen(true);
                             }}
                             title="Edit template"
-                            className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -335,7 +330,7 @@ export default function TemplateListPage() {
                               setDeleteModalOpen(true);
                             }}
                             title="Delete template"
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -349,7 +344,7 @@ export default function TemplateListPage() {
                 </div>
 
                 {/* Body Preview */}
-                <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed font-normal line-clamp-3">
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs text-slate-700 leading-relaxed font-normal line-clamp-3">
                   {tmpl.body}
                 </div>
 

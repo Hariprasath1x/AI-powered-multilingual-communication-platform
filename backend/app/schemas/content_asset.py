@@ -4,12 +4,32 @@ import math
 import re
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Set
-from pydantic import BaseModel, Field, field_validator, computed_field, ConfigDict
+from pydantic import BaseModel, Field, field_validator, computed_field, ConfigDict, model_validator
 
 SUPPORTED_CHANNELS: Set[str] = {"Email", "SMS", "WhatsApp", "Voice"}
 SUPPORTED_TONES: Set[str] = {"formal", "informative", "friendly", "urgent", "empathetic"}
-SUPPORTED_LANGUAGES: Set[str] = {"en", "hi", "ta", "te", "bn", "mr"}
-SUPPORTED_REVIEW_STATUSES: Set[str] = {"Draft", "In Review", "Approved", "Rejected"}
+SUPPORTED_LANGUAGES: Set[str] = {
+    "en",  # English
+    "hi",  # Hindi
+    "kn",  # Kannada
+    "ta",  # Tamil
+    "te",  # Telugu
+    "mr",  # Marathi
+    "bn",  # Bengali
+    "gu",  # Gujarati
+    "ml",  # Malayalam
+    "pa",  # Punjabi
+    "ur",  # Urdu
+}
+SUPPORTED_REVIEW_STATUSES: Set[str] = {
+    "Draft",
+    "Pending",
+    "Generated",
+    "Needs Review",
+    "Approved",
+    "Rejected",
+    "In Review",  # Retained for backward compatibility
+}
 PLACEHOLDER_REGEX = re.compile(r"\{[a-zA-Z0-9_]+\}")
 
 
@@ -56,7 +76,7 @@ class ContentGenerateRequest(BaseModel):
 class ContentTranslateRequest(BaseModel):
     """Request payload to translate an existing content asset into a target Indian language."""
 
-    target_language: str = Field(..., description="Target Indian language code: en, ta, hi, te, bn, mr")
+    target_language: str = Field(..., description="Target Indian language code (hi, kn, ta, te, mr, bn, gu, ml, pa, ur)")
     notes: Optional[str] = Field(None, max_length=500, description="Additional context or stylistic guidance")
 
     @field_validator("target_language")
@@ -66,6 +86,31 @@ class ContentTranslateRequest(BaseModel):
         if clean not in SUPPORTED_LANGUAGES:
             raise ValueError(f"Target language '{v}' is not supported. Must be one of: {', '.join(sorted(SUPPORTED_LANGUAGES))}")
         return clean
+
+
+class ContentBatchTranslateRequest(BaseModel):
+    """Request payload to translate an asset into multiple target Indian languages concurrently."""
+
+    target_languages: List[str] = Field(
+        ...,
+        min_length=1,
+        max_length=10,
+        description="List of target Indian language codes (e.g. ['hi', 'kn', 'ta', 'te'])",
+    )
+    notes: Optional[str] = Field(None, max_length=500, description="Additional context or stylistic guidance")
+    provider_type: Optional[str] = Field(None, description="Optional provider override (e.g. 'mock' or 'gemini')")
+
+    @field_validator("target_languages")
+    @classmethod
+    def validate_target_languages(cls, v: List[str]) -> List[str]:
+        if not v:
+            raise ValueError("At least one target language must be selected.")
+        cleaned = []
+        for lang in v:
+            c = lang.lower().strip()
+            if c not in cleaned:
+                cleaned.append(c)
+        return cleaned
 
 
 class ContentAssetCreate(BaseModel):
@@ -119,6 +164,68 @@ class ContentAttachRequest(BaseModel):
     template_category: Optional[str] = Field(None, max_length=50, description="Template category")
 
 
+class ContentPreviewMetricsRequest(BaseModel):
+    """Stateless channel constraint simulation request."""
+
+    channel: str = Field(..., description="Email, SMS, WhatsApp, Voice")
+    body: str = Field("", max_length=10000, description="Draft body text to analyze")
+    title: Optional[str] = Field(None, max_length=255, description="Draft title or subject")
+    call_to_action: Optional[str] = Field(None, max_length=255, description="Draft call to action")
+    language: Optional[str] = Field(None, max_length=32, description="Target language code (e.g. en, ta, hi)")
+    mode: Optional[str] = Field("freeform", max_length=32, description="Optional channel mode: freeform or template")
+
+    @field_validator("channel")
+    @classmethod
+    def validate_channel(cls, v: str) -> str:
+        clean = v.strip().title() if v.lower() != "sms" and v.lower() != "whatsapp" else ("SMS" if v.lower() == "sms" else "WhatsApp")
+        if clean not in SUPPORTED_CHANNELS:
+            raise ValueError(f"Channel must be one of: {', '.join(sorted(SUPPORTED_CHANNELS))}")
+        return clean
+
+
+class ChannelWarningResponse(BaseModel):
+    """Structured, machine-readable channel constraint warning."""
+
+    code: str = Field(..., description="Stable machine-readable warning code")
+    severity: str = Field(..., description="Warning severity: CRITICAL, HIGH, MEDIUM, LOW, or INFO")
+    message: str = Field(..., description="Human-readable explanation and correction guidance")
+
+
+class SMSDetailResponse(BaseModel):
+    """
+    Detailed telecom SMS encoding and segmentation metrics.
+
+    Note: Encoding analysis uses UTF-16 code units for UCS-2 compatibility estimates.
+    Supplementary characters (e.g., emojis) consume 2 code units. Strict UCS-2 gateways
+    may not support supplementary characters; carrier delivery cannot be guaranteed.
+    """
+
+    encoding: str = Field(..., description="GSM-7 or UCS-2")
+    character_count: int = Field(..., description="Total characters in content body")
+    encoded_units: int = Field(..., description="Total septets (GSM-7) or UTF-16 code units (UCS-2)")
+    segment_count: int = Field(..., description="Calculated SMS segments required")
+    segment_capacity: int = Field(..., description="Capacity of current segment tier (160/153 or 70/67)")
+    remaining_in_segment: int = Field(..., description="Remaining capacity in final segment")
+    is_multipart: bool = Field(..., description="True if message requires multi-segment concatenation")
+    has_extension_characters: bool = Field(default=False, description="True if GSM-7 extension characters used")
+    has_surrogate_pairs: bool = Field(default=False, description="True if supplementary Unicode characters used")
+    non_gsm_characters: List[str] = Field(default_factory=list, description="Deduplicated sample of non-GSM characters")
+
+
+class ChannelMetricsResponse(BaseModel):
+    """Complete channel simulation and constraint metrics."""
+
+    channel: str = Field(..., description="Normalized channel name")
+    character_count: int = Field(..., description="Total characters in content body")
+    word_count: int = Field(..., description="Total words in content body")
+    estimated_duration_seconds: Optional[int] = Field(None, description="Spoken duration estimate for Voice")
+    sms: Optional[SMSDetailResponse] = Field(None, description="Detailed telecom SMS metrics if channel is SMS")
+    is_within_recommended_limit: bool = Field(..., description="Whether content satisfies recommended UX boundaries")
+    is_within_hard_limit: bool = Field(..., description="Whether content satisfies technical hard limits")
+    warnings: List[ChannelWarningResponse] = Field(default_factory=list, description="Structured warnings")
+    rule_version: str = Field("v1.0", description="Version of the channel constraint rule engine")
+
+
 class ContentAssetResponse(BaseModel):
     """Full representation of a ContentAsset entity with computed channel simulation metrics."""
 
@@ -141,9 +248,42 @@ class ContentAssetResponse(BaseModel):
     reviewed_by: Optional[int] = None
     reviewed_at: Optional[datetime] = None
     provider_metadata: Optional[Dict[str, Any]] = None
+    channel_metrics: Optional[ChannelMetricsResponse] = None
     created_by: int
     created_at: datetime
     updated_at: datetime
+
+    @model_validator(mode="after")
+    def ensure_channel_metrics(self) -> "ContentAssetResponse":
+        """
+        Ensure channel_metrics is always present in response.
+        If present in provider_metadata snapshot, deserialize it.
+        If missing (e.g. older record without snapshot), compute dynamically.
+        """
+        if self.channel_metrics is None:
+            if (
+                self.provider_metadata
+                and isinstance(self.provider_metadata, dict)
+                and "channel_metrics" in self.provider_metadata
+            ):
+                try:
+                    self.channel_metrics = ChannelMetricsResponse.model_validate(
+                        self.provider_metadata["channel_metrics"]
+                    )
+                except Exception:
+                    pass
+            if self.channel_metrics is None:
+                from app.services.channel_constraints import calculate_channel_metrics
+
+                calculated = calculate_channel_metrics(
+                    channel=self.channel,
+                    title=self.title,
+                    body=self.body,
+                    call_to_action=self.call_to_action,
+                    language=self.target_language or self.source_language,
+                )
+                self.channel_metrics = ChannelMetricsResponse.model_validate(calculated.to_dict())
+        return self
 
     @computed_field
     @property
@@ -158,17 +298,26 @@ class ContentAssetResponse(BaseModel):
     @computed_field
     @property
     def sms_segment_count(self) -> int:
-        """Estimate standard 160-char SMS segments for ASCII or 70-char for Unicode."""
-        is_ascii = all(ord(c) < 128 for c in self.body)
-        segment_limit = 160 if is_ascii else 70
-        return max(1, math.ceil(len(self.body) / segment_limit)) if self.body else 1
+        """Estimate standard 160-char SMS segments for GSM-7 or 70-char for UCS-2."""
+        if self.channel_metrics and self.channel_metrics.sms:
+            return max(1, self.channel_metrics.sms.segment_count) if self.body else 1
+        from app.services.channel_constraints import calculate_sms_metrics
+
+        sms_data = calculate_sms_metrics(self.body or "")
+        return max(1, sms_data.segment_count) if self.body else 1
 
     @computed_field
     @property
     def voice_duration_seconds(self) -> int:
-        """Estimate spoken audio duration at ~150 words per minute (2.5 words/second)."""
-        words = len(self.body.split())
-        return max(5, math.ceil(words / 2.5)) if words else 5
+        """Estimate spoken audio duration at language-appropriate speaking rates."""
+        if self.channel_metrics and self.channel_metrics.estimated_duration_seconds is not None:
+            return self.channel_metrics.estimated_duration_seconds
+        from app.services.channel_constraints import calculate_voice_duration_seconds
+
+        return calculate_voice_duration_seconds(
+            self.body or "",
+            language=self.target_language or self.source_language,
+        )
 
     @computed_field
     @property
@@ -203,3 +352,37 @@ class PaginatedContentAssetResponse(BaseModel):
     page: int
     size: int
     pages: int
+
+
+class BatchTranslationFailure(BaseModel):
+    """Details of an individual target language translation failure in a batch."""
+
+    target_language: str
+    error: str
+    status_code: int = 422
+
+
+class ContentBatchTranslateResponse(BaseModel):
+    """Result of batch translation across multiple target languages."""
+
+    source_asset_id: int
+    successes: List[ContentAssetResponse] = Field(default_factory=list)
+    failures: List[BatchTranslationFailure] = Field(default_factory=list)
+    total_requested: int
+    total_succeeded: int
+    total_failed: int
+
+
+class TranslationReviewHistoryResponse(BaseModel):
+    """Audit record of a translation review state transition."""
+
+    id: int
+    content_asset_id: int
+    from_status: str
+    to_status: str
+    reviewer_id: int
+    reviewer_name: Optional[str] = None
+    review_notes: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

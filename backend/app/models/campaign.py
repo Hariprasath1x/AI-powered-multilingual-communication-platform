@@ -13,6 +13,8 @@ if TYPE_CHECKING:
     from app.models.template import Template
     from app.models.communication import Message, Feedback
     from app.models.content_asset import ContentAsset
+    from app.models.distribution import DistributionJob
+    from app.models.content_variant import ContentVariant
 
 
 class Campaign(Base, TimestampMixin):
@@ -86,5 +88,16 @@ class Campaign(Base, TimestampMixin):
     content_assets: Mapped[List[ContentAsset]] = relationship(
         "ContentAsset",
         back_populates="campaign",
+    )
+    distribution_jobs: Mapped[List[DistributionJob]] = relationship(
+        "DistributionJob",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+    )
+    variants: Mapped[List[ContentVariant]] = relationship(
+        "ContentVariant",
+        foreign_keys="[ContentVariant.campaign_id]",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
     )
 

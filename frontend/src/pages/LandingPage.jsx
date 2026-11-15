@@ -107,29 +107,29 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-slate-50">
       
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 gradient-mesh border-b border-slate-200">
+      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             {/* Hero Copy */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-100 text-brand-800 border border-brand-200 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-                <span>Infosys Springboard Virtual Internship &bull; Milestone 1</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-slate-800 border border-slate-200 shadow-2xs font-mono">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                <span>Infosys Springboard Virtual Internship &bull; Milestone 2</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.15]">
                 AI-Powered Multilingual <br className="hidden sm:inline" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600">
+                <span className="text-blue-600">
                   Public Awareness & Mass Communication
                 </span>
               </h1>
 
               <p className="text-lg sm:text-xl text-slate-600 max-w-2xl leading-relaxed">
-                Empower government departments, healthcare institutions, and organizations to create,
+                Empower government departments, healthcare institutions, and public authorities to create,
                 translate, personalize, and distribute awareness campaigns across diverse linguistic communities with automated delivery and real-time analytics.
               </p>
 
@@ -137,31 +137,31 @@ export default function LandingPage() {
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
                 <Link
                   to="/register"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/25 transition active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-2xs transition active:scale-[0.98]"
                 >
                   Get Started
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
                   href="#features"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 shadow-sm transition hover:border-slate-400"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition"
                 >
                   Explore Platform
                 </a>
               </div>
 
               {/* Architecture highlights pill */}
-              <div className="pt-6 border-t border-slate-200/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-500">
+              <div className="pt-6 border-t border-slate-200 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-500 font-mono">
                 <div className="flex items-center gap-1.5 font-medium">
-                  <Database className="w-4 h-4 text-brand-600" />
-                  <span>PostgreSQL 14+ Relational Engine</span>
+                  <Database className="w-4 h-4 text-blue-600" />
+                  <span>PostgreSQL Relational Engine</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-medium">
-                  <Cpu className="w-4 h-4 text-brand-600" />
+                  <Cpu className="w-4 h-4 text-blue-600" />
                   <span>FastAPI Asynchronous Backend</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-medium">
-                  <Globe2 className="w-4 h-4 text-brand-600" />
+                  <Globe2 className="w-4 h-4 text-blue-600" />
                   <span>Multi-Language Indic Support</span>
                 </div>
               </div>
@@ -171,43 +171,40 @@ export default function LandingPage() {
             <div className="lg:col-span-5">
               <div className="relative mx-auto max-w-md lg:max-w-none">
                 
-                {/* Glow backdrop */}
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-brand-500 to-indigo-500 opacity-20 blur-xl"></div>
-                
                 {/* Card Container */}
-                <div className="relative rounded-2xl bg-white border border-slate-200/90 shadow-2xl p-6 space-y-5">
+                <div className="relative rounded-xl bg-white border border-slate-200 shadow-2xs p-6 space-y-5">
                   
                   {/* Mock Dashboard Top Bar */}
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-rose-500" />
-                      <div className="w-3 h-3 rounded-full bg-amber-500" />
-                      <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                      <span className="text-xs font-semibold text-slate-600 ml-2">Campaign Dispatcher</span>
+                      <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <span className="text-xs font-semibold text-slate-800 ml-2 font-mono">Campaign Dispatcher</span>
                     </div>
-                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                       High Priority Alert
                     </span>
                   </div>
 
                   {/* Multilingual Preview Card */}
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-3">
                     <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span className="font-semibold text-slate-700">Target: Disaster Advisory</span>
-                      <span>Reach: 24,500 Citizens</span>
+                      <span className="font-semibold text-slate-800">Target: Disaster Advisory</span>
+                      <span className="font-mono">Reach: 24,500 Citizens</span>
                     </div>
 
                     <div className="space-y-2 text-xs">
-                      <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-800">
-                        <span className="font-bold text-brand-600 uppercase text-[10px] block">English:</span>
+                      <div className="p-2.5 rounded-md bg-white border border-slate-200 text-slate-800">
+                        <span className="font-bold text-blue-600 uppercase text-[10px] block font-mono">English:</span>
                         "Heavy rainfall warning in Chennai coastal zones. Please avoid low-lying bridges."
                       </div>
-                      <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-800">
-                        <span className="font-bold text-brand-600 uppercase text-[10px] block">Tamil (தமிழ்):</span>
+                      <div className="p-2.5 rounded-md bg-white border border-slate-200 text-slate-800">
+                        <span className="font-bold text-blue-600 uppercase text-[10px] block font-mono">Tamil (தமிழ்):</span>
                         "சென்னை கடலோரப் பகுதிகளில் பலத்த மழை எச்சரிக்கை. தரைப்பாலங்களை தவிர்க்கவும்."
                       </div>
-                      <div className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-800">
-                        <span className="font-bold text-brand-600 uppercase text-[10px] block">Hindi (हिंदी):</span>
+                      <div className="p-2.5 rounded-md bg-white border border-slate-200 text-slate-800">
+                        <span className="font-bold text-blue-600 uppercase text-[10px] block font-mono">Hindi (हिंदी):</span>
                         "चेन्नई तटीय क्षेत्रों में भारी बारिश की चेतावनी। निचले पुलों से बचें।"
                       </div>
                     </div>
@@ -215,16 +212,16 @@ export default function LandingPage() {
 
                   {/* Channel Metrics Row */}
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">SMS</span>
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <span className="block text-[10px] uppercase font-bold text-slate-500 font-mono">SMS</span>
                       <span className="text-sm font-bold text-slate-800">99.4%</span>
                     </div>
-                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">WhatsApp</span>
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <span className="block text-[10px] uppercase font-bold text-slate-500 font-mono">WhatsApp</span>
                       <span className="text-sm font-bold text-slate-800">92.1%</span>
                     </div>
-                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">Email</span>
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <span className="block text-[10px] uppercase font-bold text-slate-500 font-mono">Email</span>
                       <span className="text-sm font-bold text-slate-800">88.7%</span>
                     </div>
                   </div>
@@ -242,10 +239,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-brand-600">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-600 font-mono">
               End-to-End Capabilities
             </h2>
-            <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <p className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
               Engineered for Linguistic Inclusivity & Precision Outreach
             </p>
             <p className="text-slate-600 text-base leading-relaxed">
@@ -259,20 +256,20 @@ export default function LandingPage() {
               return (
                 <div
                   key={feat.title}
-                  className="rounded-2xl p-8 border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group"
+                  className="rounded-xl p-8 border border-slate-200 bg-white hover:border-slate-300 hover:shadow-2xs transition-all duration-200 flex flex-col justify-between group"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${feat.color}`}>
-                        <Icon className="w-6 h-6" />
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100">
+                        <Icon className="w-6 h-6 text-blue-600" />
                       </div>
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-mono">
                         {feat.badge}
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900 group-hover:text-brand-600 transition">
+                      <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition">
                         {feat.title}
                       </h3>
                       <p className="text-sm font-medium text-slate-500 mt-1">
@@ -297,10 +294,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-brand-600">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-600 font-mono">
               Communication Workflow
             </h2>
-            <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <p className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
               From Draft to Multilingual Delivery in 5 Steps
             </p>
             <p className="text-slate-600 text-base leading-relaxed">
@@ -312,10 +309,10 @@ export default function LandingPage() {
             {steps.map((st, idx) => (
               <div
                 key={st.step}
-                className="relative bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+                className="relative bg-white rounded-xl p-6 border border-slate-200 shadow-2xs flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="text-2xl font-black text-brand-600">
+                  <div className="text-2xl font-bold text-blue-600">
                     {st.step}
                   </div>
                   <h4 className="text-base font-bold text-slate-900">
@@ -326,8 +323,8 @@ export default function LandingPage() {
                   </p>
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-slate-100 flex items-center text-[11px] font-semibold text-slate-400">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mr-1.5" />
+                <div className="pt-4 mt-4 border-t border-slate-200 flex items-center text-[11px] font-semibold text-slate-500">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1.5" />
                   Step {idx + 1} of 5
                 </div>
               </div>
@@ -342,10 +339,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-brand-600">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-600 font-mono">
               Real-World Applications
             </h2>
-            <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <p className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
               Designed for Critical Public Awareness
             </p>
             <p className="text-slate-600 text-base leading-relaxed">
@@ -359,10 +356,10 @@ export default function LandingPage() {
               return (
                 <div
                   key={domain.title}
-                  className="rounded-xl p-6 border border-slate-200 bg-slate-50 hover:bg-white hover:border-brand-300 hover:shadow-lg transition space-y-3"
+                  className="rounded-xl p-6 border border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-300 hover:shadow-2xs transition space-y-3"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center">
-                    <Icon className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-blue-600" />
                   </div>
                   <h3 className="text-base font-bold text-slate-900">
                     {domain.title}
@@ -378,33 +375,33 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* MILESTONE 1 STATUS CALLOUT */}
+      {/* STATUS CALLOUT */}
       <section className="py-12 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-slate-800/80 border border-slate-700 p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="rounded-xl bg-slate-800 border border-slate-700 p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Milestone 1 &bull; Task 1 Complete
+              <div className="inline-flex items-center gap-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-mono">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                Institutional Platform Infrastructure
               </div>
               <h3 className="text-xl font-bold text-white">
-                Database Schema, Alembic Migrations & Foundation Verified
+                Multilingual Broadcast & Distribution Engine Ready
               </h3>
               <p className="text-sm text-slate-400 max-w-xl">
-                Ready to proceed to Task 2 (User Registration) and Task 3 (JWT Authentication & Role-Based Access Control).
+                Ready to create targeted campaigns, generate compliant channel content, and orchestrate broadcasts.
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <Link
                 to="/register"
-                className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white transition shadow-md"
+                className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition shadow-2xs"
               >
                 Register Account
               </Link>
               <Link
                 to="/login"
-                className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-slate-700 hover:bg-slate-600 text-slate-200 transition"
+                className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 transition"
               >
                 Sign In
               </Link>

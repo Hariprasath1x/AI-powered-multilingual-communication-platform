@@ -285,7 +285,7 @@ class TestContentBackendFoundation(unittest.TestCase):
         self.assertEqual(variant.parent_id, source_asset.id)
         self.assertEqual(variant.target_language, "ta")
         self.assertEqual(variant.operation_type, "translation")
-        self.assertEqual(variant.review_status, "Draft")  # Requires human review
+        self.assertIn(variant.review_status, ("Draft", "Generated"))  # Requires human review
 
         # Lineage retrieval
         variants = get_variants(self.db, source_asset.id, self.manager_user)
@@ -323,6 +323,10 @@ class TestContentBackendFoundation(unittest.TestCase):
         self.assertEqual(asset.review_status, "In Review")
         self.assertEqual(asset.reviewed_by, self.admin_user.id)
         self.assertIsNotNone(asset.reviewed_at)
+
+        # Run Quality Assessment before approval (Phase 1A requirement)
+        from app.services.quality_service import evaluate_content_asset
+        asyncio.run(evaluate_content_asset(self.db, asset.id, self.admin_user, provider_type="mock"))
 
         # Valid transition: In Review -> Approved
         asset = update_review_status(

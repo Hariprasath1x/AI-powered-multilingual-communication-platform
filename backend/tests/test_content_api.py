@@ -1,6 +1,7 @@
 """Comprehensive HTTP integration test suite for Task 7, Checkpoint 2: AI Content Studio APIs."""
 
 import unittest
+from unittest.mock import patch, MagicMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -262,7 +263,7 @@ class TestContentAPI(unittest.TestCase):
         self.assertEqual(var_data["target_language"], "ta")
         self.assertEqual(var_data["parent_id"], root_id)
         self.assertEqual(var_data["operation_type"], "translation")
-        self.assertEqual(var_data["review_status"], "Draft")
+        self.assertIn(var_data["review_status"], ("Draft", "Generated"))
 
         # Verify placeholders preserved in translated copy
         self.assertIn("{name}", var_data["detected_placeholders"])
@@ -368,6 +369,13 @@ class TestContentAPI(unittest.TestCase):
         self.assertEqual(res_review.status_code, 200)
         self.assertEqual(res_review.json()["review_status"], "In Review")
         self.assertEqual(res_review.json()["reviewed_by"], self.manager_a.id)
+
+        # Run Quality Assessment before approval (Phase 1A requirement)
+        res_eval = self.client.post(
+            f"/content/{asset_id}/evaluate",
+            headers=self._headers(self.manager_a_token),
+        )
+        self.assertEqual(res_eval.status_code, 200)
 
         # Move to Approved
         res_approve = self.client.patch(
@@ -482,6 +490,61 @@ class TestContentAPI(unittest.TestCase):
         items_env = res_env.json()["items"]
         for it in items_env:
             self.assertEqual(it["category"], "Environment")
+
+    # -------------------------------------------------------------
+    # 7. AI Provider Exception Security & Secret Redaction in API
+    # -------------------------------------------------------------
+
+    @patch("app.services.content_service.get_ai_provider")
+    def test_provider_failure_does_not_leak_secrets_in_api_response(self, mock_get_provider):
+        """Simulated provider failure with raw secrets in error message does not leak secrets in API response."""
+        from app.services.ai.gemini_provider import GeminiAIProvider
+        from google.genai import errors
+
+        raw_secret_key = "AIzaSySecretLeakInAPI12345"
+        raw_bearer = "secret_jwt_token_api_999"
+
+        # Construct a real GeminiAIProvider with a mock client raising an error with raw secrets
+        resp = MagicMock()
+        resp.headers = {}
+        sdk_err = errors.APIError(
+            500,
+            {"error": {"message": f"Upstream failure: https://generativelanguage.googleapis.com/v1beta/models?key={raw_secret_key} with Bearer {raw_bearer}", "code": 500}},
+            resp,
+        )
+
+        class MockSDKClient:
+            class aio:
+                class models:
+                    @staticmethod
+                    async def generate_content(*args, **kwargs):
+                        raise sdk_err
+
+        provider = GeminiAIProvider(
+            api_key="test-api-key",
+            client=MockSDKClient(),
+            max_retries=1,
+            initial_backoff_seconds=0.01,
+        )
+        mock_get_provider.return_value = provider
+
+        payload = {
+            "topic": "Flood Advisory",
+            "objective": "Evacuate",
+            "category": "Healthcare",
+            "channel": "SMS",
+            "source_language": "en",
+        }
+        res = self.client.post("/content/generate", json=payload, headers=self._headers(self.manager_a_token))
+
+        # Check HTTP status code (mirrors upstream 500 status code from AIProviderError)
+        self.assertEqual(res.status_code, 500)
+
+        # Confirm that raw secrets are strictly absent from the response text and JSON detail
+        self.assertNotIn(raw_secret_key, res.text)
+        self.assertNotIn(raw_bearer, res.text)
+        self.assertIn("key=***REDACTED***", res.text)
+        self.assertIn("Bearer ***REDACTED_TOKEN***", res.text)
 
 
 if __name__ == "__main__":

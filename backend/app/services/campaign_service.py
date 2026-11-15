@@ -45,6 +45,7 @@ PLACEHOLDER_FIELD_MAP: Dict[str, str] = {
     "{phone}": "phone",
     "{city}": "city",
     "{state}": "state",
+    "{area}": "area",
     "{preferred_language}": "preferred_language",
     "{occupation}": "occupation",
     "{organization_department}": "organization_department",
@@ -198,11 +199,13 @@ def create_campaign(
                 detail=f"The following target segment IDs do not exist: {missing_str}",
             )
 
+    effective_priority = "High" if data.campaign_type == "Emergency Alert" else data.priority
+
     campaign = Campaign(
         name=clean_name,
         campaign_type=data.campaign_type,
         objective=data.objective.strip() if data.objective else None,
-        priority=data.priority,
+        priority=effective_priority,
         status="Draft",
         channels=data.channels,
         template_id=data.template_id,
@@ -330,8 +333,18 @@ def update_campaign(
     if data.objective is not None:
         campaign.objective = data.objective.strip() if data.objective else None
 
-    if data.priority is not None:
-        campaign.priority = data.priority
+    # Enforce Emergency Alert requires High priority and cannot be lowered
+    resulting_type = campaign.campaign_type
+    if resulting_type == "Emergency Alert":
+        if data.priority is not None and data.priority != "High":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Emergency Alert campaigns require 'High' priority and cannot be set to a lower priority.",
+            )
+        campaign.priority = "High"
+    else:
+        if data.priority is not None:
+            campaign.priority = data.priority
 
     if data.channels is not None:
         campaign.channels = data.channels
@@ -494,6 +507,87 @@ def delete_campaign(
     logger.info("Deleted campaign ID %s by user ID %s", campaign_id, current_user.id)
 
 
+def clone_campaign(
+    db: Session,
+    campaign_id: int,
+    current_user: User,
+) -> CampaignResponse:
+    """
+    Clones an existing campaign into a new Draft campaign.
+    Preserves core configuration, target segments, and template links.
+    Assigns a unique name with a ' (Copy)' suffix and associates the clone
+    with the currently authenticated user as its creator.
+    Operational records (distribution jobs, delivery records, messages) are not copied.
+    """
+    source = get_campaign_by_id(db, campaign_id)
+
+    # Determine unique copy name with '(Copy)' suffix (max 150 characters)
+    base_name = f"{source.name} (Copy)"
+    if len(base_name) > 150:
+        base_name = f"{source.name[:143]} (Copy)"
+    target_name = base_name
+    counter = 1
+    while db.execute(select(Campaign).where(func.lower(Campaign.name) == target_name.lower())).scalar_one_or_none():
+        counter += 1
+        suffix = f" (Copy {counter})"
+        prefix_len = 150 - len(suffix)
+        target_name = f"{source.name[:prefix_len]}{suffix}"
+
+    # Enforce Emergency Alert rule
+    effective_priority = "High" if source.campaign_type == "Emergency Alert" else source.priority
+
+    # Validate template existence if source had one
+    valid_template_id = None
+    if source.template_id:
+        tmpl_exists = db.scalar(select(func.count(Template.id)).where(Template.id == source.template_id))
+        if tmpl_exists:
+            valid_template_id = source.template_id
+
+    # Preserve segments
+    cloned_segments = list(source.segments)
+
+    # Date validation: ensure start/end date consistency
+    start_date = source.start_date
+    end_date = source.end_date
+    if start_date and end_date and end_date < start_date:
+        end_date = None
+
+    cloned = Campaign(
+        name=target_name,
+        campaign_type=source.campaign_type,
+        objective=source.objective,
+        priority=effective_priority,
+        status="Draft",
+        channels=list(source.channels or []),
+        template_id=valid_template_id,
+        start_date=start_date,
+        end_date=end_date,
+        created_by=current_user.id,
+    )
+    cloned.segments = cloned_segments
+    db.add(cloned)
+
+    try:
+        db.commit()
+        db.refresh(cloned)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A campaign named '{target_name}' already exists.",
+        )
+
+    logger.info(
+        "Cloned campaign ID %s ('%s') -> ID %s ('%s') by user ID %s",
+        source.id,
+        source.name,
+        cloned.id,
+        cloned.name,
+        current_user.id,
+    )
+    return get_campaign_response(db, cloned.id)
+
+
 def render_campaign_preview(
     db: Session,
     campaign_id: int,
@@ -544,15 +638,19 @@ def render_campaign_preview(
     # Construct recipient dict representation (fallback to representative demo data)
     recipient_dict: Dict[str, Any] = {}
     if recipient:
+        city_val = recipient.city.strip() if recipient.city and recipient.city.strip() else None
+        state_val = recipient.state.strip() if recipient.state and recipient.state.strip() else None
+        area_val = city_val or state_val or ""
         recipient_dict = {
             "name": recipient.name,
-            "email": recipient.email or "sample.recipient@example.gov.in",
-            "phone": recipient.phone or "+919876543210",
-            "city": recipient.city or "New Delhi",
-            "state": recipient.state or "Delhi",
+            "email": recipient.email or "",
+            "phone": recipient.phone or "",
+            "city": city_val or "",
+            "state": state_val or "",
+            "area": area_val,
             "preferred_language": recipient.preferred_language or "en",
-            "occupation": recipient.occupation or "Resident",
-            "organization_department": recipient.organization_department or "Public Health",
+            "occupation": recipient.occupation or "",
+            "organization_department": recipient.organization_department or "",
         }
     else:
         recipient_dict = {
@@ -561,6 +659,7 @@ def render_campaign_preview(
             "phone": "+919876543210",
             "city": "New Delhi",
             "state": "Delhi",
+            "area": "New Delhi",
             "preferred_language": "en",
             "occupation": "Civilian",
             "organization_department": "Public Health Department",
@@ -577,7 +676,8 @@ def render_campaign_preview(
             if custom_placeholders and ph in custom_placeholders:
                 replacement_val = custom_placeholders[ph]
             else:
-                replacement_val = str(recipient_dict.get(field_key, f"[{field_key}]"))
+                val = recipient_dict.get(field_key)
+                replacement_val = str(val) if val is not None else ""
             rendered_body = rendered_body.replace(ph, replacement_val)
 
     # Generate Channel-specific formatting & metrics

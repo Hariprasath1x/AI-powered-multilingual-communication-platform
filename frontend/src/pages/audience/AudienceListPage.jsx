@@ -131,37 +131,30 @@ export default function AudienceListPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 p-4 bg-slate-900 text-white rounded-xl shadow-xl flex items-center gap-2.5 text-xs animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="fixed top-20 right-6 z-50 p-4 bg-slate-900 text-white rounded-lg shadow-elevated flex items-center gap-2.5 text-xs animate-in fade-in slide-in-from-top-4 border border-slate-800">
+          <CheckCircle2 className="w-4 h-4 text-green-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-sm">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Audience Database</h1>
-              <p className="text-xs text-slate-500">
-                Manage public citizen profiles, communication channels, and multilingual preferences.
-              </p>
-            </div>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Audience Database</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Citizen recipient directory with multi-channel endpoints, language preferences, and consent verification.
+          </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5 flex-wrap">
           {!canManageAudience && (
-            <span className="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-semibold flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <span className="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-medium flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
               View-only Mode (Communication Team)
             </span>
           )}
@@ -170,15 +163,15 @@ export default function AudienceListPage() {
             <>
               <button
                 onClick={() => setImportModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition"
               >
                 <Upload className="w-4 h-4 text-slate-500" />
-                Import CSV / Excel
+                Import CSV
               </button>
 
               <button
                 onClick={handleOpenCreate}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition active:scale-[0.98]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition active:scale-[0.98]"
               >
                 <UserPlus className="w-4 h-4" />
                 Add Recipient
@@ -191,38 +184,38 @@ export default function AudienceListPage() {
       {/* Aggregate Metric Cards */}
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Recipients</span>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{stats.total_members}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Database contact registry</p>
+          <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-subtle space-y-1">
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Recipients</span>
+            <p className="text-2xl font-bold text-slate-900">{stats.total_members?.toLocaleString()}</p>
+            <p className="text-xs text-slate-500">Registered citizen contacts</p>
           </div>
 
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Consent</span>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">
+          <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-subtle space-y-1">
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Active Consent</span>
+            <p className="text-2xl font-bold text-green-700">
               {stats.total_members > 0 ? `${Math.round((stats.active_consent_count / stats.total_members) * 100)}%` : '0%'}
             </p>
-            <p className="text-[10px] text-slate-500 mt-0.5">
-              {stats.active_consent_count} opt-in • {stats.opt_out_count || 0} opt-out • {stats.unspecified_consent_count || 0} unconfirmed
+            <p className="text-[11px] text-slate-500">
+              {stats.active_consent_count} opt-in • {stats.opt_out_count || 0} opt-out
             </p>
           </div>
 
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Top Languages</span>
+          <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-subtle space-y-1">
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Top Languages</span>
             <div className="flex flex-wrap gap-1 mt-1.5">
               {Object.entries(stats.language_distribution || {}).slice(0, 4).map(([code, count]) => (
-                <span key={code} className="px-2 py-0.5 bg-blue-50 text-blue-800 text-[10px] font-semibold rounded border border-blue-200">
+                <span key={code} className="px-2 py-0.5 bg-blue-50 text-blue-800 text-[11px] font-medium rounded border border-blue-200">
                   {code.toUpperCase()}: {count}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Channels</span>
+          <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-subtle space-y-1">
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Channels</span>
             <div className="flex flex-wrap gap-1 mt-1.5">
               {Object.entries(stats.channel_distribution || {}).map(([ch, count]) => (
-                <span key={ch} className="px-2 py-0.5 bg-slate-100 text-slate-800 text-[10px] font-semibold rounded border border-slate-200">
+                <span key={ch} className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[11px] font-medium rounded border border-slate-200">
                   {ch}: {count}
                 </span>
               ))}
@@ -232,16 +225,16 @@ export default function AudienceListPage() {
       )}
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-subtle flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search name, email, phone, city..."
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           />
         </div>
 
@@ -254,7 +247,7 @@ export default function AudienceListPage() {
               setSelectedLanguage(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
             <option value="">All Languages</option>
             <option value="en">English (en)</option>
@@ -276,7 +269,7 @@ export default function AudienceListPage() {
               setSelectedChannel(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
             <option value="">All Channels</option>
             <option value="Email">Email</option>
@@ -291,7 +284,7 @@ export default function AudienceListPage() {
               setSelectedConsent(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="px-2.5 py-2 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
             <option value="">All Consent States</option>
             <option value="true">Consented (Opt-in)</option>
@@ -302,7 +295,7 @@ export default function AudienceListPage() {
           {(searchTerm || selectedLanguage || selectedChannel || selectedConsent) && (
             <button
               onClick={handleResetFilters}
-              className="px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition font-medium"
+              className="px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition font-medium"
             >
               Clear
             </button>
@@ -316,16 +309,16 @@ export default function AudienceListPage() {
             className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
             title="Refresh database records"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-brand-600' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Main Audience Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border border-slate-200 shadow-subtle overflow-hidden">
         {loading && audienceList.length === 0 ? (
           <div className="p-12 text-center text-slate-500 space-y-2">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-brand-600" />
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-blue-600" />
             <p className="text-xs font-medium">Loading audience members...</p>
           </div>
         ) : audienceList.length === 0 ? (
@@ -342,7 +335,7 @@ export default function AudienceListPage() {
             {canManageAudience && (
               <button
                 onClick={handleOpenCreate}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition"
               >
                 <UserPlus className="w-4 h-4" />
                 Add First Recipient
@@ -352,31 +345,31 @@ export default function AudienceListPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-xs text-left">
-              <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="px-4 py-3">Recipient</th>
-                  <th className="px-4 py-3">Contact Handle</th>
+                  <th className="px-4 py-3">Contact Details</th>
                   <th className="px-4 py-3">Location & Dept</th>
                   <th className="px-4 py-3">Language</th>
                   <th className="px-4 py-3">Channel</th>
-                  <th className="px-4 py-3">Consent</th>
+                  <th className="px-4 py-3">Consent Status</th>
                   {canManageAudience && <th className="px-4 py-3 text-right">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-slate-200 bg-white">
                 {audienceList.map((member) => (
-                  <tr key={member.id} className="hover:bg-slate-50/75 transition">
+                  <tr key={member.id} className="hover:bg-slate-50/70 transition">
                     
                     {/* Recipient Identity */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-xs flex-shrink-0">
                           {member.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <p className="font-semibold text-slate-900">{member.name}</p>
-                          <p className="text-[10px] text-slate-400">
-                            {member.occupation || 'Public Citizen'}
+                          <p className="text-[11px] text-slate-500">
+                            {member.occupation || 'Citizen'}
                             {member.age ? ` • Age ${member.age}` : ''}
                             {member.gender ? ` • ${member.gender}` : ''}
                           </p>
@@ -412,7 +405,7 @@ export default function AudienceListPage() {
                           </div>
                         )}
                         {member.organization_department && (
-                          <div className="flex items-center gap-1.5 text-slate-500 text-[10px]">
+                          <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
                             <Building className="w-3 h-3 text-slate-400" />
                             <span>{member.organization_department}</span>
                           </div>
@@ -422,19 +415,19 @@ export default function AudienceListPage() {
 
                     {/* Preferred Language */}
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-200 font-semibold text-[10px] uppercase">
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-800 rounded border border-blue-200 font-medium text-[11px] uppercase">
                         {member.preferred_language}
                       </span>
                     </td>
 
                     {/* Preferred Channel */}
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${
                         member.preferred_channel === 'WhatsApp'
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          ? 'bg-green-50 text-green-800 border-green-200'
                           : member.preferred_channel === 'SMS'
                           ? 'bg-amber-50 text-amber-800 border-amber-200'
-                          : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                          : 'bg-blue-50 text-blue-800 border-blue-200'
                       }`}>
                         {member.preferred_channel}
                       </span>
@@ -443,18 +436,18 @@ export default function AudienceListPage() {
                     {/* Consent Pill */}
                     <td className="px-4 py-3">
                       {member.consent_status === true ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-                          <CheckCircle2 className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-green-50 text-green-800 border border-green-200">
+                          <CheckCircle2 className="w-3 h-3 text-green-600" />
                           Opted In
                         </span>
                       ) : member.consent_status === false ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800">
-                          <XCircle className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-red-800 border border-red-200">
+                          <XCircle className="w-3 h-3 text-red-600" />
                           Opted Out
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
-                          <AlertCircle className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                          <AlertCircle className="w-3 h-3 text-slate-500" />
                           Unconfirmed
                         </span>
                       )}
@@ -466,14 +459,14 @@ export default function AudienceListPage() {
                         <div className="inline-flex items-center gap-1">
                           <button
                             onClick={() => handleOpenEdit(member)}
-                            className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition"
+                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
                             title="Edit recipient details"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleOpenDelete(member)}
-                            className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                             title="Delete recipient"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -510,7 +503,7 @@ export default function AudienceListPage() {
                     setPageSize(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 text-xs rounded border border-slate-300 bg-white text-slate-700"
+                  className="px-2 py-1 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>

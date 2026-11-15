@@ -18,6 +18,7 @@ const ALLOWED_PLACEHOLDERS = [
   { token: '{phone}', label: 'Phone', desc: 'Contact number' },
   { token: '{city}', label: 'City', desc: 'Residence city' },
   { token: '{state}', label: 'State', desc: 'State / Province' },
+  { token: '{area}', label: 'Area', desc: 'District or locality (falls back to city/state)' },
   { token: '{preferred_language}', label: 'Language', desc: 'Language code' },
   { token: '{occupation}', label: 'Occupation', desc: 'Profession / Sector' },
   { token: '{organization_department}', label: 'Department', desc: 'Ministry or Dept' },
@@ -148,16 +149,16 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden my-8">
+      <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden my-8">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center">
-              <FileText className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight">
                 {isEditing ? 'Edit Communication Template' : 'New Communication Template'}
               </h2>
               <p className="text-xs text-slate-500">
@@ -167,7 +168,7 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition"
+            className="p-1.5 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -176,8 +177,8 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
@@ -194,7 +195,7 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="e.g. Dengue Prevention & Monsoon Advisory"
-                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 required
               />
             </div>
@@ -210,7 +211,7 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition appearance-none"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition appearance-none"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -233,7 +234,7 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
                     value={formData.language}
                     onChange={handleChange}
                     placeholder="en, hi, ta, te, mr, bn"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                     required
                   />
                   <Globe className="w-4 h-4 text-slate-400 absolute right-3.5 top-3 pointer-events-none" />
@@ -253,20 +254,20 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
                   value={formData.tags}
                   onChange={handleChange}
                   placeholder="e.g. monsoon, health, advisory, emergency"
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 />
                 <Tag className="w-4 h-4 text-slate-400 absolute right-3.5 top-3 pointer-events-none" />
               </div>
             </div>
 
             {/* Placeholder Chip Insertion Panel */}
-            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+            <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                   Insert Dynamic Variables:
                 </span>
-                <span className="text-[11px] text-slate-400">Click to insert at cursor</span>
+                <span className="text-[11px] text-slate-500">Click to insert at cursor</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {ALLOWED_PLACEHOLDERS.map((ph) => (
@@ -275,7 +276,7 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
                     type="button"
                     onClick={() => insertPlaceholder(ph.token)}
                     title={ph.desc}
-                    className="px-2.5 py-1 text-xs font-mono font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700 transition shadow-2xs"
+                    className="px-2.5 py-1 text-xs font-mono font-medium rounded-md bg-white border border-slate-200 text-slate-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition shadow-2xs"
                   >
                     {ph.token}
                   </button>
@@ -289,7 +290,7 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                   Template Content Body *
                 </label>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500">
                   {formData.body.length} characters
                 </span>
               </div>
@@ -300,20 +301,20 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
                 value={formData.body}
                 onChange={handleChange}
                 placeholder="Dear {name}, this is an official awareness broadcast for residents in {city}. Please note..."
-                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 font-normal leading-relaxed transition"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-normal leading-relaxed transition"
                 required
               />
             </div>
 
             {/* Detected placeholders summary */}
             {detectedPlaceholders.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-slate-600">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span className="font-semibold text-slate-700">Active variables:</span>
                 <div className="flex flex-wrap gap-1">
                   {detectedPlaceholders.map((ph) => (
                     <span
                       key={ph}
-                      className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[11px]"
+                      className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono text-[11px]"
                     >
                       {ph}
                     </span>
@@ -324,19 +325,19 @@ export default function TemplateFormModal({ isOpen, onClose, onSuccess, template
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-xl transition"
+              className="px-4 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition shadow-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm hover:shadow-brand-500/25 transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition disabled:opacity-50"
             >
               {submitting ? 'Saving...' : isEditing ? 'Update Template' : 'Create Template'}
             </button>

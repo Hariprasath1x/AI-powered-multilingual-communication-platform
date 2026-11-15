@@ -129,6 +129,12 @@ class CampaignCreate(CampaignBase):
                 unique.append(s_id)
         return unique
 
+    @model_validator(mode="after")
+    def enforce_emergency_priority(self) -> "CampaignCreate":
+        if self.campaign_type == "Emergency Alert":
+            self.priority = "High"
+        return self
+
 
 class CampaignUpdate(BaseModel):
     """Payload to partially update an existing campaign (all fields optional)."""
@@ -216,10 +222,12 @@ class CampaignUpdate(BaseModel):
         return None
 
     @model_validator(mode="after")
-    def validate_dates(self) -> "CampaignUpdate":
+    def validate_update_rules(self) -> "CampaignUpdate":
         if self.start_date and self.end_date:
             if self.end_date < self.start_date:
                 raise ValueError("End date must be greater than or equal to start date.")
+        if self.campaign_type == "Emergency Alert":
+            self.priority = "High"
         return self
 
 

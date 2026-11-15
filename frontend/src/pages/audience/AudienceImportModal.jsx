@@ -182,14 +182,14 @@ Karthik Raj,karthik.raj@agency.gov.in,+91 98765 44444,31,Male,Chennai,Tamil Nadu
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-300 rounded-lg transition"
+                  className="px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 border border-slate-300 rounded-lg transition shadow-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!selectedFile || loading}
-                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-lg shadow-sm transition"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg shadow-sm transition"
                 >
                   {loading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   {loading ? 'Processing File...' : 'Start Import'}
@@ -277,14 +277,14 @@ Karthik Raj,karthik.raj@agency.gov.in,+91 98765 44444,31,Male,Chennai,Tamil Nadu
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-300 rounded-lg transition"
+                  className="px-4 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition shadow-sm"
                 >
                   Import Another File
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition"
+                  className="px-5 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition"
                 >
                   Done
                 </button>

@@ -5,6 +5,11 @@ from app.models.segment import Segment, campaign_segments
 from app.models.campaign import Campaign
 from app.models.template import Template
 from app.models.content_asset import ContentAsset
+from app.models.content_variant import ContentVariant
+from app.models.content_quality import ContentQualityAssessment, ContentQualityFinding
+from app.models.compliance_rule import ComplianceRule
+from app.models.translation import TranslationCache, TranslationReviewHistory
+from app.models.distribution import DistributionJob, DeliveryRecord, DeliveryAttempt
 from app.models.communication import Message, DeliveryLog, Feedback
 
 __all__ = [
@@ -18,6 +23,15 @@ __all__ = [
     "Campaign",
     "Template",
     "ContentAsset",
+    "ContentVariant",
+    "ContentQualityAssessment",
+    "ContentQualityFinding",
+    "ComplianceRule",
+    "TranslationCache",
+    "TranslationReviewHistory",
+    "DistributionJob",
+    "DeliveryRecord",
+    "DeliveryAttempt",
     "Message",
     "DeliveryLog",
     "Feedback",

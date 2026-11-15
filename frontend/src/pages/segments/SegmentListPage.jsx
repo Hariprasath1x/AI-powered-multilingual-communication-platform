@@ -172,28 +172,20 @@ export default function SegmentListPage() {
       )}
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center font-bold">
-              <Layers className="w-4 h-4" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Audience Segments
-            </h1>
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Task 5 Engine
-            </span>
-          </div>
-          <p className="text-xs text-slate-600 max-w-2xl">
-            Create and maintain dynamic rule-based cohorts to target civic communications by language, geography, channel, and consent status.
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Audience Segments
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Dynamic rule-based cohorts targeting citizen demographics by language, district geography, and channel opt-ins.
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-3">
           {isCommunicationTeam && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-xs font-medium">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium">
               <Info className="w-3.5 h-3.5" />
               <span>Read-Only & Preview Access</span>
             </div>
@@ -205,7 +197,7 @@ export default function SegmentListPage() {
                 setEditingSegment(null);
                 setBuilderModalOpen(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" />
               Create Segment
@@ -215,7 +207,7 @@ export default function SegmentListPage() {
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
@@ -223,7 +215,7 @@ export default function SegmentListPage() {
             placeholder="Search segments by name or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none transition"
+            className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
           />
         </div>
 
@@ -231,7 +223,7 @@ export default function SegmentListPage() {
           <button
             onClick={fetchSegments}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg transition"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition"
             title="Reload segments"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -241,16 +233,16 @@ export default function SegmentListPage() {
       </div>
 
       {/* Segments Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border border-slate-200 shadow-subtle overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-slate-500 text-xs flex flex-col items-center gap-2">
-            <RefreshCw className="w-6 h-6 text-brand-600 animate-spin" />
+            <RefreshCw className="w-6 h-6 text-blue-600 animate-spin" />
             Loading audience segments...
           </div>
         ) : segments.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-              <Layers className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center mx-auto border border-slate-200">
+              <Layers className="w-6 h-6 text-slate-400" />
             </div>
             <h3 className="text-sm font-bold text-slate-800">No Audience Segments Found</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -264,7 +256,7 @@ export default function SegmentListPage() {
                   setEditingSegment(null);
                   setBuilderModalOpen(true);
                 }}
-                className="mt-2 inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition"
+                className="mt-2 inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition"
               >
                 <Plus className="w-4 h-4" />
                 Build First Segment
@@ -274,54 +266,54 @@ export default function SegmentListPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="px-5 py-3.5">Segment Name</th>
-                  <th className="px-5 py-3.5">Rule Criteria</th>
-                  <th className="px-5 py-3.5">Matching Audience</th>
-                  <th className="px-5 py-3.5">Owner / Creator</th>
-                  <th className="px-5 py-3.5 text-right">Actions</th>
+                  <th className="px-5 py-3">Segment Name</th>
+                  <th className="px-5 py-3">Rule Criteria</th>
+                  <th className="px-5 py-3">Matching Audience</th>
+                  <th className="px-5 py-3">Owner / Creator</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {segments.map((seg) => {
                   const hasEditPermission = canModifySegment(seg);
                   return (
-                    <tr key={seg.id} className="hover:bg-slate-50/80 transition">
+                    <tr key={seg.id} className="hover:bg-slate-50/70 transition">
                       
                       {/* Name & Description */}
-                      <td className="px-5 py-4 max-w-xs">
-                        <div className="font-bold text-slate-900 text-sm">{seg.name}</div>
+                      <td className="px-5 py-3.5 max-w-xs">
+                        <div className="font-semibold text-slate-900 text-sm">{seg.name}</div>
                         {seg.description ? (
-                          <div className="text-slate-500 text-[11px] mt-0.5 line-clamp-2">
+                          <div className="text-slate-500 text-xs mt-0.5 line-clamp-2">
                             {seg.description}
                           </div>
                         ) : (
-                          <div className="text-slate-400 text-[11px] mt-0.5 italic">
+                          <div className="text-slate-400 text-xs mt-0.5 italic">
                             No description
                           </div>
                         )}
-                        <div className="text-[10px] text-slate-400 mt-1">
+                        <div className="text-[11px] text-slate-400 mt-1">
                           Created: {new Date(seg.created_at).toLocaleDateString()}
                         </div>
                       </td>
 
                       {/* Rule Criteria Badges */}
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5">
                         {renderRuleBadges(seg.filter_rules)}
                       </td>
 
                       {/* Live Audience Count */}
-                      <td className="px-5 py-4">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 font-semibold">
-                          <Users className="w-3.5 h-3.5 text-brand-600" />
+                      <td className="px-5 py-3.5">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 font-semibold text-xs">
+                          <Users className="w-3.5 h-3.5 text-slate-600" />
                           <span>{seg.matching_audience_count?.toLocaleString() ?? 0}</span>
                           <span className="text-[10px] text-slate-500 font-normal">recipients</span>
                         </div>
                       </td>
 
                       {/* Creator */}
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-3.5 text-slate-600">
                         <div className="font-medium text-slate-900">
                           {seg.creator_name || `User #${seg.created_by}`}
                         </div>
@@ -331,7 +323,7 @@ export default function SegmentListPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Live Preview Button */}
                           <button
@@ -339,7 +331,7 @@ export default function SegmentListPage() {
                               setPreviewingSegment(seg);
                               setPreviewModalOpen(true);
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition"
                             title="Preview matching audience members"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -367,7 +359,7 @@ export default function SegmentListPage() {
                                 setDeletingSegment(seg);
                                 setDeleteModalOpen(true);
                               }}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                               title="Delete segment"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

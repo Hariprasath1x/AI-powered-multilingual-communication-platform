@@ -21,6 +21,7 @@ ALLOWED_PLACEHOLDERS: Set[str] = {
     "{phone}",
     "{city}",
     "{state}",
+    "{area}",
     "{preferred_language}",
     "{occupation}",
     "{organization_department}",

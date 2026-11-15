@@ -27,7 +27,21 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = None
     AI_PROVIDER: str = "auto"  # "auto", "mock", "gemini"
     AI_MODEL_NAME: str = "gemini-2.5-flash"
-    AI_REQUEST_TIMEOUT_SECONDS: int = 30
+    AI_REQUEST_TIMEOUT_SECONDS: float = 30.0
+    AI_MAX_RETRIES: int = 2
+    AI_INITIAL_BACKOFF_SECONDS: float = 1.0
+    AI_MAX_BACKOFF_SECONDS: float = 8.0
+    AI_OVERALL_DEADLINE_SECONDS: float = 30.0
+
+    # Channel Constraints & Policy Thresholds
+    SMS_HARD_LIMIT_CHARS: int = 1600
+    SMS_MAX_RECOMMENDED_SEGMENTS: int = 3
+    VOICE_MAX_RECOMMENDED_SECONDS: int = 90
+    WHATSAPP_FREEFORM_HARD_LIMIT_CHARS: int = 4096
+    WHATSAPP_RECOMMENDED_LIMIT_CHARS: int = 1024
+    WHATSAPP_TEMPLATE_LIMIT_CHARS: int = 1024
+    EMAIL_SUBJECT_RECOMMENDED_LIMIT_CHARS: int = 78
+    EMAIL_BODY_RECOMMENDED_WORDS: int = 800
 
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":

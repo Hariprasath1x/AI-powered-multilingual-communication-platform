@@ -986,7 +986,7 @@ export default function SegmentBuilderModal({
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 border border-slate-300 rounded-lg transition"
+            className="px-4 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition shadow-sm"
           >
             Cancel
           </button>
@@ -994,7 +994,7 @@ export default function SegmentBuilderModal({
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-60 rounded-lg shadow-sm transition flex items-center gap-1.5"
+            className="px-5 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-lg shadow-sm transition flex items-center gap-1.5"
           >
             {submitting ? 'Saving Segment...' : isEditing ? 'Save Changes' : 'Create Segment'}
           </button>

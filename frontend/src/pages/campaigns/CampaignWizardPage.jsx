@@ -147,6 +147,7 @@ export default function CampaignWizardPage() {
           name: 'Aarav Sharma',
           city: 'New Delhi',
           state: 'Delhi',
+          area: 'New Delhi',
           email: 'aarav.sharma@example.gov.in',
           phone: '+919876543210',
           preferred_language: 'en',
@@ -341,8 +342,8 @@ export default function CampaignWizardPage() {
                         isPassed
                           ? 'bg-emerald-600 text-white'
                           : isCurrent
-                          ? 'bg-brand-600 text-white shadow-md shadow-brand-500/25 ring-4 ring-brand-100'
-                          : 'bg-slate-200 text-slate-600'
+                          ? 'bg-blue-600 text-white shadow-2xs ring-4 ring-blue-100'
+                          : 'bg-slate-100 text-slate-500 border border-slate-200'
                       }`}
                     >
                       {isPassed ? <Check className="w-4 h-4 stroke-[3]" /> : s.num}
@@ -416,7 +417,14 @@ export default function CampaignWizardPage() {
                   </label>
                   <select
                     value={formData.campaign_type}
-                    onChange={(e) => setFormData({ ...formData, campaign_type: e.target.value })}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        campaign_type: newType,
+                        ...(newType === 'Emergency Alert' ? { priority: 'High' } : {}),
+                      }));
+                    }}
                     className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
                   >
                     {CAMPAIGN_TYPES.map((t) => (
@@ -434,14 +442,19 @@ export default function CampaignWizardPage() {
                   <div className="grid grid-cols-3 gap-2">
                     {PRIORITIES.map((p) => {
                       const isSelected = formData.priority === p.id;
+                      const isEmergency = formData.campaign_type === 'Emergency Alert';
+                      const isLocked = isEmergency && p.id !== 'High';
                       return (
                         <button
                           key={p.id}
                           type="button"
+                          disabled={isLocked}
                           onClick={() => setFormData({ ...formData, priority: p.id })}
                           className={`py-2 px-3 text-xs font-bold rounded-xl border text-center transition ${
                             isSelected
                               ? `${p.color} ring-2 ring-brand-500 shadow-2xs`
+                              : isLocked
+                              ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
                               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                           }`}
                         >
@@ -450,6 +463,12 @@ export default function CampaignWizardPage() {
                       );
                     })}
                   </div>
+                  {formData.campaign_type === 'Emergency Alert' && (
+                    <p className="text-[11px] text-amber-700 font-medium flex items-center gap-1.5 mt-1.5 bg-amber-50 p-2 rounded-lg border border-amber-200 animate-fade-in">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                      Emergency Alert campaigns strictly require High priority for immediate public dissemination.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -812,7 +831,7 @@ export default function CampaignWizardPage() {
                 type="button"
                 onClick={handleBack}
                 disabled={submitting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg shadow-2xs transition"
               >
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
@@ -825,7 +844,7 @@ export default function CampaignWizardPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="inline-flex items-center gap-1.5 px-6 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm hover:shadow-brand-500/25 transition active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition active:scale-[0.98]"
                 >
                   Continue <ArrowRight className="w-4 h-4" />
                 </button>
@@ -833,7 +852,7 @@ export default function CampaignWizardPage() {
                 <button
                   type="submit"
                   disabled={submitting || !canEdit}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm hover:shadow-emerald-500/25 transition active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition active:scale-[0.98] disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                   {submitting ? 'Saving Campaign...' : isEditing ? 'Update Campaign' : 'Create Campaign in Draft'}

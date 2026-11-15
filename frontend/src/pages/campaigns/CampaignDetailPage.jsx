@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Edit2,
   Trash2,
+  Copy,
   ArrowRight,
   ShieldCheck,
   Smartphone,
@@ -27,9 +28,11 @@ import { useAuth } from '../../context/AuthContext';
 import {
   getCampaign,
   transitionCampaignStatus,
-  previewCampaign
+  previewCampaign,
+  cloneCampaign
 } from '../../services/campaignService';
 import CampaignDeleteModal from './CampaignDeleteModal';
+import CampaignDistributionSection from './CampaignDistributionSection';
 
 export default function CampaignDetailPage() {
   const { id } = useParams();
@@ -45,6 +48,7 @@ export default function CampaignDetailPage() {
   // Transition in progress
   const [transitioning, setTransitioning] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [cloning, setCloning] = useState(false);
 
   // Previews
   const [activeChannelTab, setActiveChannelTab] = useState('Email');
@@ -85,6 +89,22 @@ export default function CampaignDetailPage() {
   const isOwner = isAdmin || (isCampaignManager && campaign?.created_by === user?.id);
   const isEditable = isOwner && (campaign?.status === 'Draft' || campaign?.status === 'In Review');
   const isDeletable = isOwner && (campaign?.status === 'Draft' || campaign?.status === 'Archived');
+  const canCreate = isAdmin || isCampaignManager;
+
+  const handleClone = async () => {
+    if (cloning || !campaign) return;
+    setCloning(true);
+    try {
+      const cloned = await cloneCampaign(campaign.id);
+      showToast(`Campaign cloned as "${cloned.name}".`);
+      navigate(`/campaigns/${cloned.id}`, {
+        state: { message: `Cloned from "${campaign.name}" as Draft.` },
+      });
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Failed to clone campaign.');
+      setCloning(false);
+    }
+  };
 
   const handleStatusTransition = async (newStatus) => {
     if (!isOwner) return;
@@ -178,7 +198,7 @@ export default function CampaignDetailPage() {
       </div>
 
       {/* Main Campaign Header Card */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-2xs space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -188,15 +208,15 @@ export default function CampaignDetailPage() {
               <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${getPriorityBadge(campaign.priority)}`}>
                 {campaign.priority} Priority
               </span>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+              <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                 {campaign.campaign_type}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               {campaign.name}
             </h1>
             {campaign.objective && (
-              <p className="text-sm text-slate-600 max-w-3xl leading-relaxed">
+              <p className="text-sm text-slate-500 max-w-3xl leading-relaxed">
                 {campaign.objective}
               </p>
             )}
@@ -204,10 +224,25 @@ export default function CampaignDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+            {canCreate && (
+              <button
+                onClick={handleClone}
+                disabled={cloning}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition shadow-2xs disabled:opacity-50"
+                title="Clone campaign as new draft"
+              >
+                {cloning ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-slate-500" />
+                )}
+                Clone Campaign
+              </button>
+            )}
             {isEditable && (
               <Link
                 to={`/campaigns/${campaign.id}/edit`}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
               >
                 <Edit2 className="w-3.5 h-3.5 text-slate-500" />
                 Edit Settings
@@ -543,6 +578,9 @@ export default function CampaignDetailPage() {
         </div>
 
       </div>
+
+      {/* Multichannel Distribution & Delivery Engine Section */}
+      <CampaignDistributionSection campaign={campaign} isOwner={isOwner} />
 
       {/* Delete Modal */}
       <CampaignDeleteModal

@@ -226,6 +226,29 @@ def update_campaign_status(
     )
 
 
+@router.post(
+    "/{id}/clone",
+    response_model=CampaignResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Clone an existing campaign into a new Draft campaign",
+)
+def clone_campaign(
+    id: int = Path(..., ge=1, description="Source campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+):
+    """
+    Clones an existing campaign into a new Draft campaign with '(Copy)' suffix.
+    Preserves core configuration, target segments, and template associations.
+    Authorized for Admin and Campaign Manager roles only.
+    """
+    return campaign_service.clone_campaign(
+        db=db,
+        campaign_id=id,
+        current_user=current_user,
+    )
+
+
 @router.delete(
     "/{id}",
     status_code=status.HTTP_204_NO_CONTENT,

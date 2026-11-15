@@ -2,7 +2,7 @@
 
 import logging
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, Query, Path, status
+from fastapi import APIRouter, Depends, Query, Path, Body, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -16,13 +16,34 @@ from app.schemas.content_asset import (
     ContentAssetUpdate,
     ContentReviewStatusUpdate,
     ContentAttachRequest,
+    ContentPreviewMetricsRequest,
+    ChannelMetricsResponse,
     ContentAssetResponse,
     ContentVariantSummaryResponse,
     PaginatedContentAssetResponse,
+    ContentBatchTranslateRequest,
+    ContentBatchTranslateResponse,
+    TranslationReviewHistoryResponse,
     SUPPORTED_CHANNELS,
     SUPPORTED_TONES,
 )
-from app.services import content_service
+from app.services import content_service, translation_service, tone_service, personalization_service
+from app.services.channel_constraints import calculate_channel_metrics
+from app.schemas.tone import (
+    ToneAnalyzeRequest,
+    ToneAnalyzeResponse,
+    ToneImproveRequest,
+    ToneImproveResponse,
+)
+from app.schemas.content_variant import (
+    ContentVariantResponse,
+    ContentVariantUpdate,
+    ContentPersonalizeRequest,
+    ContentPersonalizeResponse,
+    RecipientPreviewRequest,
+    RecipientPreviewResponse,
+)
+from app.schemas.content_quality import ContentQualityAssessmentResponse
 
 logger = logging.getLogger("masscommai.content_router")
 
@@ -115,6 +136,33 @@ def create_manual_content_endpoint(
 
 
 @router.post(
+    "/preview-metrics",
+    response_model=ChannelMetricsResponse,
+    summary="Simulate channel constraints and telecommunications metrics in real-time",
+)
+def preview_channel_metrics_endpoint(
+    payload: ContentPreviewMetricsRequest,
+    current_user: User = Depends(require_role(CONTENT_READ_ROLES)),
+) -> Any:
+    """
+    Stateless, low-latency telecommunications constraint calculator.
+
+    Analyzes draft copy in memory without database persistence or AI invocation.
+    Returns GSM-7/UCS-2 segmentation, voice duration estimates, and structured warnings.
+    Accessible to Admin, Campaign Manager, and Communication Team.
+    """
+    metrics = calculate_channel_metrics(
+        channel=payload.channel,
+        title=payload.title,
+        body=payload.body,
+        call_to_action=payload.call_to_action,
+        language=payload.language,
+        mode=payload.mode or "freeform",
+    )
+    return ChannelMetricsResponse.model_validate(metrics.to_dict())
+
+
+@router.post(
     "/{id}/translate",
     response_model=ContentAssetResponse,
     status_code=status.HTTP_201_CREATED,
@@ -138,6 +186,33 @@ async def translate_content_endpoint(
         current_user=current_user,
     )
     return ContentAssetResponse.model_validate(variant)
+
+
+@router.post(
+    "/{id}/translate/batch",
+    response_model=ContentBatchTranslateResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Batch translate a content asset into multiple Indian languages with failure isolation",
+)
+async def batch_translate_content_endpoint(
+    id: int = Path(..., ge=1, description="Source Content Asset ID"),
+    payload: ContentBatchTranslateRequest = ...,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_AUTHOR_ROLES)),
+) -> Any:
+    """
+    Translates source content into multiple target Indian languages independently.
+    Failures in one language do not discard or fail translations in other languages.
+    Accessible to Admin and Campaign Manager.
+    """
+    return await translation_service.translate_batch_languages(
+        db=db,
+        source_asset_id=id,
+        target_languages=payload.target_languages,
+        current_user=current_user,
+        notes=payload.notes,
+        provider_type=payload.provider_type,
+    )
 
 
 @router.get(
@@ -260,6 +335,24 @@ def update_review_status_endpoint(
     return ContentAssetResponse.model_validate(asset)
 
 
+@router.get(
+    "/{id}/review-history",
+    response_model=List[TranslationReviewHistoryResponse],
+    summary="Get full translation review and audit history for an asset",
+)
+def get_content_review_history_endpoint(
+    id: int = Path(..., ge=1, description="Content Asset ID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_READ_ROLES)),
+) -> Any:
+    """Returns chronological audit trail of all review status transitions for this asset."""
+    return translation_service.get_translation_review_history(
+        db=db,
+        asset_id=id,
+        current_user=current_user,
+    )
+
+
 @router.post(
     "/{id}/attach",
     summary="Associate content asset with existing campaign or save as reusable template",
@@ -294,4 +387,193 @@ def delete_content_asset_endpoint(
     """Deletes draft content asset. Admin can delete any; creators can delete own."""
     content_service.delete_content_asset(db, id, current_user)
     return {"status": "success", "message": f"Content asset {id} deleted successfully."}
+
+
+@router.post(
+    "/{id}/tone/analyze",
+    response_model=ToneAnalyzeResponse,
+    summary="Analyze sentiment polarity, readability, clarity, and five-way tone",
+)
+def analyze_content_tone_endpoint(
+    id: int = Path(..., ge=1, description="Content Asset ID"),
+    payload: Optional[ToneAnalyzeRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_READ_ROLES)),
+) -> ToneAnalyzeResponse:
+    """Computes explainable tone classification, sentiment polarity, and readability metrics."""
+    return tone_service.analyze_content_tone(
+        db=db,
+        asset_id=id,
+        current_user=current_user,
+        text_override=payload.text_override if payload else None,
+        target_tone_override=payload.target_tone if payload else None,
+        channel_override=payload.channel if payload else None,
+    )
+
+
+@router.post(
+    "/{id}/tone/improve",
+    response_model=ToneImproveResponse,
+    summary="Generate tone-optimized rewrite with factual anchor preservation",
+)
+async def improve_content_tone_endpoint(
+    id: int = Path(..., ge=1, description="Content Asset ID"),
+    payload: ToneImproveRequest = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_AUTHOR_ROLES)),
+) -> ToneImproveResponse:
+    """Generates revised copy adhering to requested tone while strictly preserving all facts, dates, and helplines."""
+    return await tone_service.improve_content_tone(
+        db=db,
+        asset_id=id,
+        payload=payload,
+        current_user=current_user,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Task 9.A: Audience-Specific Content Personalization Endpoints
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/{id}/personalize",
+    response_model=ContentPersonalizeResponse,
+    summary="Generate audience segment-specific variants from root content asset",
+)
+def personalize_content_endpoint(
+    id: int = Path(..., ge=1, description="Content Asset ID"),
+    payload: ContentPersonalizeRequest = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_AUTHOR_ROLES)),
+) -> ContentPersonalizeResponse:
+    """Generates tailored demographic variants for selected segments while preserving facts and placeholders."""
+    return personalization_service.personalize_content_asset(
+        db=db,
+        asset_id=id,
+        payload=payload,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{id}/personalize/variants",
+    response_model=List[ContentVariantResponse],
+    summary="List all demographic variants under a content asset",
+)
+def list_content_variants_endpoint(
+    id: int = Path(..., ge=1, description="Content Asset ID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_READ_ROLES)),
+) -> List[ContentVariantResponse]:
+    """Retrieves all demographic variants created under the specified content asset."""
+    return personalization_service.list_content_variants(
+        db=db,
+        asset_id=id,
+        current_user=current_user,
+    )
+
+
+@router.patch(
+    "/variants/{variant_id}",
+    response_model=ContentVariantResponse,
+    summary="Update content variant attributes or review status",
+)
+def update_content_variant_endpoint(
+    variant_id: int = Path(..., ge=1, description="Content Variant ID"),
+    payload: ContentVariantUpdate = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_READ_ROLES)),
+) -> ContentVariantResponse:
+    """Updates variant copy or review status. Approval requires valid quality evaluation without critical findings."""
+    return personalization_service.update_content_variant(
+        db=db,
+        variant_id=variant_id,
+        payload=payload,
+        current_user=current_user,
+    )
+
+
+@router.delete(
+    "/variants/{variant_id}",
+    summary="Delete a content variant",
+)
+def delete_content_variant_endpoint(
+    variant_id: int = Path(..., ge=1, description="Content Variant ID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_AUTHOR_ROLES)),
+) -> Dict[str, str]:
+    """Deletes an audience content variant."""
+    personalization_service.delete_content_variant(
+        db=db,
+        variant_id=variant_id,
+        current_user=current_user,
+    )
+    return {"status": "success", "message": f"Content variant {variant_id} deleted successfully."}
+
+
+@router.post(
+    "/variants/{variant_id}/quality/evaluate",
+    response_model=ContentQualityAssessmentResponse,
+    summary="Evaluate content quality and compliance for a demographic variant",
+)
+def evaluate_content_variant_endpoint(
+    variant_id: int = Path(..., ge=1, description="Content Variant ID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_AUTHOR_ROLES)),
+) -> ContentQualityAssessmentResponse:
+    """Evaluates dynamic compliance rules and creates a persistent quality assessment for the variant."""
+    from app.services.quality_service import evaluate_content_variant, _build_assessment_response
+    from app.models.content_variant import ContentVariant
+    assessment = evaluate_content_variant(db=db, variant_id=variant_id, current_user=current_user)
+    variant = db.get(ContentVariant, variant_id)
+    return _build_assessment_response(assessment, asset=assessment.content_asset, variant=variant)
+
+
+@router.post(
+    "/{id}/personalize/preview-recipient",
+    response_model=RecipientPreviewResponse,
+    summary="Preview personalized message rendering for a specific recipient (POST)",
+)
+def preview_recipient_post_endpoint(
+    id: int = Path(..., ge=1, description="Content Asset ID"),
+    payload: RecipientPreviewRequest = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_READ_ROLES)),
+) -> RecipientPreviewResponse:
+    """Simulates delivery rendering with segment variant resolution and placeholder substitution."""
+    return personalization_service.preview_recipient_message(
+        db=db,
+        asset_id=id,
+        payload=payload,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{id}/personalize/preview-recipient",
+    response_model=RecipientPreviewResponse,
+    summary="Preview personalized message rendering for a specific recipient (GET)",
+)
+def preview_recipient_get_endpoint(
+    id: int = Path(..., ge=1, description="Content Asset ID"),
+    recipient_id: int = Query(..., ge=1, description="Audience Member ID"),
+    channel: Optional[str] = Query(None, description="Delivery channel override"),
+    preferred_language: Optional[str] = Query(None, description="Language override"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(CONTENT_READ_ROLES)),
+) -> RecipientPreviewResponse:
+    """Simulates delivery rendering with segment variant resolution and placeholder substitution via GET query parameters."""
+    req = RecipientPreviewRequest(
+        recipient_id=recipient_id,
+        channel=channel,
+        preferred_language=preferred_language,
+    )
+    return personalization_service.preview_recipient_message(
+        db=db,
+        asset_id=id,
+        payload=req,
+        current_user=current_user,
+    )
+
+
 
