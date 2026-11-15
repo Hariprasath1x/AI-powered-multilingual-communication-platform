@@ -21,7 +21,12 @@ from app.schemas.campaign import (
     SUPPORTED_CAMPAIGN_STATUSES,
     SUPPORTED_CAMPAIGN_CHANNELS,
 )
-from app.services import campaign_service
+from app.schemas.pipeline import (
+    ContentPipelineRequest,
+    ContentPipelineRunResponse,
+    ContentPipelineResumeRequest,
+)
+from app.services import campaign_service, pipeline_service
 
 logger = logging.getLogger("masscommai.campaigns_router")
 
@@ -271,4 +276,100 @@ def delete_campaign(
         current_user=current_user,
     )
     return None
+
+
+# =========================================================================
+# Milestone 2, Task 12: End-to-End Content Pipeline Endpoints
+# Generate -> Translate -> Personalize -> Tone Optimize -> Review
+# =========================================================================
+
+@router.post(
+    "/{id}/content/pipeline",
+    response_model=ContentPipelineRunResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Execute end-to-end automated content generation pipeline (Task 12)",
+)
+async def run_content_pipeline(
+    id: int = Path(..., ge=1, description="Target Campaign primary key ID"),
+    payload: ContentPipelineRequest = ...,
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> ContentPipelineRunResponse:
+    """
+    Executes the 5-stage automated content generation pipeline:
+    1. Generate: Synthesize core public awareness copy using AI brief generation.
+    2. Translate: Batch translate into requested target Indian languages.
+    3. Personalize: Generate audience segment-specific demographic variants.
+    4. Tone Optimize: Optimize tone profile while strictly preserving all factual anchors.
+    5. Review: Execute compliance audits and transition content to 'In Review' queue.
+    """
+    return await pipeline_service.initiate_and_run_pipeline(
+        db=db,
+        campaign_id=id,
+        request=payload,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{id}/content/pipeline",
+    response_model=List[ContentPipelineRunResponse],
+    summary="List historical and active pipeline runs for a campaign",
+)
+def list_campaign_pipeline_runs(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    limit: int = Query(20, ge=1, le=100, description="Max runs to retrieve"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> List[ContentPipelineRunResponse]:
+    """Retrieve history of pipeline executions for this campaign."""
+    return pipeline_service.list_pipeline_runs(
+        db=db,
+        campaign_id=id,
+        current_user=current_user,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/{id}/content/pipeline/{run_id}",
+    response_model=ContentPipelineRunResponse,
+    summary="Get status, progress, and stage outputs for a specific pipeline execution",
+)
+def get_campaign_pipeline_run(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    run_id: int = Path(..., ge=1, description="Content Pipeline Run ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> ContentPipelineRunResponse:
+    """Fetch real-time stage progress, outputs, and errors for a pipeline execution."""
+    return pipeline_service.get_pipeline_run_response(
+        db=db,
+        campaign_id=id,
+        run_id=run_id,
+        current_user=current_user,
+    )
+
+
+@router.post(
+    "/{id}/content/pipeline/{run_id}/resume",
+    response_model=ContentPipelineRunResponse,
+    summary="Resume a failed or partially completed pipeline execution",
+)
+async def resume_campaign_pipeline_run(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    run_id: int = Path(..., ge=1, description="Content Pipeline Run ID"),
+    payload: ContentPipelineResumeRequest = ...,
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> ContentPipelineRunResponse:
+    """Resumes an incomplete or failed pipeline execution without duplicating previously completed stages."""
+    return await pipeline_service.resume_pipeline_run(
+        db=db,
+        campaign_id=id,
+        run_id=run_id,
+        payload=payload,
+        current_user=current_user,
+    )
+
 

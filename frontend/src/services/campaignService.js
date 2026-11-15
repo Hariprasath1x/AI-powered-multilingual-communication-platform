@@ -82,3 +82,36 @@ export async function previewCampaignCustom(campaignId, payload = {}) {
   return response.data;
 }
 
+/**
+ * Task 12: Trigger end-to-end 5-stage content pipeline (Generate -> Translate -> Personalize -> Tone Optimize -> Review).
+ */
+export async function runContentPipeline(campaignId, payload) {
+  const response = await api.post(`/campaigns/${campaignId}/content/pipeline`, payload);
+  return response.data;
+}
+
+/**
+ * Task 12: Fetch live status and stage progress of a content pipeline run.
+ */
+export async function getPipelineRun(campaignId, runId) {
+  const response = await api.get(`/campaigns/${campaignId}/content/pipeline/${runId}`);
+  return response.data;
+}
+
+/**
+ * Task 12: List all historical content pipeline runs for a campaign.
+ */
+export async function listPipelineRuns(campaignId) {
+  const response = await api.get(`/campaigns/${campaignId}/content/pipeline`);
+  return response.data;
+}
+
+/**
+ * Task 12: Resume a failed or partially completed pipeline run from its interruption point.
+ */
+export async function resumePipelineRun(campaignId, runId, payload = {}) {
+  const response = await api.post(`/campaigns/${campaignId}/content/pipeline/${runId}/resume`, payload);
+  return response.data;
+}
+
+

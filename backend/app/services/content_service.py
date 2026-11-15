@@ -42,7 +42,7 @@ PLACEHOLDER_REGEX = re.compile(r"\{[a-zA-Z0-9_]+\}")
 VALID_REVIEW_TRANSITIONS: Dict[str, List[str]] = {
     "Draft": ["In Review", "Approved", "Needs Review", "Generated"],
     "Pending": ["Generated"],
-    "Generated": ["Needs Review", "Approved"],
+    "Generated": ["Needs Review", "Approved", "In Review"],
     "Needs Review": ["Approved", "Rejected"],
     "In Review": ["Approved", "Rejected", "Draft", "Needs Review"],
     "Approved": ["Draft", "Needs Review"],  # Reopening for edit resets approval

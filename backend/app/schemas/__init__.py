@@ -138,6 +138,13 @@ from app.schemas.distribution import (
     PaginatedDeliveriesResponse,
 )
 
+from app.schemas.pipeline import (
+    ContentPipelineRequest,
+    StageOutcome,
+    ContentPipelineRunResponse,
+    ContentPipelineResumeRequest,
+)
+
 __all__ = [
     "RoleRead",
     "UserRegisterRequest",
@@ -241,4 +248,8 @@ __all__ = [
     "ContentPersonalizeResponse",
     "RecipientPreviewRequest",
     "RecipientPreviewResponse",
+    "ContentPipelineRequest",
+    "StageOutcome",
+    "ContentPipelineRunResponse",
+    "ContentPipelineResumeRequest",
 ]

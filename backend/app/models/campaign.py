@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from app.models.content_asset import ContentAsset
     from app.models.distribution import DistributionJob
     from app.models.content_variant import ContentVariant
+    from app.models.pipeline_run import ContentPipelineRun
 
 
 class Campaign(Base, TimestampMixin):
@@ -97,6 +98,12 @@ class Campaign(Base, TimestampMixin):
     variants: Mapped[List[ContentVariant]] = relationship(
         "ContentVariant",
         foreign_keys="[ContentVariant.campaign_id]",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+    )
+    pipeline_runs: Mapped[List[ContentPipelineRun]] = relationship(
+        "ContentPipelineRun",
+        foreign_keys="[ContentPipelineRun.campaign_id]",
         back_populates="campaign",
         cascade="all, delete-orphan",
     )

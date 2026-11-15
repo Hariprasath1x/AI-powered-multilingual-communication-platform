@@ -33,6 +33,7 @@ import {
 } from '../../services/campaignService';
 import CampaignDeleteModal from './CampaignDeleteModal';
 import CampaignDistributionSection from './CampaignDistributionSection';
+import ContentPipelineWizardModal from './ContentPipelineWizardModal';
 
 export default function CampaignDetailPage() {
   const { id } = useParams();
@@ -48,14 +49,15 @@ export default function CampaignDetailPage() {
   // Transition in progress
   const [transitioning, setTransitioning] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [pipelineModalOpen, setPipelineModalOpen] = useState(false);
   const [cloning, setCloning] = useState(false);
 
   // Previews
   const [activeChannelTab, setActiveChannelTab] = useState('Email');
   const [previewData, setPreviewData] = useState(null);
 
-  const fetchCampaign = useCallback(async () => {
-    setLoading(true);
+  const fetchCampaign = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const data = await getCampaign(id);
       setCampaign(data);
@@ -73,7 +75,7 @@ export default function CampaignDetailPage() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to load campaign details.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [id]);
 
@@ -224,6 +226,16 @@ export default function CampaignDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+            {canCreate && (
+              <button
+                onClick={() => setPipelineModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition shadow-2xs"
+                title="Launch integrated 5-stage AI content pipeline"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                AI Content Pipeline
+              </button>
+            )}
             {canCreate && (
               <button
                 onClick={handleClone}
@@ -590,6 +602,20 @@ export default function CampaignDetailPage() {
           navigate('/campaigns', { state: { message: msg } });
         }}
         campaign={campaign}
+      />
+
+      {/* Task 12: Content Pipeline Wizard Modal */}
+      <ContentPipelineWizardModal
+        isOpen={pipelineModalOpen}
+        onClose={() => {
+          setPipelineModalOpen(false);
+          fetchCampaign(true);
+        }}
+        campaign={campaign}
+        onPipelineComplete={() => {
+          fetchCampaign(true);
+          showToast('AI Content Pipeline completed successfully! Review generated copy.');
+        }}
       />
 
     </div>

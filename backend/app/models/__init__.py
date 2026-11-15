@@ -6,6 +6,7 @@ from app.models.campaign import Campaign
 from app.models.template import Template
 from app.models.content_asset import ContentAsset
 from app.models.content_variant import ContentVariant
+from app.models.pipeline_run import ContentPipelineRun
 from app.models.content_quality import ContentQualityAssessment, ContentQualityFinding
 from app.models.compliance_rule import ComplianceRule
 from app.models.translation import TranslationCache, TranslationReviewHistory
@@ -24,6 +25,7 @@ __all__ = [
     "Template",
     "ContentAsset",
     "ContentVariant",
+    "ContentPipelineRun",
     "ContentQualityAssessment",
     "ContentQualityFinding",
     "ComplianceRule",
