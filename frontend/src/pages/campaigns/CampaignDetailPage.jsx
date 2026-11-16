@@ -34,6 +34,7 @@ import {
 import CampaignDeleteModal from './CampaignDeleteModal';
 import CampaignDistributionSection from './CampaignDistributionSection';
 import ContentPipelineWizardModal from './ContentPipelineWizardModal';
+import CampaignLaunchModal from './CampaignLaunchModal';
 
 export default function CampaignDetailPage() {
   const { id } = useParams();
@@ -50,6 +51,7 @@ export default function CampaignDetailPage() {
   const [transitioning, setTransitioning] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [pipelineModalOpen, setPipelineModalOpen] = useState(false);
+  const [launchModalOpen, setLaunchModalOpen] = useState(false);
   const [cloning, setCloning] = useState(false);
 
   // Previews
@@ -226,6 +228,26 @@ export default function CampaignDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+            {canCreate && campaign.status === 'Approved' && (
+              <button
+                onClick={() => setLaunchModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition"
+                title="Launch broadcast across Email and SMS channels"
+              >
+                <SendHorizontal className="w-3.5 h-3.5" />
+                Launch Broadcast
+              </button>
+            )}
+            {canCreate && campaign.status === 'Completed' && (
+              <button
+                onClick={() => setLaunchModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition shadow-2xs"
+                title="View completed delivery metrics and message logs"
+              >
+                <SendHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                Delivery Summary
+              </button>
+            )}
             {canCreate && (
               <button
                 onClick={() => setPipelineModalOpen(true)}
@@ -615,6 +637,20 @@ export default function CampaignDetailPage() {
         onPipelineComplete={() => {
           fetchCampaign(true);
           showToast('AI Content Pipeline completed successfully! Review generated copy.');
+        }}
+      />
+
+      {/* Task 13: Campaign Broadcast & Launch Modal */}
+      <CampaignLaunchModal
+        isOpen={launchModalOpen}
+        onClose={() => {
+          setLaunchModalOpen(false);
+          fetchCampaign(true);
+        }}
+        campaign={campaign}
+        onCampaignSent={(summary) => {
+          fetchCampaign(true);
+          showToast(`Broadcast completed! ${summary.sent_messages + summary.delivered_messages} messages dispatched.`);
         }}
       />
 

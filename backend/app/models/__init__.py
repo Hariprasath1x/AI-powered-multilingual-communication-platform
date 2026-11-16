@@ -12,6 +12,7 @@ from app.models.compliance_rule import ComplianceRule
 from app.models.translation import TranslationCache, TranslationReviewHistory
 from app.models.distribution import DistributionJob, DeliveryRecord, DeliveryAttempt
 from app.models.communication import Message, DeliveryLog, Feedback
+from app.models.channel_config import ChannelConfiguration
 
 __all__ = [
     "Base",
@@ -37,5 +38,6 @@ __all__ = [
     "Message",
     "DeliveryLog",
     "Feedback",
+    "ChannelConfiguration",
 ]
 

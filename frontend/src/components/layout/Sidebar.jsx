@@ -60,6 +60,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       group: 'Administration',
       items: [
         { name: 'User Governance', path: '/admin/users', icon: ShieldCheck },
+        { name: 'Channel Settings', path: '/admin/channels', icon: Radio },
       ],
     });
   }

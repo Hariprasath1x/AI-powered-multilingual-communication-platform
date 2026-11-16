@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
+import ChannelSettingsPage from './pages/admin/ChannelSettingsPage';
 import AudienceListPage from './pages/audience/AudienceListPage';
 import SegmentListPage from './pages/segments/SegmentListPage';
 import TemplateListPage from './pages/templates/TemplateListPage';
@@ -60,6 +61,14 @@ export default function App() {
               element={
                 <AdminRoute>
                   <UserManagementPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/channels"
+              element={
+                <AdminRoute>
+                  <ChannelSettingsPage />
                 </AdminRoute>
               }
             />

@@ -26,7 +26,11 @@ from app.schemas.pipeline import (
     ContentPipelineRunResponse,
     ContentPipelineResumeRequest,
 )
-from app.services import campaign_service, pipeline_service
+from app.schemas.channel_config import (
+    CampaignSendRequest,
+    CampaignSendSummaryResponse,
+)
+from app.services import campaign_service, pipeline_service, campaign_sending_service
 
 logger = logging.getLogger("masscommai.campaigns_router")
 
@@ -371,5 +375,59 @@ async def resume_campaign_pipeline_run(
         payload=payload,
         current_user=current_user,
     )
+
+
+# =========================================================================
+# Milestone 3, Task 13: Campaign Distribution & Channel Integration
+# POST /campaigns/{id}/send & GET /campaigns/{id}/send/summary
+# =========================================================================
+
+@router.post(
+    "/{id}/send",
+    response_model=CampaignSendSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Distribute approved campaign across targeted channels (Task 13)",
+)
+async def send_campaign_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    payload: Optional[CampaignSendRequest] = None,
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> CampaignSendSummaryResponse:
+    """
+    Launches distribution of an approved campaign:
+    1. Verifies campaign lifecycle approval status ('Approved').
+    2. Resolves audience members across attached segments.
+    3. Identifies preferred channels (Email/SMS).
+    4. Selects approved language & segment content variants.
+    5. Strictly enforces affirmative recipient consent (no send if opted out).
+    6. Dispatches via Email and SMS channel adapters.
+    7. Persists individual tracking records and returns distribution summary.
+    """
+    return await campaign_sending_service.send_campaign(
+        db=db,
+        campaign_id=id,
+        request=payload,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{id}/send/summary",
+    response_model=CampaignSendSummaryResponse,
+    summary="Get live distribution progress and messages summary for a campaign",
+)
+def get_campaign_send_summary_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> CampaignSendSummaryResponse:
+    """Retrieves live aggregate delivery counts, channel cards, and message logs."""
+    return campaign_sending_service.get_campaign_send_summary(
+        db=db,
+        campaign_id=id,
+        current_user=current_user,
+    )
+
 
 

@@ -145,6 +145,18 @@ from app.schemas.pipeline import (
     ContentPipelineResumeRequest,
 )
 
+from app.schemas.channel_config import (
+    ChannelConfigResponse,
+    ChannelConfigUpdateRequest,
+    ChannelTestRequest,
+    ChannelTestResponse,
+    CampaignSendRequest,
+    MessageSummary,
+    ChannelDeliverySummary,
+    CampaignSendSummaryResponse,
+    mask_secret,
+)
+
 __all__ = [
     "RoleRead",
     "UserRegisterRequest",
@@ -252,4 +264,13 @@ __all__ = [
     "StageOutcome",
     "ContentPipelineRunResponse",
     "ContentPipelineResumeRequest",
+    "ChannelConfigResponse",
+    "ChannelConfigUpdateRequest",
+    "ChannelTestRequest",
+    "ChannelTestResponse",
+    "CampaignSendRequest",
+    "MessageSummary",
+    "ChannelDeliverySummary",
+    "CampaignSendSummaryResponse",
+    "mask_secret",
 ]
