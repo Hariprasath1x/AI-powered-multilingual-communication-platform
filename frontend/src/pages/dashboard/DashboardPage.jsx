@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Server,
   Zap,
+  BarChart3,
 } from 'lucide-react';
 import { getAudienceStats } from '../../services/audienceService';
 import { listCampaigns } from '../../services/campaignService';
@@ -140,6 +141,17 @@ export default function DashboardPage() {
       action: 'Monitor Queues',
       statLabel: 'Engine Status',
       statValue: 'Operational',
+    },
+    {
+      title: 'Analytics & Civic Intelligence',
+      description: 'Executive KPIs, conversion funnels, multilingual response trends, and AI-driven broadcast recommendations.',
+      href: '/analytics',
+      icon: BarChart3,
+      iconColor: 'text-purple-600',
+      iconBg: 'bg-purple-50 border border-purple-200',
+      action: 'View Analytics',
+      statLabel: 'Analytics Engine',
+      statValue: 'Live Telemetry',
     },
   ];
 

@@ -15,6 +15,7 @@ import {
   Calendar,
   RotateCcw,
   MessageSquareHeart,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -33,6 +34,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       group: 'Overview',
       items: [
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Analytics & Insights', path: '/analytics', icon: BarChart3 },
       ],
     },
     {

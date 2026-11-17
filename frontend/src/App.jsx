@@ -21,6 +21,7 @@ import DistributionDashboardPage from './pages/distribution/DistributionDashboar
 import DeliveryTrackingPage from './pages/distribution/DeliveryTrackingPage';
 import PublicFeedbackPage from './pages/public/PublicFeedbackPage';
 import FeedbackMonitoringPage from './pages/feedback/FeedbackMonitoringPage';
+import AnalyticsDashboardPage from './pages/analytics/AnalyticsDashboardPage';
 import ProtectedRoute from './components/guards/ProtectedRoute';
 import AdminRoute from './components/guards/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -54,6 +55,7 @@ export default function App() {
             }
           >
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analytics" element={<AnalyticsDashboardPage />} />
             <Route path="/audience" element={<AudienceListPage />} />
             <Route path="/segments" element={<SegmentListPage />} />
             <Route path="/templates" element={<TemplateListPage />} />

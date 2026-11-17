@@ -18,6 +18,7 @@ from app.routers import (
     messages,
     feedback,
     link_tracking,
+    analytics,
 )
 
 __all__ = [
@@ -38,4 +39,5 @@ __all__ = [
     "messages",
     "feedback",
     "link_tracking",
+    "analytics",
 ]
