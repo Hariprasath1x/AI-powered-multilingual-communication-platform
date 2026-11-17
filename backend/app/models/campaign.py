@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from app.models.pipeline_run import ContentPipelineRun
     from app.models.campaign_schedule import CampaignSchedule
     from app.models.automation_rule import AutomationRule, AutomationExecutionLog
+    from app.models.engagement import EngagementEvent, TrackedLink
 
 
 class Campaign(Base, TimestampMixin):
@@ -122,6 +123,16 @@ class Campaign(Base, TimestampMixin):
     )
     automation_logs: Mapped[List[AutomationExecutionLog]] = relationship(
         "AutomationExecutionLog",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+    )
+    engagement_events: Mapped[List[EngagementEvent]] = relationship(
+        "EngagementEvent",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+    )
+    tracked_links: Mapped[List[TrackedLink]] = relationship(
+        "TrackedLink",
         back_populates="campaign",
         cascade="all, delete-orphan",
     )

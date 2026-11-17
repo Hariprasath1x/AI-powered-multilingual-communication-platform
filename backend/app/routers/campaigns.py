@@ -43,6 +43,7 @@ from app.schemas.scheduling import (
     FailedMessagesListResponse,
     RetryBatchResponse,
 )
+from app.schemas.engagement import CampaignEngagementMetricsResponse
 from app.services import (
     campaign_service,
     pipeline_service,
@@ -51,6 +52,7 @@ from app.services import (
     automation_service,
     delivery_tracking_service,
     retry_service,
+    engagement_service,
 )
 
 logger = logging.getLogger("masscommai.campaigns_router")
@@ -729,3 +731,20 @@ async def retry_campaign_failed_endpoint(
         current_user=current_user,
         force=True,
     )
+
+
+@router.get(
+    "/{id}/engagement",
+    response_model=CampaignEngagementMetricsResponse,
+    summary="Get campaign engagement metrics, rates, and sentiment breakdown (Task 16)",
+)
+def get_campaign_engagement_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> CampaignEngagementMetricsResponse:
+    """
+    Computes rigorous engagement rates (Open Rate, CTR, Response Rate, Participation Rate)
+    and sentiment distributions with channel and language breakdowns for an approved campaign.
+    """
+    return engagement_service.get_campaign_engagement_metrics(db=db, campaign_id=id)

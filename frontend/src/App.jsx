@@ -19,6 +19,8 @@ import ScheduledCampaignsPage from './pages/campaigns/ScheduledCampaignsPage';
 import ContentStudioPage from './pages/content/ContentStudioPage';
 import DistributionDashboardPage from './pages/distribution/DistributionDashboardPage';
 import DeliveryTrackingPage from './pages/distribution/DeliveryTrackingPage';
+import PublicFeedbackPage from './pages/public/PublicFeedbackPage';
+import FeedbackMonitoringPage from './pages/feedback/FeedbackMonitoringPage';
 import ProtectedRoute from './components/guards/ProtectedRoute';
 import AdminRoute from './components/guards/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -40,6 +42,7 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/announcements" element={<PublicAnnouncementsPage />} />
+            <Route path="/feedback/:token" element={<PublicFeedbackPage />} />
           </Route>
 
           {/* Authenticated Protected Routes with AppLayout (Sidebar + AppHeader) */}
@@ -62,6 +65,7 @@ export default function App() {
             <Route path="/content" element={<ContentStudioPage />} />
             <Route path="/distribution" element={<DistributionDashboardPage />} />
             <Route path="/distribution/tracking" element={<DeliveryTrackingPage />} />
+            <Route path="/feedback" element={<FeedbackMonitoringPage />} />
             <Route
               path="/admin/users"
               element={

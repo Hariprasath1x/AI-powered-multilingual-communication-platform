@@ -196,13 +196,30 @@ async def handle_whatsapp_webhook(
                     )
                     recent_msg = db.execute(recent_msg_stmt).scalar_one_or_none()
                     if recent_msg:
+                        from app.services import sentiment_service, engagement_service
+                        label, score = sentiment_service.analyze_sentiment(text_content, recent_msg.language or "en")
                         feedback = Feedback(
                             campaign_id=recent_msg.campaign_id,
                             audience_member_id=recent_msg.audience_member_id,
+                            message_id=recent_msg.id,
+                            channel="WhatsApp",
                             comment=text_content,
                             rating=None,
+                            sentiment_label=label,
+                            sentiment_score=score,
+                            language=recent_msg.language or "en",
                         )
                         db.add(feedback)
+                        engagement_service.record_engagement_event(
+                            db=db,
+                            campaign_id=recent_msg.campaign_id,
+                            message_id=recent_msg.id,
+                            audience_member_id=recent_msg.audience_member_id,
+                            event_type="reply",
+                            device_info="Mobile (WhatsApp)",
+                            language=recent_msg.language or "en",
+                            metadata_json={"reply_text": text_content, "wamid": msg_id},
+                        )
 
                 processed_count += 1
 
@@ -290,18 +307,19 @@ def handle_provider_delivery_callback(
 
 @router.get(
     "/open/{tracking_id}",
-    summary="Message open tracking pixel / callback (Task 15)",
+    summary="Message open tracking pixel / callback (Task 15 & 16)",
 )
 def handle_message_open_tracking(
     tracking_id: str = Path(..., description="Message tracking ID"),
+    request: Request = None,
     db: Session = Depends(get_db),
 ):
     """
     Records message open/read event when email tracking pixel or read callback is loaded.
-    Sets opened_at timestamp on Message to satisfy automation rule evaluations.
+    Sets opened_at timestamp on Message to satisfy automation rule evaluations and records an open EngagementEvent.
     """
     from app.schemas.scheduling import DeliveryCallbackPayload
-    from app.services import delivery_tracking_service
+    from app.services import delivery_tracking_service, engagement_service, link_tracking_service
 
     cb_payload = DeliveryCallbackPayload(
         provider="tracking_pixel",
@@ -309,8 +327,109 @@ def handle_message_open_tracking(
         status="read",
     )
     delivery_tracking_service.process_delivery_callback(db=db, payload=cb_payload)
+
+    # Record open EngagementEvent if message exists
+    msg = db.execute(select(Message).where(Message.tracking_id == tracking_id)).scalar_one_or_none()
+    if msg:
+        ua = request.headers.get("user-agent") if request else None
+        device = link_tracking_service.parse_device_info(ua)
+        engagement_service.record_engagement_event(
+            db=db,
+            campaign_id=msg.campaign_id,
+            message_id=msg.id,
+            audience_member_id=msg.audience_member_id,
+            event_type="open",
+            device_info=device,
+            language=msg.language or "en",
+        )
+
     # Return 1x1 transparent GIF placeholder
     return Response(
         content=b"GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
         media_type="image/gif",
     )
+
+
+@router.post(
+    "/sms",
+    summary="Handle inbound citizen SMS replies (Task 16)",
+)
+async def handle_sms_inbound_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Processes inbound citizen SMS responses (replies from Twilio, Fast2SMS, or generic gateways).
+    Performs idempotent event deduplication, runs sentiment analysis, records Feedback,
+    and logs a 'reply' engagement event.
+    """
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+    else:
+        try:
+            form = await request.form()
+            data = dict(form)
+        except Exception:
+            data = {}
+
+    from_num = data.get("From") or data.get("from") or data.get("sender") or data.get("phone")
+    text_content = data.get("Body") or data.get("body") or data.get("text") or data.get("message") or ""
+    provider_id = data.get("MessageSid") or data.get("id") or data.get("message_id")
+    event_id = f"sms_reply_{provider_id}" if provider_id else f"sms_reply_{datetime.now(timezone.utc).timestamp()}"
+
+    # Deduplication
+    existing = db.execute(select(WebhookEvent).where(WebhookEvent.event_id == event_id)).scalar_one_or_none()
+    if existing:
+        return {"status": "already_processed"}
+
+    event_rec = WebhookEvent(
+        provider="sms",
+        event_id=event_id,
+        event_type="sms_inbound_reply",
+        payload=data,
+        processed_status="processed",
+    )
+    db.add(event_rec)
+
+    if from_num and text_content:
+        clean_phone = str(from_num).strip().replace(" ", "").replace("-", "")
+        # Correlate with recent message sent to this channel
+        recent_msg_stmt = (
+            select(Message)
+            .where(Message.channel == "SMS")
+            .order_by(Message.id.desc())
+            .limit(1)
+        )
+        recent_msg = db.execute(recent_msg_stmt).scalar_one_or_none()
+        if recent_msg:
+            from app.services import sentiment_service, engagement_service
+            label, score = sentiment_service.analyze_sentiment(text_content, recent_msg.language or "en")
+            fb = Feedback(
+                campaign_id=recent_msg.campaign_id,
+                audience_member_id=recent_msg.audience_member_id,
+                message_id=recent_msg.id,
+                channel="SMS",
+                comment=text_content,
+                rating=None,
+                sentiment_label=label,
+                sentiment_score=score,
+                language=recent_msg.language or "en",
+            )
+            db.add(fb)
+            engagement_service.record_engagement_event(
+                db=db,
+                campaign_id=recent_msg.campaign_id,
+                message_id=recent_msg.id,
+                audience_member_id=recent_msg.audience_member_id,
+                event_type="reply",
+                device_info="Mobile (SMS)",
+                language=recent_msg.language or "en",
+                metadata_json={"reply_text": text_content, "provider_id": provider_id},
+            )
+
+    db.commit()
+    return {"status": "ok", "message": "Inbound SMS reply recorded."}

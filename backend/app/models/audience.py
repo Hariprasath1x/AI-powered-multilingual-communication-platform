@@ -6,6 +6,7 @@ from app.db.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.communication import Message, Feedback
+    from app.models.engagement import EngagementEvent
 
 
 class AudienceMember(Base, TimestampMixin):
@@ -34,6 +35,10 @@ class AudienceMember(Base, TimestampMixin):
     # Relationships
     messages: Mapped[List[Message]] = relationship(back_populates="audience_member")
     feedbacks: Mapped[List[Feedback]] = relationship(back_populates="audience_member")
+    engagement_events: Mapped[List[EngagementEvent]] = relationship(
+        "EngagementEvent",
+        back_populates="audience_member",
+    )
 
     __table_args__ = (
         Index(

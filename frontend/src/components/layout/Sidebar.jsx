@@ -14,6 +14,7 @@ import {
   Radio,
   Calendar,
   RotateCcw,
+  MessageSquareHeart,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -57,6 +58,12 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         { name: 'Delivery Tracking & Retries', path: '/distribution/tracking', icon: RotateCcw },
       ],
     },
+    {
+      group: 'Feedback & Community',
+      items: [
+        { name: 'Citizen Feedback', path: '/feedback', icon: MessageSquareHeart },
+      ],
+    },
   ];
 
   if (isAdmin) {
@@ -77,7 +84,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
 
   const NavContent = () => (
     <div className="flex flex-col h-full bg-slate-900 text-slate-300 border-r border-slate-800 select-none">
-      
+
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-800">
         <div className="flex items-center justify-between">

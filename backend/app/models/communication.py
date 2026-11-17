@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING, List, Optional, Dict, Any
 from datetime import datetime
-from sqlalchemy import String, Text, Integer, Float, ForeignKey, DateTime, func
+from sqlalchemy import String, Text, Integer, Float, Boolean, ForeignKey, DateTime, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.template import Template
     from app.models.content_asset import ContentAsset
     from app.models.content_variant import ContentVariant
+    from app.models.engagement import EngagementEvent, TrackedLink
 
 
 class Message(Base):
@@ -106,6 +107,14 @@ class Message(Base):
         index=True,
         comment="Timestamp when message was confirmed opened or read by recipient",
     )
+    feedback_token: Mapped[Optional[str]] = mapped_column(
+        String(64),
+        unique=True,
+        nullable=True,
+        index=True,
+        default=lambda: f"fbt_{uuid.uuid4().hex}",
+        comment="Secure unguessable token for public recipient feedback submission",
+    )
     scheduled_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
@@ -137,6 +146,21 @@ class Message(Base):
     content_asset: Mapped[Optional[ContentAsset]] = relationship("ContentAsset")
     content_variant: Mapped[Optional[ContentVariant]] = relationship("ContentVariant")
     delivery_logs: Mapped[List[DeliveryLog]] = relationship(
+        back_populates="message",
+        cascade="all, delete-orphan",
+    )
+    feedbacks: Mapped[List[Feedback]] = relationship(
+        "Feedback",
+        back_populates="message",
+        cascade="all, delete-orphan",
+    )
+    engagement_events: Mapped[List[EngagementEvent]] = relationship(
+        "EngagementEvent",
+        back_populates="message",
+        cascade="all, delete-orphan",
+    )
+    tracked_links: Mapped[List[TrackedLink]] = relationship(
+        "TrackedLink",
         back_populates="message",
         cascade="all, delete-orphan",
     )
@@ -188,8 +212,20 @@ class Feedback(Base):
         nullable=True,
         index=True,
     )
+    message_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("messages.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        comment="Associated outbound message if submitted in response to a broadcast",
+    )
     rating: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="1 to 5 stars")
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    channel: Mapped[Optional[str]] = mapped_column(
+        String(30),
+        nullable=True,
+        default="Web",
+        comment="Channel via which feedback was requested or received e.g. Web, SMS, WhatsApp",
+    )
     # Forward-compatible sentiment analysis fields (Milestone 3)
     sentiment_label: Mapped[Optional[str]] = mapped_column(
         String(30),
@@ -202,6 +238,29 @@ class Feedback(Base):
         comment="Sentiment confidence or polarity score (-1.0 to 1.0)",
     )
     language: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    is_resolved: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+        comment="Whether administrative team has resolved negative or critical feedback",
+    )
+    resolution_notes: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+        comment="Action notes recorded when resolving feedback",
+    )
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Timestamp when feedback was marked resolved",
+    )
+    feedback_token: Mapped[Optional[str]] = mapped_column(
+        String(64),
+        nullable=True,
+        index=True,
+        comment="Unguessable token used for submission",
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -211,4 +270,5 @@ class Feedback(Base):
     # Relationships
     campaign: Mapped[Campaign] = relationship(back_populates="feedbacks")
     audience_member: Mapped[Optional[AudienceMember]] = relationship(back_populates="feedbacks")
+    message: Mapped[Optional[Message]] = relationship("Message", back_populates="feedbacks")
 

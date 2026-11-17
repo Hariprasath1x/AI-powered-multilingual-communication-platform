@@ -19,6 +19,8 @@ from app.routers import (
     webhooks,
     notifications,
     messages,
+    feedback,
+    link_tracking,
 )
 from app.db.session import SessionLocal
 from app.db.seed import seed_default_roles
@@ -93,6 +95,8 @@ app.include_router(distribution.router)
 app.include_router(webhooks.router)
 app.include_router(notifications.router)
 app.include_router(messages.router)
+app.include_router(feedback.router)
+app.include_router(link_tracking.router)
 
 
 @app.get("/", tags=["Root"])

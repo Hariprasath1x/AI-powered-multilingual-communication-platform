@@ -213,6 +213,7 @@ async def send_campaign(
 
             msg = Message(
                 tracking_id=tracking_id,
+                feedback_token=f"fbt_{uuid.uuid4().hex}",
                 campaign_id=campaign.id,
                 audience_member_id=member.id,
                 channel=fallback_primary,
@@ -399,6 +400,7 @@ async def send_campaign(
 
         msg = Message(
             tracking_id=tracking_id,
+            feedback_token=f"fbt_{uuid.uuid4().hex}",
             campaign_id=campaign.id,
             audience_member_id=member.id,
             content_asset_id=final_asset_id,

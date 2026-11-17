@@ -261,3 +261,73 @@ export async function retryAllFailedMessages() {
   const response = await api.post('/messages/retry-failed');
   return response.data;
 }
+
+/**
+ * Fetch public feedback info by token (no auth required).
+ */
+export async function getPublicFeedbackInfo(token) {
+  const response = await api.get(`/feedback/info/${token}`);
+  return response.data;
+}
+
+/**
+ * Submit public feedback (no auth required).
+ */
+export async function submitPublicFeedback(payload) {
+  const response = await api.post('/feedback/submit', payload);
+  return response.data;
+}
+
+/**
+ * List feedback with filters (admin).
+ */
+export async function listFeedback(params = {}) {
+  const response = await api.get('/feedback', { params });
+  return response.data;
+}
+
+/**
+ * Get feedback detail (admin).
+ */
+export async function getFeedbackDetail(feedbackId) {
+  const response = await api.get(`/feedback/${feedbackId}`);
+  return response.data;
+}
+
+/**
+ * Mark feedback as resolved (admin).
+ */
+export async function resolveFeedback(feedbackId, resolutionNotes = null) {
+  const response = await api.post(`/feedback/${feedbackId}/resolve`, {
+    resolution_notes: resolutionNotes,
+  });
+  return response.data;
+}
+
+/**
+ * Dispatch reply to feedback (admin).
+ */
+export async function replyToFeedback(feedbackId, replyText, channelOverride = null) {
+  const response = await api.post(`/feedback/${feedbackId}/reply`, {
+    reply_text: replyText,
+    channel_override: channelOverride,
+  });
+  return response.data;
+}
+
+/**
+ * Get feedback topics, keywords, questions and concerns (admin).
+ */
+export async function getFeedbackTopics(campaignId = null) {
+  const params = campaignId ? { campaign_id: campaignId } : {};
+  const response = await api.get('/feedback/topics', { params });
+  return response.data;
+}
+
+/**
+ * Get campaign engagement and sentiment metrics (admin).
+ */
+export async function getCampaignEngagement(campaignId) {
+  const response = await api.get(`/campaigns/${campaignId}/engagement`);
+  return response.data;
+}

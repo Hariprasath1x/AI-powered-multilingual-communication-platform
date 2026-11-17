@@ -18,6 +18,7 @@ from app.models.web_broadcast import WebBroadcast
 from app.models.webhook_event import WebhookEvent
 from app.models.campaign_schedule import CampaignSchedule
 from app.models.automation_rule import AutomationRule, AutomationExecutionLog
+from app.models.engagement import TrackedLink, EngagementEvent
 
 __all__ = [
     "Base",
@@ -50,5 +51,7 @@ __all__ = [
     "CampaignSchedule",
     "AutomationRule",
     "AutomationExecutionLog",
+    "TrackedLink",
+    "EngagementEvent",
 ]
 

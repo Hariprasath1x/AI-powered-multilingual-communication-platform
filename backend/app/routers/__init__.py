@@ -16,6 +16,8 @@ from app.routers import (
     webhooks,
     notifications,
     messages,
+    feedback,
+    link_tracking,
 )
 
 __all__ = [
@@ -34,4 +36,6 @@ __all__ = [
     "webhooks",
     "notifications",
     "messages",
+    "feedback",
+    "link_tracking",
 ]

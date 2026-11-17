@@ -35,6 +35,7 @@ import {
 } from '../../services/campaignService';
 import CampaignDeleteModal from './CampaignDeleteModal';
 import CampaignDistributionSection from './CampaignDistributionSection';
+import CampaignEngagementSection from './CampaignEngagementSection';
 import ContentPipelineWizardModal from './ContentPipelineWizardModal';
 import CampaignLaunchModal from './CampaignLaunchModal';
 import AutomationRulesModal from './AutomationRulesModal';
@@ -185,7 +186,7 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      
+
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 bg-slate-900 text-white text-sm font-medium rounded-xl shadow-2xl border border-slate-700 animate-fade-in">
@@ -420,10 +421,10 @@ export default function CampaignDetailPage() {
 
       {/* Two-Column Detail Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Left Column: Reach & Segments & Schedule */}
         <div className="lg:col-span-1 space-y-6">
-          
+
           {/* Audience Reach Card */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
@@ -518,7 +519,7 @@ export default function CampaignDetailPage() {
 
         {/* Right Column: Template & Simulated Preview */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Linked Template Card */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
             <div className="flex items-center justify-between text-slate-900 font-bold text-sm">
@@ -637,6 +638,9 @@ export default function CampaignDetailPage() {
 
       {/* Multichannel Distribution & Delivery Engine Section */}
       <CampaignDistributionSection campaign={campaign} isOwner={isOwner} />
+
+      {/* Task 16: Engagement Tracking & Sentiment Analysis Section */}
+      <CampaignEngagementSection campaign={campaign} isOwner={isOwner} />
 
       {/* Delete Modal */}
       <CampaignDeleteModal
