@@ -22,7 +22,9 @@ import {
   Users,
   Archive,
   RefreshCw,
-  SendHorizontal
+  SendHorizontal,
+  Zap,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -35,6 +37,7 @@ import CampaignDeleteModal from './CampaignDeleteModal';
 import CampaignDistributionSection from './CampaignDistributionSection';
 import ContentPipelineWizardModal from './ContentPipelineWizardModal';
 import CampaignLaunchModal from './CampaignLaunchModal';
+import AutomationRulesModal from './AutomationRulesModal';
 
 export default function CampaignDetailPage() {
   const { id } = useParams();
@@ -52,6 +55,7 @@ export default function CampaignDetailPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [pipelineModalOpen, setPipelineModalOpen] = useState(false);
   const [launchModalOpen, setLaunchModalOpen] = useState(false);
+  const [automationModalOpen, setAutomationModalOpen] = useState(false);
   const [cloning, setCloning] = useState(false);
 
   // Previews
@@ -258,6 +262,24 @@ export default function CampaignDetailPage() {
                 AI Content Pipeline
               </button>
             )}
+            {canCreate && (
+              <button
+                onClick={() => setAutomationModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+                title="Configure automated rules e.g. 24h unread reminder"
+              >
+                <Zap className="w-3.5 h-3.5 text-indigo-600" />
+                Automation Rules
+              </button>
+            )}
+            <Link
+              to={`/distribution/tracking?campaign_id=${campaign.id}`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+              title="View live delivery status and retry failed messages"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+              Delivery & Retries
+            </Link>
             {canCreate && (
               <button
                 onClick={handleClone}
@@ -652,6 +674,16 @@ export default function CampaignDetailPage() {
           fetchCampaign(true);
           showToast(`Broadcast completed! ${summary.sent_messages + summary.delivered_messages} messages dispatched.`);
         }}
+      />
+
+      {/* Task 15: Automation Rules Modal */}
+      <AutomationRulesModal
+        isOpen={automationModalOpen}
+        onClose={() => {
+          setAutomationModalOpen(false);
+          fetchCampaign(true);
+        }}
+        campaign={campaign}
       />
 
     </div>

@@ -23,6 +23,11 @@ SUPPORTED_CAMPAIGN_STATUSES: Set[str] = {
     "In Review",
     "Approved",
     "Scheduled",
+    "Running",
+    "Completed",
+    "Paused",
+    "Cancelled",
+    "Failed",
     "Archived",
 }
 
@@ -30,6 +35,8 @@ SUPPORTED_CAMPAIGN_CHANNELS: Set[str] = {
     "Email",
     "SMS",
     "WhatsApp",
+    "Push",
+    "Web",
     "Voice",
 }
 

@@ -18,9 +18,11 @@ from app.routers import (
     distribution,
     webhooks,
     notifications,
+    messages,
 )
 from app.db.session import SessionLocal
 from app.db.seed import seed_default_roles
+from app.services.scheduler_service import start_scheduler, shutdown_scheduler
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -41,8 +43,19 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Startup role seeding could not complete: %s", exc)
 
+    # Initialize and start APScheduler AsyncIOScheduler
+    try:
+        start_scheduler()
+    except Exception as exc:
+        logger.warning("APScheduler startup encountered error: %s", exc)
+
     yield
+
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
+    try:
+        shutdown_scheduler()
+    except Exception as exc:
+        logger.warning("APScheduler shutdown encountered error: %s", exc)
 
 
 app = FastAPI(
@@ -79,6 +92,7 @@ app.include_router(content_quality.router)
 app.include_router(distribution.router)
 app.include_router(webhooks.router)
 app.include_router(notifications.router)
+app.include_router(messages.router)
 
 
 @app.get("/", tags=["Root"])

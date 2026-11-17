@@ -114,4 +114,150 @@ export async function resumePipelineRun(campaignId, runId, payload = {}) {
   return response.data;
 }
 
+// =========================================================================
+// Milestone 3, Task 15: Campaign Scheduling, Automations & Retries
+// =========================================================================
 
+/**
+ * Schedule an approved campaign for immediate, future, or recurring broadcast.
+ */
+export async function scheduleCampaign(campaignId, data) {
+  const response = await api.post(`/campaigns/${campaignId}/schedule`, data);
+  return response.data;
+}
+
+/**
+ * Get schedule details for a campaign.
+ */
+export async function getCampaignSchedule(campaignId) {
+  const response = await api.get(`/campaigns/${campaignId}/schedule`);
+  return response.data;
+}
+
+/**
+ * List all scheduled campaigns across calendar lifecycle.
+ */
+export async function listScheduledCampaigns(params = {}) {
+  const response = await api.get('/campaigns/scheduled', { params });
+  return response.data;
+}
+
+/**
+ * Pause active campaign schedule.
+ */
+export async function pauseCampaignSchedule(campaignId) {
+  const response = await api.post(`/campaigns/${campaignId}/schedule/pause`);
+  return response.data;
+}
+
+/**
+ * Resume paused campaign schedule.
+ */
+export async function resumeCampaignSchedule(campaignId) {
+  const response = await api.post(`/campaigns/${campaignId}/schedule/resume`);
+  return response.data;
+}
+
+/**
+ * Cancel and remove campaign schedule.
+ */
+export async function cancelCampaignSchedule(campaignId) {
+  const response = await api.delete(`/campaigns/${campaignId}/schedule`);
+  return response.data;
+}
+
+/**
+ * Create automation rule for campaign.
+ */
+export async function createAutomationRule(campaignId, data) {
+  const response = await api.post(`/campaigns/${campaignId}/automation-rules`, data);
+  return response.data;
+}
+
+/**
+ * List automation rules for campaign.
+ */
+export async function listAutomationRules(campaignId) {
+  const response = await api.get(`/campaigns/${campaignId}/automation-rules`);
+  return response.data;
+}
+
+/**
+ * Update automation rule.
+ */
+export async function updateAutomationRule(campaignId, ruleId, data) {
+  const response = await api.put(`/campaigns/${campaignId}/automation-rules/${ruleId}`, data);
+  return response.data;
+}
+
+/**
+ * Delete automation rule.
+ */
+export async function deleteAutomationRule(campaignId, ruleId) {
+  const response = await api.delete(`/campaigns/${campaignId}/automation-rules/${ruleId}`);
+  return response.data;
+}
+
+/**
+ * Get execution history for campaign automation rules.
+ */
+export async function getAutomationHistory(campaignId) {
+  const response = await api.get(`/campaigns/${campaignId}/automation-rules/history`);
+  return response.data;
+}
+
+/**
+ * Trigger immediate evaluation of campaign automation rules.
+ */
+export async function evaluateAutomationRules(campaignId) {
+  const response = await api.post(`/campaigns/${campaignId}/automation-rules/evaluate`);
+  return response.data;
+}
+
+/**
+ * Get comprehensive delivery tracking summary for campaign.
+ */
+export async function getCampaignDeliverySummary(campaignId) {
+  const response = await api.get(`/campaigns/${campaignId}/delivery`);
+  return response.data;
+}
+
+/**
+ * List failed messages for a specific campaign.
+ */
+export async function listCampaignFailedMessages(campaignId, params = {}) {
+  const response = await api.get(`/campaigns/${campaignId}/failed-messages`, { params });
+  return response.data;
+}
+
+/**
+ * List all failed messages across campaigns.
+ */
+export async function listAllFailedMessages(params = {}) {
+  const response = await api.get('/messages/failed', { params });
+  return response.data;
+}
+
+/**
+ * Retry an individual failed message.
+ */
+export async function retryMessage(messageId, force = true) {
+  const response = await api.post(`/messages/${messageId}/retry`, null, { params: { force } });
+  return response.data;
+}
+
+/**
+ * Retry all eligible failed messages for a campaign.
+ */
+export async function retryCampaignFailedMessages(campaignId) {
+  const response = await api.post(`/campaigns/${campaignId}/retry-failed`);
+  return response.data;
+}
+
+/**
+ * Retry all eligible failed messages across all campaigns.
+ */
+export async function retryAllFailedMessages() {
+  const response = await api.post('/messages/retry-failed');
+  return response.data;
+}

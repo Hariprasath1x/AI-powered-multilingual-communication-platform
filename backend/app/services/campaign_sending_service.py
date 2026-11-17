@@ -73,12 +73,12 @@ async def send_campaign(
             )
 
     # 2. Verify campaign approval status
-    if campaign.status != "Approved":
+    if campaign.status not in ("Approved", "Scheduled"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 f"Campaign #{campaign_id} ('{campaign.name}') cannot be launched. "
-                f"Only campaigns with review status 'Approved' are permitted for broadcast. "
+                f"Only campaigns with review status 'Approved' are permitted for broadcast (or 'Scheduled' for automated dispatch). "
                 f"Current status: '{campaign.status}'."
             ),
         )

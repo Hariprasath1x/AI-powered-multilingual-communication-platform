@@ -8,7 +8,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Path, Request, Response, status
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -255,3 +255,62 @@ async def handle_push_webhook(
 
     db.commit()
     return {"status": "ok"}
+
+
+@router.post(
+    "/delivery",
+    summary="Standard multi-channel provider delivery callback endpoint (Task 15)",
+)
+def handle_provider_delivery_callback(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db),
+):
+    """
+    Processes provider delivery callbacks (Twilio, SendGrid, Fast2SMS, etc.):
+    - Validates status transition (Sent -> Delivered, or Failed).
+    - Preserves provider message ID and failure reason.
+    - Idempotently deduplicates event.
+    - On failure, schedules next retry timestamp.
+    """
+    from app.schemas.scheduling import DeliveryCallbackPayload
+    from app.services import delivery_tracking_service
+
+    cb_payload = DeliveryCallbackPayload(
+        provider=payload.get("provider", "generic"),
+        provider_message_id=payload.get("provider_message_id") or payload.get("message_id") or payload.get("MessageSid"),
+        tracking_id=payload.get("tracking_id"),
+        status=payload.get("status", "sent"),
+        failure_reason=payload.get("failure_reason") or payload.get("error_message") or payload.get("ErrorMessage"),
+        error_code=payload.get("error_code") or payload.get("ErrorCode"),
+        metadata=payload.get("metadata"),
+    )
+    success, msg_desc, _ = delivery_tracking_service.process_delivery_callback(db=db, payload=cb_payload)
+    return {"status": "ok" if success else "error", "message": msg_desc}
+
+
+@router.get(
+    "/open/{tracking_id}",
+    summary="Message open tracking pixel / callback (Task 15)",
+)
+def handle_message_open_tracking(
+    tracking_id: str = Path(..., description="Message tracking ID"),
+    db: Session = Depends(get_db),
+):
+    """
+    Records message open/read event when email tracking pixel or read callback is loaded.
+    Sets opened_at timestamp on Message to satisfy automation rule evaluations.
+    """
+    from app.schemas.scheduling import DeliveryCallbackPayload
+    from app.services import delivery_tracking_service
+
+    cb_payload = DeliveryCallbackPayload(
+        provider="tracking_pixel",
+        tracking_id=tracking_id,
+        status="read",
+    )
+    delivery_tracking_service.process_delivery_callback(db=db, payload=cb_payload)
+    # Return 1x1 transparent GIF placeholder
+    return Response(
+        content=b"GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+        media_type="image/gif",
+    )

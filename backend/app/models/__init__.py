@@ -16,6 +16,8 @@ from app.models.channel_config import ChannelConfiguration
 from app.models.device_token import DeviceToken
 from app.models.web_broadcast import WebBroadcast
 from app.models.webhook_event import WebhookEvent
+from app.models.campaign_schedule import CampaignSchedule
+from app.models.automation_rule import AutomationRule, AutomationExecutionLog
 
 __all__ = [
     "Base",
@@ -45,5 +47,8 @@ __all__ = [
     "DeviceToken",
     "WebBroadcast",
     "WebhookEvent",
+    "CampaignSchedule",
+    "AutomationRule",
+    "AutomationExecutionLog",
 ]
 

@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from app.models.distribution import DistributionJob
     from app.models.content_variant import ContentVariant
     from app.models.pipeline_run import ContentPipelineRun
+    from app.models.campaign_schedule import CampaignSchedule
+    from app.models.automation_rule import AutomationRule, AutomationExecutionLog
 
 
 class Campaign(Base, TimestampMixin):
@@ -104,6 +106,22 @@ class Campaign(Base, TimestampMixin):
     pipeline_runs: Mapped[List[ContentPipelineRun]] = relationship(
         "ContentPipelineRun",
         foreign_keys="[ContentPipelineRun.campaign_id]",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+    )
+    schedule: Mapped[Optional[CampaignSchedule]] = relationship(
+        "CampaignSchedule",
+        back_populates="campaign",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    automation_rules: Mapped[List[AutomationRule]] = relationship(
+        "AutomationRule",
+        back_populates="campaign",
+        cascade="all, delete-orphan",
+    )
+    automation_logs: Mapped[List[AutomationExecutionLog]] = relationship(
+        "AutomationExecutionLog",
         back_populates="campaign",
         cascade="all, delete-orphan",
     )

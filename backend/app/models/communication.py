@@ -82,6 +82,30 @@ class Message(Base):
         default=list,
         comment="Recorded delivery attempts across fallback channels before success or terminal failure",
     )
+    retry_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        comment="Number of retry attempts executed for failed delivery (maximum 3)",
+    )
+    max_retries: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=3,
+        comment="Maximum allowed retry attempts",
+    )
+    next_retry_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+        comment="Calculated next retry execution timestamp for automated retry processing",
+    )
+    opened_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+        comment="Timestamp when message was confirmed opened or read by recipient",
+    )
     scheduled_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,

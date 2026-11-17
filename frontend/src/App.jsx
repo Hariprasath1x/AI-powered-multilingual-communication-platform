@@ -15,8 +15,10 @@ import TemplateListPage from './pages/templates/TemplateListPage';
 import CampaignListPage from './pages/campaigns/CampaignListPage';
 import CampaignWizardPage from './pages/campaigns/CampaignWizardPage';
 import CampaignDetailPage from './pages/campaigns/CampaignDetailPage';
+import ScheduledCampaignsPage from './pages/campaigns/ScheduledCampaignsPage';
 import ContentStudioPage from './pages/content/ContentStudioPage';
 import DistributionDashboardPage from './pages/distribution/DistributionDashboardPage';
+import DeliveryTrackingPage from './pages/distribution/DeliveryTrackingPage';
 import ProtectedRoute from './components/guards/ProtectedRoute';
 import AdminRoute from './components/guards/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -54,10 +56,12 @@ export default function App() {
             <Route path="/templates" element={<TemplateListPage />} />
             <Route path="/campaigns" element={<CampaignListPage />} />
             <Route path="/campaigns/new" element={<CampaignWizardPage />} />
+            <Route path="/campaigns/scheduled" element={<ScheduledCampaignsPage />} />
             <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
             <Route path="/campaigns/:id/edit" element={<CampaignWizardPage />} />
             <Route path="/content" element={<ContentStudioPage />} />
             <Route path="/distribution" element={<DistributionDashboardPage />} />
+            <Route path="/distribution/tracking" element={<DeliveryTrackingPage />} />
             <Route
               path="/admin/users"
               element={

@@ -30,7 +30,28 @@ from app.schemas.channel_config import (
     CampaignSendRequest,
     CampaignSendSummaryResponse,
 )
-from app.services import campaign_service, pipeline_service, campaign_sending_service
+from app.schemas.scheduling import (
+    CampaignScheduleCreateRequest,
+    CampaignScheduleUpdateRequest,
+    CampaignScheduleResponse,
+    ScheduledCampaignsListResponse,
+    AutomationRuleCreateRequest,
+    AutomationRuleUpdateRequest,
+    AutomationRuleResponse,
+    AutomationExecutionLogResponse,
+    DeliveryTrackingSummaryResponse,
+    FailedMessagesListResponse,
+    RetryBatchResponse,
+)
+from app.services import (
+    campaign_service,
+    pipeline_service,
+    campaign_sending_service,
+    scheduler_service,
+    automation_service,
+    delivery_tracking_service,
+    retry_service,
+)
 
 logger = logging.getLogger("masscommai.campaigns_router")
 
@@ -162,6 +183,20 @@ def preview_campaign_post(
         audience_member_id=payload.audience_member_id,
         custom_placeholders=payload.custom_placeholders,
     )
+
+
+@router.get(
+    "/scheduled",
+    response_model=ScheduledCampaignsListResponse,
+    summary="List all scheduled campaigns across calendar lifecycle (Task 15)",
+)
+def list_scheduled_campaigns_endpoint(
+    status: Optional[str] = Query(None, description="Filter by schedule status: active, paused, completed, cancelled"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> ScheduledCampaignsListResponse:
+    """Lists scheduled campaigns with next/last run times, recurrence rules, and execution count."""
+    return scheduler_service.list_scheduled_campaigns(db=db, status_filter=status)
 
 
 @router.get(
@@ -430,4 +465,267 @@ def get_campaign_send_summary_endpoint(
     )
 
 
+# =========================================================================
+# Milestone 3, Task 15: Campaign Scheduling, Automations & Delivery Tracking
+# =========================================================================
 
+# --- Campaign Scheduling Endpoints ---
+
+@router.post(
+    "/{id}/schedule",
+    response_model=CampaignScheduleResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Schedule an approved campaign for immediate, future, or recurring execution (Task 15)",
+)
+async def schedule_campaign_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    payload: CampaignScheduleCreateRequest = ...,
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> CampaignScheduleResponse:
+    """
+    Schedules an approved campaign:
+    - Send immediately ('now')
+    - Specific future date and time ('once')
+    - Recurring daily or weekly with timezone support
+    Persists schedule in database and registers job with APScheduler.
+    """
+    return await scheduler_service.schedule_campaign(
+        db=db,
+        campaign_id=id,
+        payload=payload,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{id}/schedule",
+    response_model=CampaignScheduleResponse,
+    summary="Get persistent schedule configuration for a campaign",
+)
+def get_campaign_schedule_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> CampaignScheduleResponse:
+    """Retrieves schedule details, next run time, recurrence rules, and status."""
+    return scheduler_service.get_campaign_schedule(db=db, campaign_id=id)
+
+
+@router.post(
+    "/{id}/schedule/pause",
+    response_model=CampaignScheduleResponse,
+    summary="Pause active campaign schedule",
+)
+def pause_campaign_schedule_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> CampaignScheduleResponse:
+    """Pauses active campaign schedule and pauses background execution job."""
+    return scheduler_service.pause_campaign_schedule(
+        db=db,
+        campaign_id=id,
+        current_user=current_user,
+    )
+
+
+@router.post(
+    "/{id}/schedule/resume",
+    response_model=CampaignScheduleResponse,
+    summary="Resume paused campaign schedule",
+)
+def resume_campaign_schedule_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> CampaignScheduleResponse:
+    """Resumes paused campaign schedule and recalculates next execution time."""
+    return scheduler_service.resume_campaign_schedule(
+        db=db,
+        campaign_id=id,
+        current_user=current_user,
+    )
+
+
+@router.delete(
+    "/{id}/schedule",
+    summary="Cancel and remove campaign schedule",
+)
+def cancel_campaign_schedule_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Cancels campaign schedule, removes job from APScheduler, and resets campaign status."""
+    return scheduler_service.cancel_campaign_schedule(
+        db=db,
+        campaign_id=id,
+        current_user=current_user,
+    )
+
+
+# --- Automated Workflows & Rules Endpoints ---
+
+@router.post(
+    "/{id}/automation-rules",
+    response_model=AutomationRuleResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create automated workflow rule for campaign (Task 15)",
+)
+def create_automation_rule_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    payload: AutomationRuleCreateRequest = ...,
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> AutomationRuleResponse:
+    """Creates a rule e.g. IF message not opened within 24h THEN send reminder via SMS."""
+    return automation_service.create_automation_rule(
+        db=db,
+        campaign_id=id,
+        payload=payload,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{id}/automation-rules",
+    response_model=List[AutomationRuleResponse],
+    summary="List automation rules for a campaign",
+)
+def list_automation_rules_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> List[AutomationRuleResponse]:
+    """Retrieves all automation rules configured for this campaign."""
+    return automation_service.list_automation_rules(db=db, campaign_id=id)
+
+
+@router.put(
+    "/{id}/automation-rules/{rule_id}",
+    response_model=AutomationRuleResponse,
+    summary="Update automation rule configuration",
+)
+def update_automation_rule_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    rule_id: int = Path(..., ge=1, description="Rule primary key ID"),
+    payload: AutomationRuleUpdateRequest = ...,
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> AutomationRuleResponse:
+    """Updates waiting period, action channel, or enabled status of rule."""
+    return automation_service.update_automation_rule(
+        db=db,
+        rule_id=rule_id,
+        payload=payload,
+        current_user=current_user,
+    )
+
+
+@router.delete(
+    "/{id}/automation-rules/{rule_id}",
+    summary="Delete automation rule",
+)
+def delete_automation_rule_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    rule_id: int = Path(..., ge=1, description="Rule primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Deletes an automation rule."""
+    return automation_service.delete_automation_rule(
+        db=db,
+        rule_id=rule_id,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{id}/automation-rules/history",
+    response_model=List[AutomationExecutionLogResponse],
+    summary="Get execution history for campaign automation rules",
+)
+def get_automation_history_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> List[AutomationExecutionLogResponse]:
+    """Retrieves audit logs of past automated actions and deduplication records."""
+    return automation_service.get_automation_execution_history(db=db, campaign_id=id)
+
+
+@router.post(
+    "/{id}/automation-rules/evaluate",
+    summary="Trigger immediate evaluation of campaign automation rules",
+)
+async def evaluate_automation_rules_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    wait_override_hours: Optional[int] = Query(None, description="Optional override waiting period for test evaluation"),
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Evaluates rules for campaign and dispatches reminders where eligible."""
+    count = await automation_service.evaluate_campaign_automation_rules(
+        db=db,
+        campaign_id=id,
+    )
+    return {"status": "ok", "executed_actions": count}
+
+
+# --- Delivery Tracking & Retries Endpoints ---
+
+@router.get(
+    "/{id}/delivery",
+    response_model=DeliveryTrackingSummaryResponse,
+    summary="Get comprehensive delivery tracking summary for campaign (Task 15)",
+)
+def get_campaign_delivery_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> DeliveryTrackingSummaryResponse:
+    """Returns sent, delivered, failed, pending, opened, and retried counts with channel breakdown."""
+    return delivery_tracking_service.get_campaign_delivery_summary(db=db, campaign_id=id)
+
+
+@router.get(
+    "/{id}/failed-messages",
+    response_model=FailedMessagesListResponse,
+    summary="List failed messages for campaign with retry eligibility",
+)
+def list_campaign_failed_messages_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    channel: Optional[str] = Query(None, description="Filter by channel"),
+    page: int = Query(1, ge=1, description="Page index"),
+    page_size: int = Query(50, ge=1, le=100, description="Items per page"),
+    current_user: User = Depends(require_role(CAMPAIGN_READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> FailedMessagesListResponse:
+    """Lists failed messages for this specific campaign."""
+    return delivery_tracking_service.list_failed_messages(
+        db=db,
+        campaign_id=id,
+        channel=channel,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.post(
+    "/{id}/retry-failed",
+    response_model=RetryBatchResponse,
+    summary="Retry all eligible failed messages for a campaign",
+)
+async def retry_campaign_failed_endpoint(
+    id: int = Path(..., ge=1, description="Campaign primary key ID"),
+    current_user: User = Depends(require_role(CAMPAIGN_WRITE_ROLES)),
+    db: Session = Depends(get_db),
+) -> RetryBatchResponse:
+    """Retries all eligible failed messages for this specific campaign up to ceiling of 3 attempts."""
+    return await retry_service.retry_failed_messages(
+        db=db,
+        campaign_id=id,
+        current_user=current_user,
+        force=True,
+    )

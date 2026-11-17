@@ -15,6 +15,7 @@ from app.routers import (
     admin_channels,
     webhooks,
     notifications,
+    messages,
 )
 
 __all__ = [
@@ -32,4 +33,5 @@ __all__ = [
     "admin_channels",
     "webhooks",
     "notifications",
+    "messages",
 ]

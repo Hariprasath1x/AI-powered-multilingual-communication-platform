@@ -17,11 +17,17 @@ import {
   Radio,
   ArrowRight,
   Layers,
+  Calendar,
+  Clock,
+  Repeat,
 } from 'lucide-react';
 import {
   sendCampaign,
   getCampaignSendSummary,
 } from '../../services/channelService';
+import {
+  scheduleCampaign,
+} from '../../services/campaignService';
 
 export default function CampaignLaunchModal({
   isOpen,
@@ -43,6 +49,15 @@ export default function CampaignLaunchModal({
   const [selectedChannels, setSelectedChannels] = useState(['WhatsApp', 'SMS', 'Email']);
   const [fallbackOrder, setFallbackOrder] = useState(['WhatsApp', 'SMS', 'Email']);
   const [enableFallback, setEnableFallback] = useState(true);
+
+  // Scheduling state (Task 15)
+  const [scheduleMode, setScheduleMode] = useState('now'); // 'now' or 'scheduled'
+  const [scheduleType, setScheduleType] = useState('once'); // 'once', 'daily', 'weekly'
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('09:00');
+  const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata');
+  const [weeklyDays, setWeeklyDays] = useState(['mon', 'wed', 'fri']);
+  const [scheduleResult, setScheduleResult] = useState(null);
 
   // Estimate audience counts
   const audienceCount = campaign?.total_recipients || campaign?.target_audience_count || 50;
@@ -91,20 +106,50 @@ export default function CampaignLaunchModal({
       setLoading(true);
       setError(null);
 
-      // Trigger omnichannel dispatch with fallback configuration
-      const summary = await sendCampaign(campaign.id, {
-        channels: selectedChannels,
-        fallback_order: fallbackOrder,
-        enable_fallback: enableFallback,
-      });
+      if (scheduleMode === 'scheduled') {
+        let targetDt = null;
+        if (scheduleType === 'once') {
+          if (!scheduledDate) {
+            setError('Please pick a future date for one-time scheduling.');
+            setPhase('overview');
+            setLoading(false);
+            return;
+          }
+          targetDt = new Date(`${scheduledDate}T${scheduledTime || '09:00'}:00`).toISOString();
+        }
 
-      setSendSummary(summary);
-      setPhase('summary');
-      if (onCampaignSent) {
-        onCampaignSent(summary);
+        const res = await scheduleCampaign(campaign.id, {
+          schedule_type: scheduleType,
+          scheduled_at: targetDt,
+          recurrence_time: scheduledTime || '09:00',
+          recurrence_days: scheduleType === 'weekly' ? weeklyDays : [],
+          timezone: selectedTimezone,
+          channels: selectedChannels,
+          fallback_order: fallbackOrder,
+          enable_fallback: enableFallback,
+        });
+
+        setScheduleResult(res);
+        setPhase('scheduled_confirmed');
+        if (onCampaignSent) {
+          onCampaignSent(res);
+        }
+      } else {
+        // Trigger immediate omnichannel dispatch with fallback configuration
+        const summary = await sendCampaign(campaign.id, {
+          channels: selectedChannels,
+          fallback_order: fallbackOrder,
+          enable_fallback: enableFallback,
+        });
+
+        setSendSummary(summary);
+        setPhase('summary');
+        if (onCampaignSent) {
+          onCampaignSent(summary);
+        }
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to dispatch campaign.');
+      setError(err.response?.data?.detail || err.message || 'Failed to process campaign launch/schedule.');
       setPhase('overview');
     } finally {
       setLoading(false);
@@ -264,6 +309,133 @@ export default function CampaignLaunchModal({
                     <span className="px-2 py-0.5 rounded bg-white shadow-2xs border border-indigo-200 font-bold text-indigo-700">
                       3. Email
                     </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Execution Timing & Scheduling (Task 15) */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-indigo-600" />
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Dispatch Schedule & Recurrence (Task 15)
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setScheduleMode('now')}
+                      className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
+                        scheduleMode === 'now' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Send Now
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScheduleMode('scheduled')}
+                      className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
+                        scheduleMode === 'scheduled' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Schedule Broadcast
+                    </button>
+                  </div>
+                </div>
+
+                {scheduleMode === 'scheduled' && (
+                  <div className="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-3 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-slate-600 font-semibold mb-1">Recurrence Pattern</label>
+                        <select
+                          value={scheduleType}
+                          onChange={(e) => setScheduleType(e.target.value)}
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white"
+                        >
+                          <option value="once">One-Time Future Date</option>
+                          <option value="daily">Daily Recurrence</option>
+                          <option value="weekly">Weekly Recurrence</option>
+                        </select>
+                      </div>
+
+                      {scheduleType === 'once' && (
+                        <div>
+                          <label className="block text-slate-600 font-semibold mb-1">Execution Date</label>
+                          <input
+                            type="date"
+                            value={scheduledDate}
+                            onChange={(e) => setScheduledDate(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white"
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-slate-600 font-semibold mb-1">Target Time (HH:MM)</label>
+                        <input
+                          type="time"
+                          value={scheduledTime}
+                          onChange={(e) => setScheduledTime(e.target.value)}
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white"
+                        >
+                        </input>
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-600 font-semibold mb-1">Timezone</label>
+                        <select
+                          value={selectedTimezone}
+                          onChange={(e) => setSelectedTimezone(e.target.value)}
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white"
+                        >
+                          <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                          <option value="UTC">UTC (Universal)</option>
+                          <option value="America/New_York">America/New_York (EST)</option>
+                          <option value="Europe/London">Europe/London (GMT)</option>
+                          <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {scheduleType === 'weekly' && (
+                      <div>
+                        <label className="block text-slate-600 font-semibold mb-1">Recurrence Days</label>
+                        <div className="flex gap-1.5">
+                          {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((d) => (
+                            <button
+                              key={d}
+                              type="button"
+                              onClick={() =>
+                                setWeeklyDays((prev) =>
+                                  prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]
+                                )
+                              }
+                              className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase transition ${
+                                weeklyDays.includes(d)
+                                  ? 'bg-indigo-600 text-white'
+                                  : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              {d}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-2 bg-white rounded-lg border border-indigo-100 flex items-center justify-between text-slate-700">
+                      <span className="font-semibold text-indigo-900">Summary:</span>
+                      <span className="font-mono text-[11px]">
+                        {scheduleType === 'once'
+                          ? `One-time on ${scheduledDate || 'selected date'} at ${scheduledTime} (${selectedTimezone})`
+                          : scheduleType === 'daily'
+                          ? `Daily at ${scheduledTime} (${selectedTimezone})`
+                          : `Weekly on [${weeklyDays.join(', ')}] at ${scheduledTime} (${selectedTimezone})`}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -502,6 +674,46 @@ export default function CampaignLaunchModal({
               )}
             </div>
           )}
+
+          {/* Phase: Schedule Confirmed */}
+          {phase === 'scheduled_confirmed' && (
+            <div className="space-y-6 py-6 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center mx-auto shadow-xs">
+                <Calendar className="w-8 h-8" />
+              </div>
+              <div className="max-w-md mx-auto space-y-2">
+                <h3 className="text-lg font-bold text-slate-900">Campaign Broadcast Scheduled!</h3>
+                <p className="text-sm text-slate-600">
+                  <strong className="text-slate-900">"{campaign?.name}"</strong> has been successfully registered with the background scheduler.
+                </p>
+
+                <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4 text-xs text-left space-y-2 mt-4 font-mono">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Schedule Type:</span>
+                    <strong className="text-indigo-900 uppercase">{scheduleResult?.schedule_type || scheduleType}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Next Scheduled Run:</span>
+                    <strong className="text-indigo-900">
+                      {scheduleResult?.next_run_at ? new Date(scheduleResult.next_run_at).toLocaleString() : 'Pending calculation'}
+                    </strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Timezone:</span>
+                    <span className="text-slate-800">{scheduleResult?.timezone || selectedTimezone}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Channels:</span>
+                    <span className="text-slate-800">{selectedChannels.join(', ')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Survives Restarts:</span>
+                    <span className="text-emerald-700 font-bold">Yes (PostgreSQL Persisted)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modal Footer */}
@@ -520,8 +732,8 @@ export default function CampaignLaunchModal({
               onClick={() => setPhase('confirm')}
               className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition"
             >
-              <SendHorizontal className="w-3.5 h-3.5" />
-              Configure & Send Campaign
+              {scheduleMode === 'scheduled' ? <Calendar className="w-3.5 h-3.5" /> : <SendHorizontal className="w-3.5 h-3.5" />}
+              {scheduleMode === 'scheduled' ? 'Review & Schedule Campaign' : 'Configure & Send Campaign'}
             </button>
           )}
 
@@ -540,13 +752,13 @@ export default function CampaignLaunchModal({
                 disabled={loading}
                 className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition disabled:opacity-50"
               >
-                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <SendHorizontal className="w-3.5 h-3.5" />}
-                Confirm & Launch Broadcast
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : scheduleMode === 'scheduled' ? <Calendar className="w-3.5 h-3.5" /> : <SendHorizontal className="w-3.5 h-3.5" />}
+                {scheduleMode === 'scheduled' ? 'Confirm & Schedule Campaign' : 'Confirm & Launch Broadcast'}
               </button>
             </div>
           )}
 
-          {phase === 'summary' && (
+          {(phase === 'summary' || phase === 'scheduled_confirmed') && (
             <button
               type="button"
               onClick={onClose}

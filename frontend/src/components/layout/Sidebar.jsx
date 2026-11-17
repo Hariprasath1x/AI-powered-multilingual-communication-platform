@@ -12,6 +12,8 @@ import {
   LogOut,
   X,
   Radio,
+  Calendar,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -43,6 +45,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       group: 'Communication & Creative',
       items: [
         { name: 'Campaign Studio', path: '/campaigns', icon: Megaphone },
+        { name: 'Scheduled Campaigns', path: '/campaigns/scheduled', icon: Calendar },
         { name: 'Message Templates', path: '/templates', icon: FileText },
         { name: 'AI Content Studio', path: '/content', icon: Sparkles },
       ],
@@ -51,6 +54,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       group: 'Delivery & Telephony',
       items: [
         { name: 'Distribution Engine', path: '/distribution', icon: SendHorizontal },
+        { name: 'Delivery Tracking & Retries', path: '/distribution/tracking', icon: RotateCcw },
       ],
     },
   ];
