@@ -1,8 +1,10 @@
 from __future__ import annotations
 import uuid
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Dict, Any
 from datetime import datetime
 from sqlalchemy import String, Text, Integer, Float, ForeignKey, DateTime, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -73,6 +75,12 @@ class Message(Base):
         Text,
         nullable=True,
         comment="Standardized failure reason or provider diagnostic message",
+    )
+    fallback_attempts: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(
+        JSONB().with_variant(JSON(), "sqlite"),
+        nullable=True,
+        default=list,
+        comment="Recorded delivery attempts across fallback channels before success or terminal failure",
     )
     scheduled_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),

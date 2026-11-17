@@ -8,13 +8,15 @@ import {
   X,
   Mail,
   Smartphone,
+  MessageSquare,
+  Bell,
+  Globe,
   ShieldCheck,
   ShieldAlert,
   Users,
-  Globe,
   Radio,
-  Clock,
-  Sparkles,
+  ArrowRight,
+  Layers,
 } from 'lucide-react';
 import {
   sendCampaign,
@@ -36,26 +38,30 @@ export default function CampaignLaunchModal({
   const isApproved = campaign?.status === 'Approved';
   const isCompleted = campaign?.status === 'Completed';
 
-  // Calculate rough distribution statistics
-  const channels = campaign?.channels || ['Email', 'SMS'];
-  const hasEmail = channels.includes('Email');
-  const hasSMS = channels.includes('SMS');
+  // Configurable channel selection
+  const allAvailableChannels = ['WhatsApp', 'SMS', 'Email', 'Push', 'Web'];
+  const [selectedChannels, setSelectedChannels] = useState(['WhatsApp', 'SMS', 'Email']);
+  const [fallbackOrder, setFallbackOrder] = useState(['WhatsApp', 'SMS', 'Email']);
+  const [enableFallback, setEnableFallback] = useState(true);
 
   // Estimate audience counts
   const audienceCount = campaign?.total_recipients || campaign?.target_audience_count || 50;
-  const emailCount = hasEmail ? (hasSMS ? Math.round(audienceCount * 0.6) : audienceCount) : 0;
-  const smsCount = hasSMS ? (hasEmail ? Math.round(audienceCount * 0.4) : audienceCount) : 0;
 
   useEffect(() => {
     if (isOpen) {
       if (isCompleted) {
-        // If already completed, load summary immediately
         fetchSummary();
         setPhase('summary');
       } else {
         setPhase('overview');
         setError(null);
         setSendSummary(null);
+        const campChannels = campaign?.channels?.length
+          ? campaign.channels.filter((c) => allAvailableChannels.includes(c))
+          : ['WhatsApp', 'SMS', 'Email'];
+        setSelectedChannels(campChannels);
+        const defaultOrder = ['WhatsApp', 'SMS', 'Email', 'Push'].filter((c) => campChannels.includes(c));
+        setFallbackOrder(defaultOrder.length ? defaultOrder : campChannels);
       }
     }
     return () => {
@@ -72,15 +78,24 @@ export default function CampaignLaunchModal({
     }
   };
 
+  const toggleChannel = (channel) => {
+    setSelectedChannels((prev) => {
+      const next = prev.includes(channel) ? prev.filter((c) => c !== channel) : [...prev, channel];
+      return next.length > 0 ? next : prev;
+    });
+  };
+
   const handleInitiateSend = async () => {
     try {
       setPhase('sending');
       setLoading(true);
       setError(null);
 
-      // Trigger dispatch
+      // Trigger omnichannel dispatch with fallback configuration
       const summary = await sendCampaign(campaign.id, {
-        channels: campaign.channels,
+        channels: selectedChannels,
+        fallback_order: fallbackOrder,
+        enable_fallback: enableFallback,
       });
 
       setSendSummary(summary);
@@ -100,7 +115,7 @@ export default function CampaignLaunchModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in duration-200">
         {/* Modal Top Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-900 to-indigo-950 text-white">
           <div className="flex items-center gap-3">
@@ -109,13 +124,13 @@ export default function CampaignLaunchModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold tracking-tight">Campaign Distribution Engine</h2>
+                <h2 className="text-base font-bold tracking-tight">Omnichannel Distribution Engine</h2>
                 <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
-                  Task 13
+                  Task 14
                 </span>
               </div>
               <p className="text-xs text-slate-300">
-                Multi-channel broadcast across Email and SMS with affirmative consent enforcement
+                Omnichannel delivery across WhatsApp, Push, Web Broadcast, SMS, and Email with sequential fallback
               </p>
             </div>
           </div>
@@ -159,7 +174,7 @@ export default function CampaignLaunchModal({
                     </h3>
                     <p className="text-xs opacity-90 mt-0.5">
                       {isApproved
-                        ? 'Editorial governance and compliance checks passed. Ready for immediate citizen delivery.'
+                        ? 'Editorial governance and compliance checks passed. Ready for immediate citizen distribution.'
                         : `Current status is '${campaign?.status}'. Only approved campaigns can be broadcast.`}
                     </p>
                   </div>
@@ -173,6 +188,86 @@ export default function CampaignLaunchModal({
                 </span>
               </div>
 
+              {/* Omnichannel Selector */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-indigo-600" />
+                    Target Distribution Channels
+                  </h3>
+                  <span className="text-xs text-slate-500">Select channels for this campaign</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {[
+                    { id: 'WhatsApp', label: 'WhatsApp', icon: MessageSquare },
+                    { id: 'SMS', label: 'SMS', icon: Smartphone },
+                    { id: 'Email', label: 'Email', icon: Mail },
+                    { id: 'Push', label: 'Push', icon: Bell },
+                    { id: 'Web', label: 'Web Alert', icon: Globe },
+                  ].map((ch) => {
+                    const Icon = ch.icon;
+                    const isSelected = selectedChannels.includes(ch.id);
+                    return (
+                      <button
+                        key={ch.id}
+                        type="button"
+                        onClick={() => toggleChannel(ch.id)}
+                        className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs font-semibold transition ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
+                            : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span>{ch.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Multi-channel Fallback Configuration */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <Radio className="w-4 h-4 text-indigo-600" />
+                      Sequential Multi-Channel Fallback
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      If primary channel fails or recipient lacks credentials, system falls back sequentially without duplicating successful messages.
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={enableFallback}
+                      onChange={(e) => setEnableFallback(e.target.checked)}
+                      className="rounded text-indigo-600 focus:ring-indigo-500"
+                    />
+                    Enable Fallback
+                  </label>
+                </div>
+
+                {enableFallback && (
+                  <div className="flex items-center gap-2 p-3 bg-indigo-50/60 border border-indigo-100 rounded-lg text-xs font-mono text-indigo-900 overflow-x-auto">
+                    <span className="font-semibold text-slate-700">Sequence:</span>
+                    <span className="px-2 py-0.5 rounded bg-white shadow-2xs border border-indigo-200 font-bold text-indigo-700">
+                      1. WhatsApp
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <span className="px-2 py-0.5 rounded bg-white shadow-2xs border border-indigo-200 font-bold text-indigo-700">
+                      2. SMS
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <span className="px-2 py-0.5 rounded bg-white shadow-2xs border border-indigo-200 font-bold text-indigo-700">
+                      3. Email
+                    </span>
+                  </div>
+                )}
+              </div>
+
               {/* Campaign Profile Card */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div>
@@ -182,21 +277,6 @@ export default function CampaignLaunchModal({
                   <span className="text-sm font-bold text-slate-900 truncate block mt-0.5" title={campaign?.name}>
                     {campaign?.name}
                   </span>
-                </div>
-                <div>
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-                    Target Channels
-                  </span>
-                  <div className="flex items-center justify-center gap-1 mt-0.5">
-                    {channels.map((ch) => (
-                      <span
-                        key={ch}
-                        className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700"
-                      >
-                        {ch}
-                      </span>
-                    ))}
-                  </div>
                 </div>
                 <div>
                   <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
@@ -215,69 +295,13 @@ export default function CampaignLaunchModal({
                     Strict Opt-In Enforced
                   </span>
                 </div>
-              </div>
-
-              {/* Channel Delivery Breakdown Cards */}
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-                  Channel Recipient Breakdown
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Email Card */}
-                  <div
-                    className={`border rounded-xl p-4 space-y-2 ${
-                      hasEmail ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                          <Mail className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-bold text-slate-900">Email Broadcast</span>
-                      </div>
-                      <span className="text-xs font-bold text-slate-600">{emailCount} recipients</span>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      Standard transactional dispatch with personalized subject and placeholders.
-                    </p>
-                  </div>
-
-                  {/* SMS Card */}
-                  <div
-                    className={`border rounded-xl p-4 space-y-2 ${
-                      hasSMS ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                          <Smartphone className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-bold text-slate-900">SMS Gateway</span>
-                      </div>
-                      <span className="text-xs font-bold text-slate-600">{smsCount} recipients</span>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      High-priority alert delivery adhering to telecom segmentation thresholds.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Language Localization Summary */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Globe className="w-5 h-5 text-indigo-600 shrink-0" />
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                      Multilingual Variant Mapping
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Recipients receive personalized copy in their preferred language (e.g. Hindi, Tamil, English)
-                      derived from approved pipeline assets.
-                    </p>
-                  </div>
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                    Privacy Protection
+                  </span>
+                  <span className="text-xs font-semibold text-indigo-700 block mt-1">
+                    Zero Public PII Leakage
+                  </span>
                 </div>
               </div>
             </div>
@@ -294,11 +318,11 @@ export default function CampaignLaunchModal({
                 <p className="text-sm text-slate-600">
                   You are about to broadcast <strong className="text-slate-900">"{campaign?.name}"</strong> to approximately{' '}
                   <strong className="text-slate-900">{audienceCount} citizens</strong> across{' '}
-                  <strong className="text-slate-900">{channels.join(' and ')}</strong>.
+                  <strong className="text-slate-900">{selectedChannels.join(', ')}</strong>.
                 </p>
-                <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-xs text-amber-800 text-left mt-4">
-                  <strong>Notice:</strong> Recipient affirmative consent will be re-validated in real-time. Any citizen
-                  with revoked or unconfirmed consent will be withheld automatically.
+                <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-xs text-amber-800 text-left mt-4 space-y-1">
+                  <p><strong>Compliance Notice:</strong> Recipient affirmative consent is strictly re-validated in real-time.</p>
+                  <p><strong>Multi-Channel Fallback:</strong> {enableFallback ? 'Enabled (WhatsApp -> SMS -> Email).' : 'Disabled (Single preferred channel).'}</p>
                 </div>
               </div>
             </div>
@@ -311,11 +335,10 @@ export default function CampaignLaunchModal({
               <div className="space-y-2">
                 <h3 className="text-base font-bold text-slate-900">Broadcasting Campaign Messages...</h3>
                 <p className="text-xs text-slate-500">
-                  Processing recipient queues, validating consent, resolving language variants, and executing delivery adapters.
+                  Validating consent, executing omnichannel adapters, handling carrier fallbacks, and updating live logs.
                 </p>
               </div>
 
-              {/* Simulated/Live progress bar */}
               <div className="max-w-md mx-auto space-y-2">
                 <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
                   <div
@@ -342,7 +365,7 @@ export default function CampaignLaunchModal({
                   <div>
                     <h3 className="text-base font-bold text-emerald-950">Broadcast Execution Completed</h3>
                     <p className="text-xs text-emerald-700">
-                      Campaign distribution finished with complete tracking records persisted.
+                      Campaign distribution finished with complete tracking and fallback records persisted.
                     </p>
                   </div>
                 </div>
@@ -388,76 +411,27 @@ export default function CampaignLaunchModal({
               </div>
 
               {/* Channel Summary Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Email Summary Card */}
-                {sendSummary.channel_summary?.Email && (
-                  <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-2xs space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                        Email Channel
-                      </span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700">
-                        Total: {sendSummary.channel_summary.Email.total}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {Object.entries(sendSummary.channel_summary || {}).map(([ch, stat]) => (
+                  <div key={ch} className="border border-slate-200 rounded-xl p-3 bg-white shadow-2xs space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                      <span className="text-xs font-bold text-slate-900">{ch} Channel</span>
+                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                        Total: {stat.total}
                       </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="bg-slate-50 p-2 rounded-lg">
-                        <span className="text-slate-500 block">Sent</span>
-                        <span className="font-bold text-slate-800">
-                          {sendSummary.channel_summary.Email.sent + sendSummary.channel_summary.Email.delivered}
-                        </span>
+                    <div className="grid grid-cols-2 gap-1.5 text-center text-[11px]">
+                      <div className="bg-emerald-50 p-1.5 rounded">
+                        <span className="text-emerald-700 block">Sent/Delivered</span>
+                        <span className="font-bold text-emerald-900">{stat.sent + stat.delivered}</span>
                       </div>
-                      <div className="bg-rose-50 p-2 rounded-lg">
+                      <div className="bg-rose-50 p-1.5 rounded">
                         <span className="text-rose-600 block">Failed</span>
-                        <span className="font-bold text-rose-700">
-                          {sendSummary.channel_summary.Email.failed}
-                        </span>
-                      </div>
-                      <div className="bg-slate-50 p-2 rounded-lg">
-                        <span className="text-slate-500 block">Pending</span>
-                        <span className="font-bold text-slate-800">
-                          {sendSummary.channel_summary.Email.pending}
-                        </span>
+                        <span className="font-bold text-rose-800">{stat.failed}</span>
                       </div>
                     </div>
                   </div>
-                )}
-
-                {/* SMS Summary Card */}
-                {sendSummary.channel_summary?.SMS && (
-                  <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-2xs space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <Smartphone className="w-4 h-4 text-emerald-600" />
-                        SMS Channel
-                      </span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
-                        Total: {sendSummary.channel_summary.SMS.total}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="bg-slate-50 p-2 rounded-lg">
-                        <span className="text-slate-500 block">Sent</span>
-                        <span className="font-bold text-slate-800">
-                          {sendSummary.channel_summary.SMS.sent + sendSummary.channel_summary.SMS.delivered}
-                        </span>
-                      </div>
-                      <div className="bg-rose-50 p-2 rounded-lg">
-                        <span className="text-rose-600 block">Failed</span>
-                        <span className="font-bold text-rose-700">
-                          {sendSummary.channel_summary.SMS.failed}
-                        </span>
-                      </div>
-                      <div className="bg-slate-50 p-2 rounded-lg">
-                        <span className="text-slate-500 block">Pending</span>
-                        <span className="font-bold text-slate-800">
-                          {sendSummary.channel_summary.SMS.pending}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
 
               {/* Message Audit Log Sample */}
@@ -474,8 +448,9 @@ export default function CampaignLaunchModal({
                         <tr>
                           <th className="py-2 px-3">Tracking ID</th>
                           <th className="py-2 px-3">Recipient</th>
-                          <th className="py-2 px-3">Channel</th>
+                          <th className="py-2 px-3">Final Channel</th>
                           <th className="py-2 px-3">Status</th>
+                          <th className="py-2 px-3">Fallback Attempts</th>
                           <th className="py-2 px-3">Provider Reference</th>
                         </tr>
                       </thead>
@@ -505,6 +480,15 @@ export default function CampaignLaunchModal({
                               >
                                 {m.status}
                               </span>
+                            </td>
+                            <td className="py-2 px-3 text-slate-600">
+                              {m.fallback_attempts && m.fallback_attempts.length > 0 ? (
+                                <span className="font-semibold text-indigo-600">
+                                  {m.fallback_attempts.length} attempt(s)
+                                </span>
+                              ) : (
+                                'Direct'
+                              )}
                             </td>
                             <td className="py-2 px-3 text-slate-500 truncate max-w-[140px]">
                               {m.provider_message_id || m.failure_reason || '—'}
@@ -537,7 +521,7 @@ export default function CampaignLaunchModal({
               className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition"
             >
               <SendHorizontal className="w-3.5 h-3.5" />
-              Send Campaign Now
+              Configure & Send Campaign
             </button>
           )}
 
@@ -577,4 +561,3 @@ export default function CampaignLaunchModal({
     </div>
   );
 }
-

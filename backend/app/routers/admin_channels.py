@@ -64,35 +64,31 @@ def list_channel_configurations(
     stmt = select(ChannelConfiguration).order_by(ChannelConfiguration.channel.asc())
     configs = list(db.execute(stmt).scalars().all())
 
-    # Ensure Email and SMS default records exist in DB if not present
+    # Ensure Email, SMS, WhatsApp, Push, and Web default records exist in DB if not present
     existing_channels = {c.channel for c in configs}
     modified = False
 
-    if "Email" not in existing_channels:
-        email_cfg = ChannelConfiguration(
-            channel="Email",
-            is_enabled=True,
-            provider_type="mock",
-            sender_address="notifications@masscomm.gov.in",
-            sender_name="MassCommAI Citizen Communications",
-            credentials={},
-        )
-        db.add(email_cfg)
-        configs.append(email_cfg)
-        modified = True
+    defaults = [
+        ("Email", "mock", "notifications@masscomm.gov.in", "MassCommAI Citizen Communications", {}),
+        ("SMS", "mock", "GOVMSG", "Govt Citizen Alert", {}),
+        ("WhatsApp", "mock", "+1555010099", "MassCommAI WhatsApp Official", {"phone_number_id": "1000000001", "waba_id": "2000000002"}),
+        ("Push", "mock", "masscommai-fcm-project", "MassCommAI Citizen Push", {"project_id": "masscommai-mock-fcm"}),
+        ("Web", "mock", "masscomm-broadcast-hub", "MassCommAI Web Broadcast", {}),
+    ]
 
-    if "SMS" not in existing_channels:
-        sms_cfg = ChannelConfiguration(
-            channel="SMS",
-            is_enabled=True,
-            provider_type="mock",
-            sender_address="GOVMSG",
-            sender_name="Govt Citizen Alert",
-            credentials={},
-        )
-        db.add(sms_cfg)
-        configs.append(sms_cfg)
-        modified = True
+    for ch_name, prov, s_addr, s_name, def_creds in defaults:
+        if ch_name not in existing_channels:
+            cfg = ChannelConfiguration(
+                channel=ch_name,
+                is_enabled=True,
+                provider_type=prov,
+                sender_address=s_addr,
+                sender_name=s_name,
+                credentials=def_creds,
+            )
+            db.add(cfg)
+            configs.append(cfg)
+            modified = True
 
     if modified:
         db.commit()

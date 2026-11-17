@@ -40,7 +40,7 @@ class SMSChannel(BaseChannel):
         if not phone or not isinstance(phone, str) or not phone.strip():
             return False, "Recipient phone number is missing or empty."
         clean = phone.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
-        if "fail_perm" in clean or "fail_temp" in clean:
+        if "fail_perm" in clean or "fail_temp" in clean or "fail_wa" in clean:
             return True, None
         if not PHONE_REGEX.match(clean):
             return False, f"Invalid phone number format: '{phone}'. Expected 10-15 digits (E.164)."

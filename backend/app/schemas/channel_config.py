@@ -76,6 +76,50 @@ class CampaignSendRequest(BaseModel):
         default=None,
         description="Subset of campaign channels to target (defaults to all campaign channels)",
     )
+    fallback_order: Optional[List[str]] = Field(
+        default=None,
+        description="Sequential fallback channel preference (default: ['WhatsApp', 'SMS', 'Email'])",
+    )
+    enable_fallback: Optional[bool] = Field(
+        default=True,
+        description="Whether to attempt next fallback channel upon recipient invalidity or channel failure",
+    )
+
+
+class DeviceTokenCreateRequest(BaseModel):
+    """Registration payload for push notification device token."""
+
+    token: str = Field(..., description="FCM registration token, Web Push subscription endpoint, or APNs token")
+    device_type: str = Field(default="web", description="web, android, ios")
+    audience_member_id: Optional[int] = Field(default=None, description="Optional associated audience member profile")
+    platform_metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Browser or device platform details")
+
+
+class DeviceTokenResponse(BaseModel):
+    """Response schema for registered device token."""
+
+    id: int
+    token: str
+    device_type: str
+    audience_member_id: Optional[int] = None
+    user_id: Optional[int] = None
+    is_active: bool
+    last_used_at: Optional[datetime] = None
+    created_at: datetime
+
+
+class WebBroadcastResponse(BaseModel):
+    """Response schema for public web broadcast announcements."""
+
+    id: int
+    campaign_id: int
+    title: str
+    body: str
+    language: str
+    is_emergency: bool
+    priority: str
+    connected_clients_count: int
+    broadcast_at: datetime
 
 
 class MessageSummary(BaseModel):
@@ -93,6 +137,7 @@ class MessageSummary(BaseModel):
     status: str
     provider_message_id: Optional[str] = None
     failure_reason: Optional[str] = None
+    fallback_attempts: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
     sent_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
     created_at: datetime

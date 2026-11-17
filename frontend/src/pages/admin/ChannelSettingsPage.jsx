@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
   Mail,
   Smartphone,
+  MessageSquare,
+  Bell,
+  Globe,
   Save,
   Send,
   CheckCircle2,
@@ -60,11 +63,46 @@ export default function ChannelSettingsPage() {
         fast2sms_api_key: '',
       },
     },
+    WhatsApp: {
+      is_enabled: true,
+      provider_type: 'mock',
+      sender_address: '+1555010099',
+      sender_name: 'MassCommAI WhatsApp Official',
+      credentials: {
+        phone_number_id: '1000000001',
+        waba_id: '2000000002',
+        access_token: '',
+        app_secret: '',
+        webhook_verify_token: 'masscomm_webhook_verify_token',
+        template_name: '',
+        template_language: 'en',
+      },
+    },
+    Push: {
+      is_enabled: true,
+      provider_type: 'mock',
+      sender_address: 'masscommai-fcm-project',
+      sender_name: 'MassCommAI Citizen Push',
+      credentials: {
+        project_id: 'masscommai-fcm-project',
+        server_key: '',
+      },
+    },
+    Web: {
+      is_enabled: true,
+      provider_type: 'mock',
+      sender_address: 'masscomm-broadcast-hub',
+      sender_name: 'MassCommAI Web Broadcast',
+      credentials: {},
+    },
   });
 
   const [testDestinations, setTestDestinations] = useState({
     Email: 'admin@masscomm.gov.in',
     SMS: '+919876543210',
+    WhatsApp: '+919876543210',
+    Push: 'mock_fcm_token_device_citizen_123',
+    Web: 'masscomm-broadcast-hub',
   });
 
   const [showSecrets, setShowSecrets] = useState({});
@@ -104,6 +142,36 @@ export default function ChannelSettingsPage() {
           credentials: {
             ...prev.SMS.credentials,
             ...(cfgMap.SMS?.masked_credentials || {}),
+          },
+        },
+        WhatsApp: {
+          is_enabled: cfgMap.WhatsApp?.is_enabled ?? true,
+          provider_type: cfgMap.WhatsApp?.provider_type ?? 'mock',
+          sender_address: cfgMap.WhatsApp?.sender_address ?? '+1555010099',
+          sender_name: cfgMap.WhatsApp?.sender_name ?? 'MassCommAI WhatsApp Official',
+          credentials: {
+            ...prev.WhatsApp.credentials,
+            ...(cfgMap.WhatsApp?.masked_credentials || {}),
+          },
+        },
+        Push: {
+          is_enabled: cfgMap.Push?.is_enabled ?? true,
+          provider_type: cfgMap.Push?.provider_type ?? 'mock',
+          sender_address: cfgMap.Push?.sender_address ?? 'masscommai-fcm-project',
+          sender_name: cfgMap.Push?.sender_name ?? 'MassCommAI Citizen Push',
+          credentials: {
+            ...prev.Push.credentials,
+            ...(cfgMap.Push?.masked_credentials || {}),
+          },
+        },
+        Web: {
+          is_enabled: cfgMap.Web?.is_enabled ?? true,
+          provider_type: cfgMap.Web?.provider_type ?? 'mock',
+          sender_address: cfgMap.Web?.sender_address ?? 'masscomm-broadcast-hub',
+          sender_name: cfgMap.Web?.sender_name ?? 'MassCommAI Web Broadcast',
+          credentials: {
+            ...prev.Web.credentials,
+            ...(cfgMap.Web?.masked_credentials || {}),
           },
         },
       }));
@@ -191,6 +259,14 @@ export default function ChannelSettingsPage() {
 
   const curData = formData[activeTab] || {};
 
+  const tabs = [
+    { name: 'Email', icon: Mail },
+    { name: 'SMS', icon: Smartphone },
+    { name: 'WhatsApp', icon: MessageSquare },
+    { name: 'Push', icon: Bell, label: 'Push Notifications' },
+    { name: 'Web', icon: Globe, label: 'Web Broadcast' },
+  ];
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header Banner */}
@@ -200,11 +276,11 @@ export default function ChannelSettingsPage() {
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Channel Integration Governance</h1>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
               <Radio className="w-3 h-3 animate-pulse" />
-              Gateway Engine
+              Omnichannel Gateway
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Configure delivery adapters, API credentials, and verify external gateway connectivity for citizen communication.
+            Configure delivery adapters, API credentials, and verify external gateway connectivity across Email, SMS, WhatsApp, Push, and Web Broadcast.
           </p>
         </div>
         <button
@@ -232,54 +308,38 @@ export default function ChannelSettingsPage() {
       )}
 
       {/* Channel Tabs */}
-      <div className="flex border-b border-slate-200 gap-4">
-        <button
-          onClick={() => {
-            setActiveTab('Email');
-            setTestResult(null);
-          }}
-          className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition ${
-            activeTab === 'Email'
-              ? 'border-indigo-600 text-indigo-600 font-semibold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Mail className="w-4 h-4" />
-          Email Channel
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-              formData.Email?.is_enabled
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-slate-200 text-slate-600'
-            }`}
-          >
-            {formData.Email?.is_enabled ? 'Active' : 'Disabled'}
-          </span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('SMS');
-            setTestResult(null);
-          }}
-          className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 transition ${
-            activeTab === 'SMS'
-              ? 'border-indigo-600 text-indigo-600 font-semibold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Smartphone className="w-4 h-4" />
-          SMS Channel
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-              formData.SMS?.is_enabled
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-slate-200 text-slate-600'
-            }`}
-          >
-            {formData.SMS?.is_enabled ? 'Active' : 'Disabled'}
-          </span>
-        </button>
+      <div className="flex border-b border-slate-200 gap-4 overflow-x-auto pb-1">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isTabActive = activeTab === tab.name;
+          const isEnabled = formData[tab.name]?.is_enabled;
+          return (
+            <button
+              key={tab.name}
+              onClick={() => {
+                setActiveTab(tab.name);
+                setTestResult(null);
+              }}
+              className={`pb-3 px-2 font-medium text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition ${
+                isTabActive
+                  ? 'border-indigo-600 text-indigo-600 font-semibold'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label || `${tab.name} Channel`}
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                  isEnabled
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-slate-200 text-slate-600'
+                }`}
+              >
+                {isEnabled ? 'Active' : 'Disabled'}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -293,7 +353,7 @@ export default function ChannelSettingsPage() {
                   {activeTab} Channel Operational Status
                 </label>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  When disabled, campaign dispatches over this channel are withheld automatically.
+                  When disabled, campaign dispatches over this channel are withheld automatically and fall back to eligible alternatives.
                 </p>
               </div>
               <button
@@ -327,11 +387,25 @@ export default function ChannelSettingsPage() {
                     <option value="smtp">Standard SMTP Server (TLS / StartTLS)</option>
                     <option value="sendgrid">SendGrid REST API v3</option>
                   </>
-                ) : (
+                ) : activeTab === 'SMS' ? (
                   <>
                     <option value="mock">Mock / Demo Sandbox (Simulated Telecom Gateway)</option>
                     <option value="twilio">Twilio Cloud Communications</option>
                     <option value="fast2sms">Fast2SMS (Gov/Indian Telecom Gateway)</option>
+                  </>
+                ) : activeTab === 'WhatsApp' ? (
+                  <>
+                    <option value="mock">Mock / Demo Sandbox (Simulated Meta Cloud API)</option>
+                    <option value="meta">Meta WhatsApp Business Cloud API (Graph v21.0)</option>
+                  </>
+                ) : activeTab === 'Push' ? (
+                  <>
+                    <option value="mock">Mock / Demo Sandbox (Simulated FCM Push)</option>
+                    <option value="fcm">Firebase Cloud Messaging (FCM HTTP v1)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="mock">MassComm Real-time Broadcast Hub (WebSocket & SSE)</option>
                   </>
                 )}
               </select>
@@ -341,13 +415,31 @@ export default function ChannelSettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  {activeTab === 'Email' ? 'From Email Address' : 'Sender Header / Phone'}
+                  {activeTab === 'Email'
+                    ? 'From Email Address'
+                    : activeTab === 'SMS'
+                    ? 'Sender Header / SMS Shortcode'
+                    : activeTab === 'WhatsApp'
+                    ? 'Sender Phone / WABA ID'
+                    : activeTab === 'Push'
+                    ? 'FCM Project ID'
+                    : 'Broadcast Hub ID'}
                 </label>
                 <input
                   type="text"
                   value={curData.sender_address || ''}
                   onChange={(e) => handleFieldChange(activeTab, 'sender_address', e.target.value)}
-                  placeholder={activeTab === 'Email' ? 'notifications@masscomm.gov.in' : 'GOVMSG'}
+                  placeholder={
+                    activeTab === 'Email'
+                      ? 'notifications@masscomm.gov.in'
+                      : activeTab === 'SMS'
+                      ? 'GOVMSG'
+                      : activeTab === 'WhatsApp'
+                      ? '+1555010099'
+                      : activeTab === 'Push'
+                      ? 'masscommai-fcm-project'
+                      : 'masscomm-broadcast-hub'
+                  }
                   className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
@@ -360,7 +452,17 @@ export default function ChannelSettingsPage() {
                   type="text"
                   value={curData.sender_name || ''}
                   onChange={(e) => handleFieldChange(activeTab, 'sender_name', e.target.value)}
-                  placeholder={activeTab === 'Email' ? 'MassCommAI Citizen Portal' : 'Govt Citizen Alert'}
+                  placeholder={
+                    activeTab === 'Email'
+                      ? 'MassCommAI Citizen Portal'
+                      : activeTab === 'SMS'
+                      ? 'Govt Citizen Alert'
+                      : activeTab === 'WhatsApp'
+                      ? 'MassCommAI Official WhatsApp'
+                      : activeTab === 'Push'
+                      ? 'MassCommAI Citizen Push'
+                      : 'MassCommAI Public Web Broadcast'
+                  }
                   className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
@@ -371,11 +473,119 @@ export default function ChannelSettingsPage() {
               <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4 flex items-start gap-3">
                 <Shield className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
                 <div className="text-xs text-indigo-900 space-y-1">
-                  <p className="font-semibold">Deterministic Mock Mode Active</p>
+                  <p className="font-semibold">Deterministic Mock Mode Active ({activeTab})</p>
                   <p>
-                    Outbound communications are deterministically simulated without dispatching external network calls or incurring telephony charges.
-                    Email format and Indian phone number syntax are validated strictly.
+                    Outbound communications are deterministically simulated without dispatching external network calls or incurring vendor fees.
+                    Deterministic test addresses (e.g. including <code className="bg-white/70 px-1 py-0.5 rounded">fail_perm</code> or <code className="bg-white/70 px-1 py-0.5 rounded">fail_temp</code>) trigger realistic telecom error scenarios.
                   </p>
+                </div>
+              </div>
+            ) : activeTab === 'WhatsApp' && curData.provider_type === 'meta' ? (
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <Key className="w-4 h-4 text-indigo-600" />
+                  Meta WhatsApp Cloud API Credentials
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Phone Number ID</label>
+                    <input
+                      type="text"
+                      value={curData.credentials?.phone_number_id || ''}
+                      onChange={(e) => handleCredChange('WhatsApp', 'phone_number_id', e.target.value)}
+                      placeholder="1000000001"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">WABA Account ID</label>
+                    <input
+                      type="text"
+                      value={curData.credentials?.waba_id || ''}
+                      onChange={(e) => handleCredChange('WhatsApp', 'waba_id', e.target.value)}
+                      placeholder="2000000002"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">System User Permanent Access Token</label>
+                  <div className="relative">
+                    <input
+                      type={showSecrets.wa_access_token ? 'text' : 'password'}
+                      value={curData.credentials?.access_token || ''}
+                      onChange={(e) => handleCredChange('WhatsApp', 'access_token', e.target.value)}
+                      placeholder="EAA••••••••••••••••••••"
+                      className="w-full px-3 py-2 pr-9 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShowSecret('wa_access_token')}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                    >
+                      {showSecrets.wa_access_token ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">App Secret (HMAC-SHA256)</label>
+                    <input
+                      type="password"
+                      value={curData.credentials?.app_secret || ''}
+                      onChange={(e) => handleCredChange('WhatsApp', 'app_secret', e.target.value)}
+                      placeholder="••••••••••••••••••••"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Webhook Verify Token</label>
+                    <input
+                      type="text"
+                      value={curData.credentials?.webhook_verify_token || 'masscomm_webhook_verify_token'}
+                      onChange={(e) => handleCredChange('WhatsApp', 'webhook_verify_token', e.target.value)}
+                      placeholder="masscomm_webhook_verify_token"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'Push' && curData.provider_type === 'fcm' ? (
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <Key className="w-4 h-4 text-indigo-600" />
+                  Firebase Cloud Messaging (FCM) Credentials
+                </h3>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Firebase Project ID</label>
+                  <input
+                    type="text"
+                    value={curData.credentials?.project_id || ''}
+                    onChange={(e) => handleCredChange('Push', 'project_id', e.target.value)}
+                    placeholder="masscommai-production"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Server Key / OAuth Bearer Token</label>
+                  <div className="relative">
+                    <input
+                      type={showSecrets.fcm_server_key ? 'text' : 'password'}
+                      value={curData.credentials?.server_key || ''}
+                      onChange={(e) => handleCredChange('Push', 'server_key', e.target.value)}
+                      placeholder="AAAA••••••••••••••••••••"
+                      className="w-full px-3 py-2 pr-9 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShowSecret('fcm_server_key')}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                    >
+                      {showSecrets.fcm_server_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : curData.provider_type === 'smtp' ? (
@@ -577,12 +787,18 @@ export default function ChannelSettingsPage() {
               Test {activeTab} Connectivity
             </h2>
             <p className="text-xs text-slate-500">
-              Dispatches an isolated probe message to verify authentication and gateway routing without affecting campaigns.
+              Dispatches an isolated probe message to verify authentication and gateway routing without affecting citizen campaigns.
             </p>
 
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                {activeTab === 'Email' ? 'Test Recipient Email' : 'Test Recipient Phone'}
+                {activeTab === 'Email'
+                  ? 'Test Recipient Email'
+                  : activeTab === 'Push'
+                  ? 'Test Device Token'
+                  : activeTab === 'Web'
+                  ? 'Test Target Identifier'
+                  : 'Test Recipient Phone'}
               </label>
               <input
                 type="text"
@@ -593,7 +809,15 @@ export default function ChannelSettingsPage() {
                     [activeTab]: e.target.value,
                   }))
                 }
-                placeholder={activeTab === 'Email' ? 'admin@masscomm.gov.in' : '+919876543210'}
+                placeholder={
+                  activeTab === 'Email'
+                    ? 'admin@masscomm.gov.in'
+                    : activeTab === 'Push'
+                    ? 'mock_fcm_token_device_citizen_123'
+                    : activeTab === 'Web'
+                    ? 'masscomm-broadcast-hub'
+                    : '+919876543210'
+                }
                 className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -656,4 +880,3 @@ export default function ChannelSettingsPage() {
     </div>
   );
 }
-

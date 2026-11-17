@@ -5,6 +5,7 @@ import AppLayout from './components/layout/AppLayout';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/auth/LoginPage';
+import PublicAnnouncementsPage from './pages/public/PublicAnnouncementsPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import ChannelSettingsPage from './pages/admin/ChannelSettingsPage';
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/announcements" element={<PublicAnnouncementsPage />} />
           </Route>
 
           {/* Authenticated Protected Routes with AppLayout (Sidebar + AppHeader) */}

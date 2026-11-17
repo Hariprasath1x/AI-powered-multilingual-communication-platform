@@ -58,6 +58,32 @@ def get_current_user(
     return user
 
 
+def get_current_user_optional(
+    auth: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """
+    Returns current user if valid bearer token is present and user is active,
+    or None for anonymous/unauthenticated requests.
+    """
+    if not auth or not auth.credentials:
+        return None
+    payload = decode_access_token(auth.credentials)
+    if not payload:
+        return None
+    user_id_str = payload.get("sub")
+    if not user_id_str:
+        return None
+    try:
+        user_id = int(user_id_str)
+    except (ValueError, TypeError):
+        return None
+
+    stmt = select(User).options(joinedload(User.role)).where(User.id == user_id)
+    user = db.execute(stmt).scalar_one_or_none()
+    return user if user and user.is_active else None
+
+
 def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:

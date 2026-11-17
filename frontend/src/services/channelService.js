@@ -48,3 +48,26 @@ export async function getCampaignSendSummary(campaignId) {
   return response.data;
 }
 
+/**
+ * Register or update citizen device push notification token.
+ */
+export async function registerDeviceToken(payload) {
+  const response = await api.post('/notifications/devices/register', payload);
+  return response.data;
+}
+
+/**
+ * Fetch public announcements for citizen view.
+ */
+export async function getPublicAnnouncements(params = {}) {
+  const response = await api.get('/announcements', { params });
+  return response.data;
+}
+
+/**
+ * Admin: List registered citizen devices.
+ */
+export async function listRegisteredDevices(params = {}) {
+  const response = await api.get('/notifications/devices', { params });
+  return response.data;
+}

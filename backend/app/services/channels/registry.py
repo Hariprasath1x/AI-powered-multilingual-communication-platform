@@ -8,6 +8,9 @@ from sqlalchemy import select
 from app.services.channels.base import BaseChannel, ChannelSendResult
 from app.services.channels.email_channel import EmailChannel
 from app.services.channels.sms_channel import SMSChannel
+from app.services.channels.whatsapp_channel import WhatsAppChannel
+from app.services.channels.push_channel import PushChannel
+from app.services.channels.web_broadcast_channel import WebBroadcastChannel
 from app.models.channel_config import ChannelConfiguration
 
 logger = logging.getLogger("masscommai.channel_registry")
@@ -15,6 +18,9 @@ logger = logging.getLogger("masscommai.channel_registry")
 _REGISTRY: Dict[str, BaseChannel] = {
     "Email": EmailChannel(),
     "SMS": SMSChannel(),
+    "WhatsApp": WhatsAppChannel(),
+    "Push": PushChannel(),
+    "Web": WebBroadcastChannel(),
 }
 
 
@@ -67,6 +73,27 @@ def get_configured_channel(db: Session, channel_name: str) -> BaseChannel:
             provider_type=provider_type,
             sender_address=sender_addr,
             sender_name=sender_nm,
+            credentials=creds,
+        )
+    elif c_name == "WhatsApp":
+        return WhatsAppChannel(
+            provider_type=provider_type,
+            sender_address=config.sender_address or "+1555010099",
+            sender_name=config.sender_name or "MassCommAI WhatsApp Official",
+            credentials=creds,
+        )
+    elif c_name == "Push":
+        return PushChannel(
+            provider_type=provider_type,
+            sender_address=config.sender_address or "masscommai-fcm-project",
+            sender_name=config.sender_name or "MassCommAI Citizen Push",
+            credentials=creds,
+        )
+    elif c_name == "Web":
+        return WebBroadcastChannel(
+            provider_type=provider_type,
+            sender_address=config.sender_address or "masscomm-broadcast-hub",
+            sender_name=config.sender_name or "MassCommAI Web Broadcast",
             credentials=creds,
         )
     else:

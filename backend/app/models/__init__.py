@@ -13,6 +13,9 @@ from app.models.translation import TranslationCache, TranslationReviewHistory
 from app.models.distribution import DistributionJob, DeliveryRecord, DeliveryAttempt
 from app.models.communication import Message, DeliveryLog, Feedback
 from app.models.channel_config import ChannelConfiguration
+from app.models.device_token import DeviceToken
+from app.models.web_broadcast import WebBroadcast
+from app.models.webhook_event import WebhookEvent
 
 __all__ = [
     "Base",
@@ -39,5 +42,8 @@ __all__ = [
     "DeliveryLog",
     "Feedback",
     "ChannelConfiguration",
+    "DeviceToken",
+    "WebBroadcast",
+    "WebhookEvent",
 ]
 

@@ -17,6 +17,8 @@ from app.models.communication import Message, DeliveryLog
 from app.models.content_asset import ContentAsset
 from app.models.content_variant import ContentVariant
 from app.models.channel_config import ChannelConfiguration
+from app.models.device_token import DeviceToken
+from app.models.web_broadcast import WebBroadcast
 from app.schemas.channel_config import (
     CampaignSendRequest,
     CampaignSendSummaryResponse,
@@ -162,6 +164,19 @@ async def send_campaign(
                 v_dict[(v.segment_id, normalize_language_code(v.language))] = v
         channel_variant_cache[ch] = v_dict
 
+    # Configure fallback sequence
+    user_fallback = request.fallback_order if (request and request.fallback_order) else None
+
+    if user_fallback:
+        configured_fallback = [ch for ch in user_fallback if ch in allowed_channels]
+        for ch in allowed_channels:
+            if ch not in configured_fallback and ch != "Web":
+                configured_fallback.append(ch)
+        enable_fallback = request.enable_fallback if (request and request.enable_fallback is not None) else True
+    else:
+        configured_fallback = []
+        enable_fallback = False
+
     total_recipients = len(target_members)
     eligible_count = 0
     opted_out_count = 0
@@ -172,6 +187,8 @@ async def send_campaign(
     channel_stats: Dict[str, ChannelDeliverySummary] = {
         "Email": ChannelDeliverySummary(),
         "SMS": ChannelDeliverySummary(),
+        "WhatsApp": ChannelDeliverySummary(),
+        "Push": ChannelDeliverySummary(),
     }
     for ch in allowed_channels:
         if ch not in channel_stats:
@@ -181,40 +198,29 @@ async def send_campaign(
 
     # Iterate over each intended recipient
     for member in target_members:
-        # 4. Identify preferred communication channel
-        selected_channel = member.preferred_channel if member.preferred_channel in allowed_channels else None
-        if not selected_channel:
-            # Fallback based on available contact credentials
-            if "Email" in allowed_channels and member.email:
-                selected_channel = "Email"
-            elif "SMS" in allowed_channels and member.phone:
-                selected_channel = "SMS"
-            else:
-                selected_channel = allowed_channels[0]
-
-        ch_stat = channel_stats.setdefault(selected_channel, ChannelDeliverySummary())
-        ch_stat.total += 1
-
         tracking_id = f"trk_{uuid.uuid4().hex}"
         recipient_lang = normalize_language_code(member.preferred_language or "en")
 
-        # 5. Check recipient consent and opt-out status
+        # 5. Check recipient consent and opt-out status (Mandatory Compliance Check)
         if member.consent_status is not True:
             opted_out_count += 1
             failed_count += 1
+            fallback_primary = member.preferred_channel if member.preferred_channel in allowed_channels else (configured_fallback[0] if configured_fallback else allowed_channels[0])
+            ch_stat = channel_stats.setdefault(fallback_primary, ChannelDeliverySummary())
+            ch_stat.total += 1
             ch_stat.failed += 1
             reason = "Recipient has explicitly opted out (consent_status=False)." if member.consent_status is False else "Recipient lacks affirmative opt-in consent (consent_status=None)."
-            
-            # Record failed message audit
+
             msg = Message(
                 tracking_id=tracking_id,
                 campaign_id=campaign.id,
                 audience_member_id=member.id,
-                channel=selected_channel,
+                channel=fallback_primary,
                 language=recipient_lang,
                 rendered_content=f"[BLOCKED] Delivery withheld: {reason}",
                 status="Failed",
                 failure_reason=reason,
+                fallback_attempts=[{"channel": fallback_primary, "status": "Failed", "reason": reason}],
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
@@ -228,10 +234,11 @@ async def send_campaign(
                     recipient_id=member.id,
                     recipient_name=member.name,
                     recipient_address=mask_recipient_address(member.email or member.phone or ""),
-                    channel=selected_channel,
+                    channel=fallback_primary,
                     language=recipient_lang,
                     status="Failed",
                     failure_reason=reason,
+                    fallback_attempts=msg.fallback_attempts or [],
                     created_at=msg.created_at,
                 )
             )
@@ -239,180 +246,258 @@ async def send_campaign(
 
         eligible_count += 1
 
-        # Check if channel is globally enabled in ChannelConfiguration
-        ch_cfg = configs.get(selected_channel)
-        if ch_cfg and not ch_cfg.is_enabled:
+        # Build candidate channel order for this recipient
+        if enable_fallback:
+            candidate_channels = []
+            if member.preferred_channel and member.preferred_channel in allowed_channels and member.preferred_channel != "Web":
+                candidate_channels.append(member.preferred_channel)
+            for ch in configured_fallback:
+                if ch not in candidate_channels:
+                    candidate_channels.append(ch)
+            if not candidate_channels:
+                non_web = [c for c in allowed_channels if c != "Web"]
+                candidate_channels = non_web if non_web else [allowed_channels[0]]
+        else:
+            if member.preferred_channel and member.preferred_channel in allowed_channels:
+                candidate_channels = [member.preferred_channel]
+            elif "Email" in allowed_channels and member.email:
+                candidate_channels = ["Email"]
+            elif "SMS" in allowed_channels and member.phone:
+                candidate_channels = ["SMS"]
+            else:
+                candidate_channels = [allowed_channels[0]]
+
+        attempts: List[Dict[str, Any]] = []
+        dispatch_succeeded = False
+        last_error: Optional[str] = None
+        final_channel: str = candidate_channels[0]
+        final_asset_id: Optional[int] = None
+        final_variant_id: Optional[int] = None
+        final_rendered_body: str = ""
+        final_status: str = "Failed"
+        final_provider_msg_id: Optional[str] = None
+
+        for cand_ch in candidate_channels:
+            final_channel = cand_ch
+
+            # Check if channel is globally enabled in ChannelConfiguration
+            ch_cfg = configs.get(cand_ch)
+            if ch_cfg and not ch_cfg.is_enabled:
+                reason = f"Channel '{cand_ch}' is currently disabled by administrator."
+                attempts.append({
+                    "channel": cand_ch,
+                    "status": "Failed",
+                    "reason": reason,
+                    "timestamp": datetime.utcnow().isoformat(),
+                })
+                last_error = reason
+                continue
+
+            # Check if recipient has valid contact credentials for cand_ch
+            channel_adapter: BaseChannel = get_configured_channel(db, cand_ch)
+            is_valid, validation_err = channel_adapter.validate_recipient(member)
+            if not is_valid:
+                attempts.append({
+                    "channel": cand_ch,
+                    "status": "Failed",
+                    "reason": validation_err or "Invalid or missing recipient contact details",
+                    "timestamp": datetime.utcnow().isoformat(),
+                })
+                last_error = validation_err or "Invalid recipient contact info"
+                continue
+
+            # Resolve approved content for cand_ch
+            root_ca, lang_variants = channel_content_cache.get(cand_ch, (None, {}))
+            seg_variants = channel_variant_cache.get(cand_ch, {})
+            first_seg_id = campaign.segments[0].id if campaign.segments else None
+
+            body_tpl, selected_orm, resolved_lang, _ = resolve_recipient_content_variant(
+                preferred_language=recipient_lang,
+                approved_variants_by_lang=lang_variants,
+                root_asset=root_ca,
+                fallback_template=campaign.objective or f"Official update regarding {campaign.name}.",
+                segment_id=first_seg_id,
+                approved_segment_variants=seg_variants,
+            )
+            rendered_body = render_personalized_content(body_tpl, member)
+            subject_line = getattr(selected_orm, "title", None) or getattr(selected_orm, "variant_title", None) or campaign.name
+            asset_id = selected_orm.id if isinstance(selected_orm, ContentAsset) else None
+            variant_id = selected_orm.id if isinstance(selected_orm, ContentVariant) else None
+
+            final_asset_id = asset_id
+            final_variant_id = variant_id
+            final_rendered_body = rendered_body
+
+            # Message DTO
+            class _MsgDTO:
+                pass
+            msg_dto = _MsgDTO()
+            msg_dto.id = 0
+            msg_dto.tracking_id = tracking_id
+            msg_dto.rendered_content = rendered_body
+            msg_dto.subject = subject_line
+            msg_dto.title = subject_line
+            msg_dto.language = resolved_lang
+
+            try:
+                dispatch_res = await channel_adapter.send(msg_dto, member)
+                if dispatch_res.success:
+                    dispatch_succeeded = True
+                    final_status = dispatch_res.status
+                    final_provider_msg_id = dispatch_res.provider_message_id
+                    attempts.append({
+                        "channel": cand_ch,
+                        "status": dispatch_res.status,
+                        "provider_message_id": dispatch_res.provider_message_id,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    })
+                    break
+                else:
+                    attempts.append({
+                        "channel": cand_ch,
+                        "status": "Failed",
+                        "error_code": dispatch_res.error_code,
+                        "reason": dispatch_res.error_message or "Gateway dispatch failure",
+                        "timestamp": datetime.utcnow().isoformat(),
+                    })
+                    last_error = dispatch_res.error_message or dispatch_res.error_code
+                    # Automatic token deactivation for invalid push tokens
+                    if cand_ch == "Push" and dispatch_res.error_code == "DEVICE_TOKEN_INVALID":
+                        if hasattr(channel_adapter, "_resolve_token"):
+                            tok_val = channel_adapter._resolve_token(member)
+                            if tok_val:
+                                dt_stmt = select(DeviceToken).where(DeviceToken.token == tok_val)
+                                dt = db.execute(dt_stmt).scalar_one_or_none()
+                                if dt:
+                                    dt.is_active = False
+            except Exception as exc:
+                logger.error("Channel %s dispatch error for member %s: %s", cand_ch, member.id, exc)
+                attempts.append({
+                    "channel": cand_ch,
+                    "status": "Failed",
+                    "reason": str(exc),
+                    "timestamp": datetime.utcnow().isoformat(),
+                })
+                last_error = str(exc)
+
+        # Record message outcome and delivery logs
+        ch_stat = channel_stats.setdefault(final_channel, ChannelDeliverySummary())
+        ch_stat.total += 1
+        sent_at_val = datetime.utcnow() if dispatch_succeeded else None
+        delivered_at_val = datetime.utcnow() if (dispatch_succeeded and final_status == "Delivered") else None
+
+        if dispatch_succeeded:
+            if final_status == "Delivered":
+                delivered_count += 1
+                ch_stat.delivered += 1
+            else:
+                sent_count += 1
+                ch_stat.sent += 1
+        else:
             failed_count += 1
             ch_stat.failed += 1
-            reason = f"Channel '{selected_channel}' is currently disabled by administrator."
 
-            msg = Message(
-                tracking_id=tracking_id,
-                campaign_id=campaign.id,
-                audience_member_id=member.id,
-                channel=selected_channel,
-                language=recipient_lang,
-                rendered_content=f"[DISABLED] Channel '{selected_channel}' disabled.",
-                status="Failed",
-                failure_reason=reason,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
-            )
-            db.add(msg)
-            db.flush()
-
-            message_summaries.append(
-                MessageSummary(
-                    id=msg.id,
-                    tracking_id=tracking_id,
-                    recipient_id=member.id,
-                    recipient_name=member.name,
-                    recipient_address=mask_recipient_address(member.email or member.phone or ""),
-                    channel=selected_channel,
-                    language=recipient_lang,
-                    status="Failed",
-                    failure_reason=reason,
-                    created_at=msg.created_at,
-                )
-            )
-            continue
-
-        # 6. Select approved content & variant for recipient
-        root_ca, lang_variants = channel_content_cache.get(selected_channel, (None, {}))
-        seg_variants = channel_variant_cache.get(selected_channel, {})
-
-        # Find first matching segment id
-        first_seg_id = campaign.segments[0].id if campaign.segments else None
-
-        body_tpl, selected_orm, resolved_lang, _ = resolve_recipient_content_variant(
-            preferred_language=recipient_lang,
-            approved_variants_by_lang=lang_variants,
-            root_asset=root_ca,
-            fallback_template=campaign.objective or f"Official update regarding {campaign.name}.",
-            segment_id=first_seg_id,
-            approved_segment_variants=seg_variants,
-        )
-
-        rendered_body = render_personalized_content(body_tpl, member)
-        subject_line = getattr(selected_orm, "title", None) or getattr(selected_orm, "variant_title", None) or campaign.name
-
-        asset_id = selected_orm.id if isinstance(selected_orm, ContentAsset) else None
-        variant_id = selected_orm.id if isinstance(selected_orm, ContentVariant) else None
-
-        # 7. Record Queued Message
         msg = Message(
             tracking_id=tracking_id,
             campaign_id=campaign.id,
             audience_member_id=member.id,
-            content_asset_id=asset_id,
-            content_variant_id=variant_id,
-            channel=selected_channel,
-            language=resolved_lang,
-            rendered_content=rendered_body,
-            status="Queued",
+            content_asset_id=final_asset_id,
+            content_variant_id=final_variant_id,
+            channel=final_channel,
+            language=recipient_lang,
+            rendered_content=final_rendered_body or f"[FAILED] Delivery attempts failed: {last_error}",
+            status=final_status if dispatch_succeeded else "Failed",
+            provider_message_id=final_provider_msg_id,
+            failure_reason=None if dispatch_succeeded else last_error,
+            fallback_attempts=attempts,
+            sent_at=sent_at_val,
+            delivered_at=delivered_at_val,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )
         db.add(msg)
         db.flush()
 
-        # 8. Send through channel adapter
-        channel_adapter: BaseChannel = get_configured_channel(db, selected_channel)
+        for att in attempts:
+            d_log = DeliveryLog(
+                message_id=msg.id,
+                channel=att.get("channel", final_channel),
+                status=att.get("status", "Failed"),
+                error_message=att.get("reason"),
+                retry_count=len(attempts) - 1,
+                timestamp=datetime.utcnow(),
+            )
+            db.add(d_log)
 
-        # Message DTO
-        class _MsgDTO:
+        dest_addr = ""
+        if final_channel == "Email":
+            dest_addr = member.email or ""
+        elif final_channel in ("SMS", "WhatsApp"):
+            dest_addr = member.phone or ""
+        elif final_channel == "Push":
+            dest_addr = getattr(member, "token", None) or getattr(member, "device_token", None) or ""
+
+        message_summaries.append(
+            MessageSummary(
+                id=msg.id,
+                tracking_id=tracking_id,
+                recipient_id=member.id,
+                recipient_name=member.name,
+                recipient_address=mask_recipient_address(dest_addr),
+                channel=final_channel,
+                language=recipient_lang,
+                content_asset_id=final_asset_id,
+                content_variant_id=final_variant_id,
+                status=msg.status,
+                provider_message_id=msg.provider_message_id,
+                failure_reason=msg.failure_reason,
+                fallback_attempts=attempts,
+                sent_at=msg.sent_at,
+                delivered_at=msg.delivered_at,
+                created_at=msg.created_at,
+            )
+        )
+
+    # If Web channel is enabled, dispatch public broadcast
+    if "Web" in allowed_channels:
+        web_adapter = get_configured_channel(db, "Web")
+        web_root_ca, _ = channel_content_cache.get("Web", (None, {}))
+        web_body = web_root_ca.body if web_root_ca else (campaign.objective or f"Public Notice: {campaign.name}")
+        web_title = (web_root_ca.title if web_root_ca else None) or campaign.name
+
+        class _WebMsgDTO:
             pass
-        msg_dto = _MsgDTO()
-        msg_dto.id = msg.id
-        msg_dto.tracking_id = tracking_id
-        msg_dto.rendered_content = rendered_body
-        msg_dto.subject = subject_line
+        web_msg = _WebMsgDTO()
+        web_msg.id = 0
+        web_msg.campaign_id = campaign.id
+        web_msg.tracking_id = f"bc_trk_{uuid.uuid4().hex[:12]}"
+        web_msg.title = web_title
+        web_msg.rendered_content = web_body
+        web_msg.language = "en"
+        web_msg.is_emergency = getattr(campaign, "is_emergency", False)
+        web_msg.priority = "urgent" if getattr(campaign, "is_emergency", False) else "normal"
 
-        try:
-            dispatch_res = await channel_adapter.send(msg_dto, member)
-            msg.status = dispatch_res.status
-            msg.provider_message_id = dispatch_res.provider_message_id
-            msg.failure_reason = dispatch_res.error_message
-            msg.updated_at = datetime.utcnow()
+        web_res = await web_adapter.send(web_msg, None)
+        clients_count = web_res.metadata.get("connected_clients", 0)
 
-            if dispatch_res.success:
-                msg.sent_at = datetime.utcnow()
-                if dispatch_res.status == "Delivered":
-                    msg.delivered_at = datetime.utcnow()
-                    delivered_count += 1
-                    ch_stat.delivered += 1
-                else:
-                    sent_count += 1
-                    ch_stat.sent += 1
-            else:
-                failed_count += 1
-                ch_stat.failed += 1
+        web_bc = WebBroadcast(
+            campaign_id=campaign.id,
+            title=web_title,
+            body=web_body,
+            language="en",
+            is_emergency=getattr(campaign, "is_emergency", False),
+            priority="urgent" if getattr(campaign, "is_emergency", False) else "normal",
+            channels_dispatched=["websocket", "sse", "web"],
+            connected_clients_count=clients_count,
+            broadcast_at=datetime.utcnow(),
+        )
+        db.add(web_bc)
+        db.flush()
 
-            # Delivery log audit record
-            d_log = DeliveryLog(
-                message_id=msg.id,
-                channel=selected_channel,
-                status=dispatch_res.status,
-                error_message=dispatch_res.error_message,
-                retry_count=0,
-                timestamp=datetime.utcnow(),
-            )
-            db.add(d_log)
-
-            message_summaries.append(
-                MessageSummary(
-                    id=msg.id,
-                    tracking_id=tracking_id,
-                    recipient_id=member.id,
-                    recipient_name=member.name,
-                    recipient_address=mask_recipient_address(member.email if selected_channel == "Email" else (member.phone or "")),
-                    channel=selected_channel,
-                    language=resolved_lang,
-                    content_asset_id=asset_id,
-                    content_variant_id=variant_id,
-                    status=dispatch_res.status,
-                    provider_message_id=dispatch_res.provider_message_id,
-                    failure_reason=dispatch_res.error_message,
-                    sent_at=msg.sent_at,
-                    delivered_at=msg.delivered_at,
-                    created_at=msg.created_at,
-                )
-            )
-
-        except Exception as exc:
-            logger.error("Channel dispatch unhandled error for member %s: %s", member.id, exc)
-            msg.status = "Failed"
-            msg.failure_reason = str(exc)
-            msg.updated_at = datetime.utcnow()
-            failed_count += 1
-            ch_stat.failed += 1
-
-            d_log = DeliveryLog(
-                message_id=msg.id,
-                channel=selected_channel,
-                status="Failed",
-                error_message=str(exc),
-                retry_count=0,
-                timestamp=datetime.utcnow(),
-            )
-            db.add(d_log)
-
-            message_summaries.append(
-                MessageSummary(
-                    id=msg.id,
-                    tracking_id=tracking_id,
-                    recipient_id=member.id,
-                    recipient_name=member.name,
-                    recipient_address=mask_recipient_address(member.email if selected_channel == "Email" else (member.phone or "")),
-                    channel=selected_channel,
-                    language=resolved_lang,
-                    content_asset_id=asset_id,
-                    content_variant_id=variant_id,
-                    status="Failed",
-                    failure_reason=str(exc),
-                    created_at=msg.created_at,
-                )
-            )
+        web_stat = channel_stats.setdefault("Web", ChannelDeliverySummary())
+        web_stat.total += 1
+        web_stat.delivered += 1
+        delivered_count += 1
 
     # Finalize campaign status
     campaign.status = "Completed" if (sent_count + delivered_count) > 0 or total_recipients == 0 else "Failed"
@@ -497,6 +582,7 @@ def get_campaign_send_summary(
                 status=m.status,
                 provider_message_id=m.provider_message_id,
                 failure_reason=m.failure_reason,
+                fallback_attempts=m.fallback_attempts or [],
                 sent_at=m.sent_at,
                 delivered_at=m.delivered_at,
                 created_at=m.created_at,
