@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.user import User
+from app.core.config import settings
 from app.core.dependencies import require_role
+from app.core.rate_limiter import RateLimiter
 from app.services.ai.mock_provider import SUPPORTED_LANGUAGES
 from app.schemas.content_asset import (
     ContentGenerateRequest,
@@ -96,6 +98,7 @@ def get_supported_channels(
     response_model=ContentAssetResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Generate public awareness copy from a structured brief via AI",
+    dependencies=[Depends(RateLimiter(times=settings.RATE_LIMIT_AI_PER_MINUTE, seconds=60, prefix="ai_content"))],
 )
 async def generate_content_endpoint(
     payload: ContentGenerateRequest,
@@ -439,6 +442,7 @@ async def improve_content_tone_endpoint(
     "/{id}/personalize",
     response_model=ContentPersonalizeResponse,
     summary="Generate audience segment-specific variants from root content asset",
+    dependencies=[Depends(RateLimiter(times=settings.RATE_LIMIT_AI_PER_MINUTE, seconds=60, prefix="ai_personalize"))],
 )
 def personalize_content_endpoint(
     id: int = Path(..., ge=1, description="Content Asset ID"),

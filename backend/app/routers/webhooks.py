@@ -66,7 +66,7 @@ def verify_whatsapp_webhook(
         # Meta requires plain integer/string response
         return Response(content=str(hub_challenge), media_type="text/plain")
 
-    logger.warning("WhatsApp webhook verification failed. Given token: %s", hub_verify_token)
+    logger.warning("WhatsApp webhook verification failed for mode '%s'. Verify token did not match.", hub_mode)
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Webhook verification failed: Invalid verify token or mode.",

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.security import create_access_token
 from app.core.dependencies import get_current_active_user
+from app.core.rate_limiter import RateLimiter
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.user import (
@@ -69,7 +70,9 @@ def register(
         200: {"description": "Authentication successful; access token returned."},
         401: {"description": "Invalid credentials or inactive account."},
         422: {"description": "Validation Error: Invalid email format or missing fields."},
+        429: {"description": "Too Many Requests: Rate limit exceeded."},
     },
+    dependencies=[Depends(RateLimiter(times=settings.RATE_LIMIT_LOGIN_PER_MINUTE, seconds=60, prefix="auth_login"))],
 )
 def login(
     request: UserLoginRequest,

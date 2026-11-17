@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: str = "http://127.0.0.1:5173,http://localhost:5173"
 
+    # Redis & Distributed Rate Limiting
+    REDIS_URL: Optional[str] = None
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_LOGIN_PER_MINUTE: int = 10
+    RATE_LIMIT_AI_PER_MINUTE: int = 20
+
     # AI Generation & Translation
     GEMINI_API_KEY: Optional[str] = None
     AI_PROVIDER: str = "auto"  # "auto", "mock", "gemini"
@@ -75,6 +81,10 @@ class Settings(BaseSettings):
             if len(secret) < 32:
                 raise ValueError(
                     f"In {self.APP_ENV} environment, SECRET_KEY must be at least 32 characters long."
+                )
+            if "*" in self.cors_origins_list:
+                raise ValueError(
+                    f"In {self.APP_ENV} environment, wildcard '*' is forbidden in CORS_ORIGINS."
                 )
 
         return self

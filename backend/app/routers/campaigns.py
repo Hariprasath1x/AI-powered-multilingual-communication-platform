@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.user import User
+from app.core.config import settings
 from app.core.dependencies import require_role
+from app.core.rate_limiter import RateLimiter
 from app.schemas.campaign import (
     CampaignCreate,
     CampaignUpdate,
@@ -329,6 +331,7 @@ def delete_campaign(
     response_model=ContentPipelineRunResponse,
     status_code=status.HTTP_200_OK,
     summary="Execute end-to-end automated content generation pipeline (Task 12)",
+    dependencies=[Depends(RateLimiter(times=settings.RATE_LIMIT_AI_PER_MINUTE, seconds=60, prefix="ai_pipeline"))],
 )
 async def run_content_pipeline(
     id: int = Path(..., ge=1, description="Target Campaign primary key ID"),
