@@ -13,6 +13,7 @@ from app.services.ai.base import (
     AIProviderTimeoutError,
     AIProviderQuotaError,
     PlaceholderPreservationError,
+    SentimentAnalysisResult,
 )
 from app.services.ai.mock_provider import MockAIProvider, SUPPORTED_LANGUAGES
 from app.services.ai.gemini_provider import GeminiAIProvider
@@ -31,9 +32,9 @@ __all__ = [
     "AIProviderTimeoutError",
     "AIProviderQuotaError",
     "PlaceholderPreservationError",
+    "SentimentAnalysisResult",
     "MockAIProvider",
     "GeminiAIProvider",
     "SUPPORTED_LANGUAGES",
     "get_ai_provider",
 ]
-

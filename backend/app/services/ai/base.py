@@ -160,8 +160,27 @@ class ContentEvaluationResponse(BaseModel):
     provider_metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+class SentimentAnalysisResult(BaseModel):
+    """Structured output from model-based sentiment analysis."""
+
+    sentiment: str = Field(..., description="Positive, Neutral, or Negative")
+    score: float = Field(default=0.0, description="Polarity score between -1.0 and 1.0")
+    confidence: float = Field(default=1.0, description="Model confidence between 0.0 and 1.0")
+    method: str = Field(default="model", description="Identifier of the method or model used")
+    raw_response: Optional[str] = Field(None, description="Raw model response for auditing")
+
+    def __iter__(self):
+        return iter((self.sentiment, self.score))
+
+    def __len__(self):
+        return 2
+
+    def __getitem__(self, item):
+        return (self.sentiment, self.score, self.method, self.confidence)[item]
+
+
 class BaseAIProvider(ABC):
-    """Abstract interface for AI content generation, translation, and evaluation engines."""
+    """Abstract interface for AI content generation, translation, evaluation, and sentiment engines."""
 
     @abstractmethod
     def get_provider_name(self) -> str:
@@ -187,3 +206,9 @@ class BaseAIProvider(ABC):
         """Evaluate public awareness copy for tone, grammar, factual consistency, and safety."""
         pass
 
+    @abstractmethod
+    async def analyze_sentiment(
+        self, text: str, language: Optional[str] = "en"
+    ) -> SentimentAnalysisResult:
+        """Analyze sentiment of citizen feedback or inbound reply using AI model."""
+        pass

@@ -85,7 +85,7 @@ def get_public_feedback_info(db: Session, token: str) -> PublicFeedbackInfoRespo
     )
 
 
-def submit_public_feedback(
+async def submit_public_feedback(
     db: Session,
     payload: PublicFeedbackSubmissionRequest,
     user_agent: Optional[str] = None,
@@ -116,11 +116,12 @@ def submit_public_feedback(
             detail="Feedback has already been submitted for this notification. Thank you!",
         )
 
-    # Sentiment analysis on comment
-    sentiment_label, sentiment_score = sentiment_service.analyze_sentiment(
+    # Model-based sentiment analysis with deterministic fallback
+    sentiment_result = await sentiment_service.analyze_sentiment_model(
         text=payload.comment,
         language=payload.language or msg.language or "en",
     )
+    sentiment_label, sentiment_score = sentiment_result
 
     now_utc = datetime.now(timezone.utc)
     fb = Feedback(
@@ -157,6 +158,8 @@ def submit_public_feedback(
             "rating": fb.rating,
             "sentiment_label": sentiment_label,
             "sentiment_score": sentiment_score,
+            "analysis_method": sentiment_result.method,
+            "confidence": sentiment_result.confidence,
         },
     )
     db.add(event)

@@ -152,8 +152,13 @@ def get_campaign_engagement_metrics(
         txt = (r.metadata_json or {}).get("reply_text") or (r.metadata_json or {}).get("body")
         if txt:
             text_corpus.append(txt)
-            lbl, sc = sentiment_service.analyze_sentiment(txt, r.language)
-            sentiment_pool.append((lbl, sc))
+            saved_label = (r.metadata_json or {}).get("sentiment")
+            saved_score = (r.metadata_json or {}).get("score")
+            if saved_label and saved_score is not None:
+                sentiment_pool.append((saved_label, saved_score))
+            else:
+                lbl, sc = sentiment_service.analyze_sentiment(txt, r.language)
+                sentiment_pool.append((lbl, sc))
 
     pos_cnt = sum(1 for lbl, _ in sentiment_pool if lbl == "Positive")
     neu_cnt = sum(1 for lbl, _ in sentiment_pool if lbl == "Neutral")

@@ -9,8 +9,9 @@ Provides:
 from __future__ import annotations
 import re
 import math
+import hashlib
 import logging
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Union
 
 logger = logging.getLogger("masscommai.sentiment")
 
@@ -113,19 +114,99 @@ TOPIC_SEEDS: Dict[str, List[str]] = {
 }
 
 
-def analyze_sentiment(text: Optional[str], language: Optional[str] = "en") -> Tuple[str, float]:
+class SentimentResult:
+    """Structured sentiment analysis outcome supporting tuple unpacking (label, score) and metadata attributes."""
+
+    def __init__(
+        self,
+        sentiment: str,
+        score: float,
+        method: str = "lexicon_fallback",
+        confidence: float = 1.0,
+        raw_response: Optional[str] = None,
+    ):
+        self.sentiment = sentiment
+        self.score = score
+        self.method = method
+        self.confidence = confidence
+        self.raw_response = raw_response
+
+    def __iter__(self):
+        return iter((self.sentiment, self.score))
+
+    def __len__(self):
+        return 2
+
+    def __getitem__(self, item):
+        return (self.sentiment, self.score, self.method, self.confidence)[item]
+
+    def __repr__(self):
+        return f"SentimentResult(sentiment={self.sentiment!r}, score={self.score}, method={self.method!r}, confidence={self.confidence})"
+
+
+# In-memory deduplication cache: hash(text, lang) -> SentimentResult
+_SENTIMENT_CACHE: Dict[str, SentimentResult] = {}
+_HF_PIPELINE = None
+
+
+def _make_cache_key(text: str, language: str) -> str:
+    norm = text.strip()
+    return f"{language}:{hashlib.sha256(norm.encode('utf-8')).hexdigest()}"
+
+
+def clear_sentiment_cache() -> None:
+    """Clear in-memory sentiment cache (useful for testing)."""
+    _SENTIMENT_CACHE.clear()
+
+
+def _analyze_with_huggingface(text: str, language: str = "en") -> SentimentResult:
+    """Optional HuggingFace pipeline runner when AI_PROVIDER is set to huggingface."""
+    global _HF_PIPELINE
+    try:
+        from transformers import pipeline
+        if _HF_PIPELINE is None:
+            _HF_PIPELINE = pipeline(
+                "sentiment-analysis",
+                model="distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+            )
+        output = _HF_PIPELINE(text[:512])[0]
+        hf_label = str(output.get("label", "NEUTRAL")).upper()
+        hf_score = float(output.get("score", 0.9))
+        if "POS" in hf_label:
+            sentiment = "Positive"
+            score = round(hf_score, 3)
+        elif "NEG" in hf_label:
+            sentiment = "Negative"
+            score = round(-hf_score, 3)
+        else:
+            sentiment = "Neutral"
+            score = 0.0
+        return SentimentResult(
+            sentiment=sentiment,
+            score=score,
+            method="model:huggingface",
+            confidence=round(hf_score, 3),
+            raw_response=str(output),
+        )
+    except Exception as exc:
+        logger.warning("HuggingFace pipeline execution failed (%s); falling back to lexicon.", exc)
+        return analyze_sentiment_lexicon(text, language)
+
+
+def analyze_sentiment_lexicon(text: Optional[str], language: Optional[str] = "en") -> SentimentResult:
     """
     Computes sentiment label ('Positive', 'Neutral', 'Negative') and polarity score [-1.0, 1.0].
     Deterministic, robust against empty/malformed text, and safe for unit tests without network calls.
+    Returns SentimentResult with method="lexicon_fallback".
     """
     if not text or not text.strip():
-        return "Neutral", 0.0
+        return SentimentResult("Neutral", 0.0, method="lexicon_fallback", confidence=1.0)
 
     clean_text = text.strip()
     words = [tok.strip(".,!?;:\"'()[]{}—–") for tok in clean_text.lower().split()]
     words = [t for t in words if t]
     if not words:
-        return "Neutral", 0.0
+        return SentimentResult("Neutral", 0.0, method="lexicon_fallback", confidence=1.0)
 
     raw_scores: List[float] = []
     i = 0
@@ -152,10 +233,9 @@ def analyze_sentiment(text: Optional[str], language: Optional[str] = "en") -> Tu
         i += 1
 
     if not raw_scores:
-        # Check overall exclamation or question marks for slight nudge
         if "?" in clean_text:
-            return "Neutral", 0.0
-        return "Neutral", 0.0
+            return SentimentResult("Neutral", 0.0, method="lexicon_fallback", confidence=0.8)
+        return SentimentResult("Neutral", 0.0, method="lexicon_fallback", confidence=0.8)
 
     mean_score = sum(raw_scores) / len(raw_scores)
     # Tanh-like smoothing
@@ -169,7 +249,95 @@ def analyze_sentiment(text: Optional[str], language: Optional[str] = "en") -> Tu
     else:
         label = "Neutral"
 
-    return label, rounded_score
+    return SentimentResult(label, rounded_score, method="lexicon_fallback", confidence=0.88)
+
+
+async def analyze_sentiment_model(
+    text: Optional[str],
+    language: Optional[str] = "en",
+    provider: Optional[Any] = None,
+    allow_fallback: bool = True,
+) -> SentimentResult:
+    """
+    Primary sentiment analysis path using configured AI model (Gemini LLM / Mock / HuggingFace).
+    Validates model output and gracefully degrades to deterministic lexicon fallback on failure/timeout.
+    Guarantees that fallback classifications are never represented as model-generated.
+    """
+    if not text or not text.strip():
+        return SentimentResult("Neutral", 0.0, method="lexicon_fallback", confidence=1.0)
+
+    clean_text = text.strip()
+    cache_key = _make_cache_key(clean_text, language or "en")
+    if cache_key in _SENTIMENT_CACHE:
+        return _SENTIMENT_CACHE[cache_key]
+
+    try:
+        from app.core.config import settings
+
+        if provider is None:
+            if settings.AI_PROVIDER.lower() == "huggingface":
+                res = _analyze_with_huggingface(clean_text, language or "en")
+                _SENTIMENT_CACHE[cache_key] = res
+                return res
+
+            from app.services.ai.factory import get_ai_provider
+            provider = get_ai_provider()
+
+        raw_result = await provider.analyze_sentiment(clean_text, language=language or "en")
+
+        # Validate and normalize
+        sentiment = str(raw_result.sentiment).strip().capitalize()
+        if sentiment not in ("Positive", "Neutral", "Negative"):
+            lower_s = sentiment.lower()
+            if "pos" in lower_s:
+                sentiment = "Positive"
+            elif "neg" in lower_s:
+                sentiment = "Negative"
+            else:
+                sentiment = "Neutral"
+
+        score = round(max(-1.0, min(1.0, float(raw_result.score))), 3)
+        confidence = round(max(0.0, min(1.0, float(raw_result.confidence))), 3)
+        method = raw_result.method or f"model:{provider.get_provider_name()}"
+
+        res = SentimentResult(
+            sentiment=sentiment,
+            score=score,
+            method=method,
+            confidence=confidence,
+            raw_response=getattr(raw_result, "raw_response", None),
+        )
+        _SENTIMENT_CACHE[cache_key] = res
+        return res
+
+    except Exception as exc:
+        sanitized_err = str(exc)
+        try:
+            from app.core.config import settings
+            if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY in sanitized_err:
+                sanitized_err = sanitized_err.replace(settings.GEMINI_API_KEY, "[REDACTED]")
+        except Exception:
+            pass
+
+        logger.warning(
+            "Model-based sentiment analysis failed (%s); invoking deterministic fallback.",
+            sanitized_err,
+        )
+
+        if not allow_fallback:
+            raise
+
+        fallback_res = analyze_sentiment_lexicon(clean_text, language)
+        _SENTIMENT_CACHE[cache_key] = fallback_res
+        return fallback_res
+
+
+def analyze_sentiment(text: Optional[str], language: Optional[str] = "en") -> SentimentResult:
+    """
+    Synchronous sentiment analysis using deterministic multilingual lexicon.
+    Always available as a fast, reliable baseline and offline fallback.
+    """
+    return analyze_sentiment_lexicon(text, language)
 
 
 def extract_topics_and_keywords(texts: List[str], max_keywords: int = 15) -> Dict[str, Any]:

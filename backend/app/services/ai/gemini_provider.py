@@ -24,6 +24,7 @@ from app.services.ai.base import (
     AIProviderTimeoutError,
     AIProviderQuotaError,
     PlaceholderPreservationError,
+    SentimentAnalysisResult,
     escape_xml,
 )
 from app.core.config import settings
@@ -735,4 +736,92 @@ class GeminiAIProvider(BaseAIProvider):
                 "provider": "gemini",
                 "model": self.model_name,
             },
+        )
+
+    async def analyze_sentiment(
+        self, text: str, language: Optional[str] = "en"
+    ) -> SentimentAnalysisResult:
+        """Analyze sentiment of citizen feedback or inbound reply using Gemini LLM."""
+        if not text or not text.strip():
+            return SentimentAnalysisResult(
+                sentiment="Neutral",
+                score=0.0,
+                confidence=1.0,
+                method=f"model:{self.get_model_name()}",
+            )
+
+        system_instruction = (
+            "You are an expert multilingual sentiment analysis system for civic public awareness communications in India. "
+            "Analyze the citizen feedback or inbound message. The language may be English, Hindi (in Devanagari or Romanized script), "
+            "Tamil (in Tamil script or Romanized), or other Indian languages.\n\n"
+            "Classify the sentiment strictly as one of: 'Positive', 'Neutral', or 'Negative'.\n"
+            "Provide a continuous polarity score between -1.0 (extremely negative/critical) and +1.0 (extremely positive/appreciative).\n"
+            "Provide a confidence score between 0.0 and 1.0.\n\n"
+            "Return ONLY a valid JSON object matching this schema:\n"
+            "{\n"
+            '  "sentiment": "Positive" | "Neutral" | "Negative",\n'
+            '  "score": 0.85,\n'
+            '  "confidence": 0.95,\n'
+            '  "explanation": "Short justification"\n'
+            "}"
+        )
+
+        user_prompt = (
+            f"Language Hint: {language or 'en'}\n"
+            f"Citizen Message:\n{escape_xml(text.strip())}\n"
+        )
+
+        from google.genai import types
+
+        config = types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            response_mime_type="application/json",
+            temperature=0.1,
+        )
+
+        response = await self._generate_content_with_retry(
+            contents=user_prompt,
+            config=config,
+            operation_name="Gemini sentiment analysis",
+        )
+
+        try:
+            data = json.loads(response.text or "{}")
+        except Exception as json_err:
+            clean_err = self._sanitize_message(str(json_err))
+            logger.warning("Gemini sentiment response was not valid JSON: %s", clean_err)
+            raise AIProviderError(
+                f"Invalid JSON returned by Gemini sentiment analysis: {clean_err}",
+                status_code=502,
+                provider="gemini",
+            ) from None
+
+        raw_sentiment = str(data.get("sentiment", "Neutral")).strip().capitalize()
+        if raw_sentiment not in ("Positive", "Neutral", "Negative"):
+            lower_s = raw_sentiment.lower()
+            if "pos" in lower_s:
+                raw_sentiment = "Positive"
+            elif "neg" in lower_s:
+                raw_sentiment = "Negative"
+            else:
+                raw_sentiment = "Neutral"
+
+        try:
+            raw_score = float(data.get("score", 0.0))
+        except (ValueError, TypeError):
+            raw_score = 0.0
+        clamped_score = round(max(-1.0, min(1.0, raw_score)), 3)
+
+        try:
+            raw_conf = float(data.get("confidence", 0.9))
+        except (ValueError, TypeError):
+            raw_conf = 0.9
+        clamped_conf = round(max(0.0, min(1.0, raw_conf)), 3)
+
+        return SentimentAnalysisResult(
+            sentiment=raw_sentiment,
+            score=clamped_score,
+            confidence=clamped_conf,
+            method=f"model:{self.get_model_name()}",
+            raw_response=response.text,
         )

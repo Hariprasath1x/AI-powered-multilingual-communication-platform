@@ -197,7 +197,8 @@ async def handle_whatsapp_webhook(
                     recent_msg = db.execute(recent_msg_stmt).scalar_one_or_none()
                     if recent_msg:
                         from app.services import sentiment_service, engagement_service
-                        label, score = sentiment_service.analyze_sentiment(text_content, recent_msg.language or "en")
+                        sentiment_result = await sentiment_service.analyze_sentiment_model(text_content, recent_msg.language or "en")
+                        label, score = sentiment_result
                         feedback = Feedback(
                             campaign_id=recent_msg.campaign_id,
                             audience_member_id=recent_msg.audience_member_id,
@@ -218,7 +219,14 @@ async def handle_whatsapp_webhook(
                             event_type="reply",
                             device_info="Mobile (WhatsApp)",
                             language=recent_msg.language or "en",
-                            metadata_json={"reply_text": text_content, "wamid": msg_id},
+                            metadata_json={
+                                "reply_text": text_content,
+                                "wamid": msg_id,
+                                "sentiment": label,
+                                "score": score,
+                                "analysis_method": sentiment_result.method,
+                                "confidence": sentiment_result.confidence,
+                            },
                         )
 
                 processed_count += 1
@@ -407,7 +415,8 @@ async def handle_sms_inbound_webhook(
         recent_msg = db.execute(recent_msg_stmt).scalar_one_or_none()
         if recent_msg:
             from app.services import sentiment_service, engagement_service
-            label, score = sentiment_service.analyze_sentiment(text_content, recent_msg.language or "en")
+            sentiment_result = await sentiment_service.analyze_sentiment_model(text_content, recent_msg.language or "en")
+            label, score = sentiment_result
             fb = Feedback(
                 campaign_id=recent_msg.campaign_id,
                 audience_member_id=recent_msg.audience_member_id,
@@ -428,7 +437,14 @@ async def handle_sms_inbound_webhook(
                 event_type="reply",
                 device_info="Mobile (SMS)",
                 language=recent_msg.language or "en",
-                metadata_json={"reply_text": text_content, "provider_id": provider_id},
+                metadata_json={
+                    "reply_text": text_content,
+                    "provider_id": provider_id,
+                    "sentiment": label,
+                    "score": score,
+                    "analysis_method": sentiment_result.method,
+                    "confidence": sentiment_result.confidence,
+                },
             )
 
     db.commit()

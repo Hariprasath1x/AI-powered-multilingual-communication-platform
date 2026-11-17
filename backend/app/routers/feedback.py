@@ -58,7 +58,7 @@ def get_public_feedback_info_endpoint(
     status_code=status.HTTP_201_CREATED,
     summary="Submit citizen feedback (No Auth Required)",
 )
-def submit_public_feedback_endpoint(
+async def submit_public_feedback_endpoint(
     payload: PublicFeedbackSubmissionRequest,
     request: Request,
     db: Session = Depends(get_db),
@@ -68,7 +68,7 @@ def submit_public_feedback_endpoint(
     Automatically classifies sentiment, generates polarity score, and records a 'participate' engagement event.
     """
     user_agent = request.headers.get("user-agent") if request else None
-    return feedback_service.submit_public_feedback(
+    return await feedback_service.submit_public_feedback(
         db=db,
         payload=payload,
         user_agent=user_agent,

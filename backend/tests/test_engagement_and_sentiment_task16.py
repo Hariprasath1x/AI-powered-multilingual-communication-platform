@@ -23,9 +23,10 @@ Covers:
 """
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from datetime import datetime, timezone
 import json
+import asyncio
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -730,3 +731,215 @@ class TestEngagementAndSentimentTask16(unittest.TestCase):
 
         resp_topics = self.client.get("/feedback/topics")
         self.assertEqual(resp_topics.status_code, 401)
+
+    # -------------------------------------------------------------------------
+    # 19. Model-Based Sentiment Analysis (Positive, Neutral, Negative)
+    # -------------------------------------------------------------------------
+    def test_19_model_based_sentiment_positive_neutral_negative(self):
+        """Verifies primary model-based analysis classifies Positive, Neutral, Negative with confidence."""
+        sentiment_service.clear_sentiment_cache()
+
+        pos_res = asyncio.run(sentiment_service.analyze_sentiment_model("Great work, very helpful and smooth service!"))
+        self.assertEqual(pos_res.sentiment, "Positive")
+        self.assertGreater(pos_res.score, 0.0)
+        self.assertGreaterEqual(pos_res.confidence, 0.0)
+        self.assertLessEqual(pos_res.confidence, 1.0)
+        self.assertTrue(pos_res.method.startswith("model:"))
+
+        neg_res = asyncio.run(sentiment_service.analyze_sentiment_model("Terrible delay and very rude behavior."))
+        self.assertEqual(neg_res.sentiment, "Negative")
+        self.assertLess(neg_res.score, 0.0)
+        self.assertTrue(neg_res.method.startswith("model:"))
+
+        neu_res = asyncio.run(sentiment_service.analyze_sentiment_model("The booth is open from 9 AM to 5 PM."))
+        self.assertEqual(neu_res.sentiment, "Neutral")
+        self.assertEqual(neu_res.score, 0.0)
+        self.assertTrue(neu_res.method.startswith("model:"))
+
+    # -------------------------------------------------------------------------
+    # 20. Confidence and Score Validation and Normalization
+    # -------------------------------------------------------------------------
+    def test_20_confidence_and_score_validation_and_normalization(self):
+        """Validates that out-of-range model scores and mixed-case labels are sanitized and clamped."""
+        sentiment_service.clear_sentiment_cache()
+
+        class MockProviderOutOfBounds:
+            def get_provider_name(self):
+                return "mock_test"
+            async def analyze_sentiment(self, text, language="en"):
+                from app.services.ai.base import SentimentAnalysisResult
+                return SentimentAnalysisResult(
+                    sentiment="positive",
+                    score=2.85,
+                    confidence=1.75,
+                    method="model:mock_test",
+                )
+
+        res1 = asyncio.run(sentiment_service.analyze_sentiment_model("arbitrary text 1", provider=MockProviderOutOfBounds()))
+        self.assertEqual(res1.sentiment, "Positive")
+        self.assertEqual(res1.score, 1.0)
+        self.assertEqual(res1.confidence, 1.0)
+
+        class MockProviderNegativeOutOfBounds:
+            def get_provider_name(self):
+                return "mock_test"
+            async def analyze_sentiment(self, text, language="en"):
+                from app.services.ai.base import SentimentAnalysisResult
+                return SentimentAnalysisResult(
+                    sentiment="NEGATIVE",
+                    score=-4.5,
+                    confidence=-0.3,
+                    method="model:mock_test",
+                )
+
+        res2 = asyncio.run(sentiment_service.analyze_sentiment_model("arbitrary text 2", provider=MockProviderNegativeOutOfBounds()))
+        self.assertEqual(res2.sentiment, "Negative")
+        self.assertEqual(res2.score, -1.0)
+        self.assertEqual(res2.confidence, 0.0)
+
+    # -------------------------------------------------------------------------
+    # 21. Multilingual Model Sentiment (English, Hindi, Tamil)
+    # -------------------------------------------------------------------------
+    def test_21_multilingual_model_sentiment_english_hindi_tamil(self):
+        """Verifies model-based sentiment across English, Hindi (Devanagari & Romanized), and Tamil."""
+        sentiment_service.clear_sentiment_cache()
+
+        # Hindi Devanagari positive
+        hi_pos = asyncio.run(sentiment_service.analyze_sentiment_model("टीकाकरण केंद्र पर बहुत बढ़िया व्यवस्था और धन्यवाद", language="hi"))
+        self.assertEqual(hi_pos.sentiment, "Positive")
+        self.assertGreater(hi_pos.score, 0.0)
+
+        # Hindi Romanized negative
+        hi_neg = asyncio.run(sentiment_service.analyze_sentiment_model("Kharab vyavastha aur bahut deri hui", language="hi"))
+        self.assertEqual(hi_neg.sentiment, "Negative")
+        self.assertLess(hi_neg.score, 0.0)
+
+        # Tamil positive
+        ta_pos = asyncio.run(sentiment_service.analyze_sentiment_model("மிகவும் நல்ல சேவை மற்றும் நன்றி", language="ta"))
+        self.assertEqual(ta_pos.sentiment, "Positive")
+        self.assertGreater(ta_pos.score, 0.0)
+
+        # Tamil negative
+        ta_neg = asyncio.run(sentiment_service.analyze_sentiment_model("மோசம் மற்றும் தாமதம்", language="ta"))
+        self.assertEqual(ta_neg.sentiment, "Negative")
+        self.assertLess(ta_neg.score, 0.0)
+
+    # -------------------------------------------------------------------------
+    # 22. Invalid Model Response Triggers Deterministic Fallback
+    # -------------------------------------------------------------------------
+    def test_22_invalid_model_response_triggers_deterministic_fallback(self):
+        """When model response is malformed or invalid, gracefully falls back to deterministic lexicon."""
+        sentiment_service.clear_sentiment_cache()
+
+        # [SIMULATE_INVALID_JSON] triggers malformed model response
+        res = asyncio.run(sentiment_service.analyze_sentiment_model("Great doctor and helpful staff [SIMULATE_INVALID_JSON]"))
+        self.assertEqual(res.sentiment, "Positive")
+        self.assertGreater(res.score, 0.0)
+        self.assertEqual(res.method, "lexicon_fallback")
+        # Ensure fallback is never represented as model-generated
+        self.assertFalse(res.method.startswith("model:"))
+
+    # -------------------------------------------------------------------------
+    # 23. Provider Timeout Triggers Deterministic Fallback
+    # -------------------------------------------------------------------------
+    def test_23_provider_timeout_triggers_deterministic_fallback(self):
+        """When AI provider times out, gracefully falls back to deterministic lexicon."""
+        sentiment_service.clear_sentiment_cache()
+
+        # [SIMULATE_TIMEOUT] triggers AIProviderTimeoutError
+        res = asyncio.run(sentiment_service.analyze_sentiment_model("Awful delay, horrible queue [SIMULATE_TIMEOUT]"))
+        self.assertEqual(res.sentiment, "Negative")
+        self.assertLess(res.score, 0.0)
+        self.assertEqual(res.method, "lexicon_fallback")
+
+    # -------------------------------------------------------------------------
+    # 24. Feedback Submission & Inbound Replies Record Analysis Metadata
+    # -------------------------------------------------------------------------
+    def test_24_feedback_and_inbound_replies_record_model_analysis_metadata(self):
+        """Verifies both web feedback and inbound webhook replies receive model analysis with recorded metadata."""
+        sentiment_service.clear_sentiment_cache()
+
+        # 1. Public feedback submission
+        payload = {
+            "feedback_token": self.msg_email.feedback_token,
+            "rating": 5,
+            "comment": "Super experience, doctor was very helpful and professional!",
+            "language": "en",
+        }
+        resp = self.client.post("/feedback/submit", json=payload)
+        self.assertEqual(resp.status_code, 201)
+
+        event_part = (
+            self.db.query(EngagementEvent)
+            .filter(EngagementEvent.event_type == "participate")
+            .order_by(EngagementEvent.id.desc())
+            .first()
+        )
+        self.assertIsNotNone(event_part)
+        self.assertIn("analysis_method", event_part.metadata_json)
+        self.assertTrue(event_part.metadata_json["analysis_method"].startswith("model:"))
+        self.assertIn("confidence", event_part.metadata_json)
+        self.assertEqual(event_part.metadata_json["sentiment_label"], "Positive")
+
+        # 2. Inbound SMS reply
+        sms_payload = {
+            "From": "+919876543210",
+            "To": "+15551234567",
+            "Body": "Terrible service, unhelpful and bad queue",
+            "MessageSid": "SM_MODEL_TEST_999",
+        }
+        resp_sms = self.client.post("/webhooks/sms", json=sms_payload)
+        self.assertEqual(resp_sms.status_code, 200)
+
+        event_reply = (
+            self.db.query(EngagementEvent)
+            .filter(EngagementEvent.event_type == "reply", EngagementEvent.device_info == "Mobile (SMS)")
+            .order_by(EngagementEvent.id.desc())
+            .first()
+        )
+        self.assertIsNotNone(event_reply)
+        self.assertIn("analysis_method", event_reply.metadata_json)
+        self.assertTrue(event_reply.metadata_json["analysis_method"].startswith("model:"))
+        self.assertEqual(event_reply.metadata_json["sentiment"], "Negative")
+
+    # -------------------------------------------------------------------------
+    # 25. Deduplication Cache Prevents Unnecessary Repeat Analysis
+    # -------------------------------------------------------------------------
+    def test_25_deduplication_cache_prevents_unnecessary_repeat_analysis(self):
+        """Verifies identical comment text is cached and does not trigger duplicate model invocations."""
+        sentiment_service.clear_sentiment_cache()
+
+        class CountingProvider:
+            def __init__(self):
+                self.calls = 0
+            def get_provider_name(self):
+                return "counting_mock"
+            async def analyze_sentiment(self, text, language="en"):
+                self.calls += 1
+                from app.services.ai.base import SentimentAnalysisResult
+                return SentimentAnalysisResult(
+                    sentiment="Positive",
+                    score=0.85,
+                    confidence=0.92,
+                    method="model:counting_mock",
+                )
+
+        provider = CountingProvider()
+        test_text = "Unique citizen response for caching verification"
+
+        # First call: hits provider
+        res1 = asyncio.run(sentiment_service.analyze_sentiment_model(test_text, provider=provider))
+        self.assertEqual(provider.calls, 1)
+        self.assertEqual(res1.sentiment, "Positive")
+
+        # Second call with identical text: hits cache, provider NOT called again
+        res2 = asyncio.run(sentiment_service.analyze_sentiment_model(test_text, provider=provider))
+        self.assertEqual(provider.calls, 1)  # Call count remains 1!
+        self.assertEqual(res2.sentiment, "Positive")
+        self.assertEqual(res2.score, res1.score)
+
+        # Clear cache and call again: provider is called
+        sentiment_service.clear_sentiment_cache()
+        res3 = asyncio.run(sentiment_service.analyze_sentiment_model(test_text, provider=provider))
+        self.assertEqual(provider.calls, 2)
+        self.assertEqual(res3.sentiment, "Positive")

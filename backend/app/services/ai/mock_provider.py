@@ -2,7 +2,7 @@
 
 import re
 import asyncio
-from typing import Set, List
+from typing import Set, List, Optional
 from app.services.ai.base import (
     BaseAIProvider,
     ContentBrief,
@@ -15,6 +15,7 @@ from app.services.ai.base import (
     AIProviderError,
     AIProviderTimeoutError,
     PlaceholderPreservationError,
+    SentimentAnalysisResult,
 )
 
 # Supported language codes & labels (10 Indian Languages + English)
@@ -568,3 +569,66 @@ class MockAIProvider(BaseAIProvider):
             },
         )
 
+    async def analyze_sentiment(
+        self, text: str, language: Optional[str] = "en"
+    ) -> SentimentAnalysisResult:
+        """Simulate model-based sentiment analysis for testing, dev, and offline environments."""
+        await self._handle_simulated_delays_and_errors(text or "")
+
+        if not text or not text.strip():
+            return SentimentAnalysisResult(
+                sentiment="Neutral",
+                score=0.0,
+                confidence=1.0,
+                method="model:mock",
+            )
+
+        clean = text.strip()
+
+        # Simulation hooks for testing edge cases and failure modes
+        if "[SIMULATE_INVALID_JSON]" in clean or "[SIMULATE_MALFORMED]" in clean:
+            raise AIProviderError("Simulated malformed model response: invalid JSON format", status_code=502, provider="mock")
+
+        lower = clean.lower()
+        neg_indicators = [
+            "bad", "poor", "terrible", "awful", "horrible", "rude", "delayed", "delay",
+            "queue", "broken", "unhelpful", "useless", "waste", "failed", "disappointed",
+            "kharab", "bura", "deri", "pareshani", "bekar", "mosam", "thamadham",
+            "खराब", "बुरा", "परेशानी", "शिकायत", "देरी", "भीड़", "बेकार", "कठिन",
+            "மோசம்", "தாமதம்", "சிக்கல்",
+        ]
+        pos_indicators = [
+            "great", "good", "excellent", "helpful", "useful", "thanks", "thank",
+            "appreciated", "appreciate", "accha", "achha", "shukriya", "dhanyawad",
+            "dhanyavad", "badhiya", "sundar", "nandri", "nalla", "arputham",
+            "धन्यवाद", "अच्छा", "शानदार", "बढ़िया", "उत्कृष्ट", "सरल",
+            "நன்றி", "நல்லது", "சிறந்த", "professional", "quick", "fast", "smooth",
+        ]
+
+        words = set(tok.strip(".,!?;:\"'()[]{}—–") for tok in lower.split())
+        words = {w for w in words if w}
+
+        neg_count = sum(1 for tok in neg_indicators if tok in words or (" " in tok and tok in lower))
+        pos_count = sum(1 for tok in pos_indicators if tok in words or (" " in tok and tok in lower))
+
+        if neg_count > pos_count:
+            return SentimentAnalysisResult(
+                sentiment="Negative",
+                score=-0.72,
+                confidence=0.94,
+                method="model:mock",
+            )
+        elif pos_count > neg_count:
+            return SentimentAnalysisResult(
+                sentiment="Positive",
+                score=0.82,
+                confidence=0.96,
+                method="model:mock",
+            )
+        else:
+            return SentimentAnalysisResult(
+                sentiment="Neutral",
+                score=0.0,
+                confidence=0.88,
+                method="model:mock",
+            )
