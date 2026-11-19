@@ -920,6 +920,31 @@ class TestCampaignAPI(unittest.TestCase):
         self.assertIn("sample_recipient", data)
         self.assertIn("channel_previews", data)
 
+        # SEC-01: Verify sample recipient PII masking (email & phone masked)
+        sample = data["sample_recipient"]
+        self.assertEqual(sample["name"], "Aarav Sharma")
+        self.assertEqual(sample["email"], "aa***@example.gov.in")
+        self.assertEqual(sample["phone"], "+919****3210")
+        self.assertNotIn("aarav.sharma@example.gov.in", sample["email"])
+        self.assertNotIn("+919876543210", sample["phone"])
+
+        # SEC-01: Verify querying audience member not matching campaign segments returns HTTP 400
+        res_unmatched = self.client.get(
+            f"/campaigns/{camp_id}/preview?audience_member_id={self.aud_mumbai_confirmed.id}",
+            headers=self._headers(self.comm_token),
+        )
+        self.assertEqual(res_unmatched.status_code, 400)
+        self.assertIn("does not match any linked campaign segment", res_unmatched.json()["detail"])
+
+        # SEC-01: Verify POST preview with non-matching recipient returns HTTP 400
+        res_post_unmatched = self.client.post(
+            f"/campaigns/{camp_id}/preview",
+            headers=self._headers(self.comm_token),
+            json={"audience_member_id": self.aud_mumbai_confirmed.id},
+        )
+        self.assertEqual(res_post_unmatched.status_code, 400)
+        self.assertIn("does not match any linked campaign segment", res_post_unmatched.json()["detail"])
+
         # Channel-specific metric assertions
         channels = data["channel_previews"]
         self.assertIn("Email", channels)

@@ -599,9 +599,20 @@ class TestCampaignBackendFoundation(unittest.TestCase):
         preview = render_campaign_preview(self.db, camp.id, audience_member_id=self.aud_aarav.id)
         self.assertEqual(preview.campaign_id, camp.id)
         self.assertEqual(preview.sample_recipient["name"], "Aarav Sharma")
+        # SEC-01: Verify sample recipient PII masking
+        self.assertEqual(preview.sample_recipient["email"], "aa***@example.gov.in")
+        self.assertEqual(preview.sample_recipient["phone"], "+919****3210")
         self.assertIn("Dear Aarav Sharma", preview.rendered_content)
         self.assertIn("visit New Delhi clinic", preview.rendered_content)
-        self.assertIn("aarav.sharma@example.gov.in", preview.rendered_content)
+        self.assertIn("aa***@example.gov.in", preview.rendered_content)
+        self.assertNotIn("aarav.sharma@example.gov.in", preview.rendered_content)
+
+        # SEC-01: Verify audience member not in campaign segments raises HTTP 400
+        from fastapi import HTTPException
+        with self.assertRaises(HTTPException) as cm:
+            render_campaign_preview(self.db, camp.id, audience_member_id=self.aud_karthik.id)
+        self.assertEqual(cm.exception.status_code, 400)
+        self.assertIn("does not match any linked campaign segment", cm.exception.detail)
 
         # Channel specific checks
         channels = preview.channel_previews

@@ -26,6 +26,7 @@ from app.schemas.campaign import (
 )
 from app.schemas.segment import RuleGroup
 from app.services.segment_service import compile_rule_group
+from app.services.distribution.base import mask_recipient_address
 
 logger = logging.getLogger("masscommai.campaign_service")
 
@@ -609,6 +610,17 @@ def render_campaign_preview(
 
     # Resolve recipient
     recipient: Optional[AudienceMember] = None
+    segment_exprs = []
+    if campaign.segments:
+        for seg in campaign.segments:
+            rules_dict = seg.filter_rules if isinstance(seg.filter_rules, dict) else {}
+            if rules_dict:
+                try:
+                    rule_grp = RuleGroup.model_validate(rules_dict)
+                    segment_exprs.append(compile_rule_group(rule_grp))
+                except Exception:
+                    pass
+
     if audience_member_id:
         recipient = db.execute(
             select(AudienceMember).where(AudienceMember.id == audience_member_id)
@@ -618,22 +630,24 @@ def render_campaign_preview(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Audience member with ID {audience_member_id} not found.",
             )
+        # Verify audience member satisfies campaign's segments if segments are defined
+        if segment_exprs:
+            is_matching = db.execute(
+                select(AudienceMember.id).where(
+                    and_(AudienceMember.id == audience_member_id, or_(*segment_exprs))
+                ).limit(1)
+            ).scalar_one_or_none()
+            if not is_matching:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Audience member with ID {audience_member_id} does not match any linked campaign segment.",
+                )
     else:
         # Pick first matching member from campaign segments
-        if campaign.segments:
-            segment_exprs = []
-            for seg in campaign.segments:
-                rules_dict = seg.filter_rules if isinstance(seg.filter_rules, dict) else {}
-                if rules_dict:
-                    try:
-                        rule_grp = RuleGroup.model_validate(rules_dict)
-                        segment_exprs.append(compile_rule_group(rule_grp))
-                    except Exception:
-                        pass
-            if segment_exprs:
-                recipient = db.execute(
-                    select(AudienceMember).where(or_(*segment_exprs)).limit(1)
-                ).scalar_one_or_none()
+        if segment_exprs:
+            recipient = db.execute(
+                select(AudienceMember).where(or_(*segment_exprs)).limit(1)
+            ).scalar_one_or_none()
 
     # Construct recipient dict representation (fallback to representative demo data)
     recipient_dict: Dict[str, Any] = {}
@@ -665,6 +679,14 @@ def render_campaign_preview(
             "organization_department": "Public Health Department",
         }
 
+    # SEC-01 Remediation: Mask recipient email and phone in preview response payload
+    # and rendered content to prevent PII exposure across all roles (including Communication Team).
+    masked_sample_recipient: Dict[str, Any] = {
+        **recipient_dict,
+        "email": mask_recipient_address(recipient_dict.get("email", "")),
+        "phone": mask_recipient_address(recipient_dict.get("phone", "")),
+    }
+
     # Safe placeholder substitution (literal string replacement, no eval/code execution)
     rendered_body = template.body
     placeholders_found = []
@@ -676,7 +698,7 @@ def render_campaign_preview(
             if custom_placeholders and ph in custom_placeholders:
                 replacement_val = custom_placeholders[ph]
             else:
-                val = recipient_dict.get(field_key)
+                val = masked_sample_recipient.get(field_key)
                 replacement_val = str(val) if val is not None else ""
             rendered_body = rendered_body.replace(ph, replacement_val)
 
@@ -739,7 +761,7 @@ def render_campaign_preview(
         campaign_name=campaign.name,
         template_id=template.id,
         template_title=template.title,
-        sample_recipient=recipient_dict,
+        sample_recipient=masked_sample_recipient,
         rendered_content=rendered_body,
         placeholders_used=sorted(list(set(placeholders_found))),
         channel_previews=channel_previews,

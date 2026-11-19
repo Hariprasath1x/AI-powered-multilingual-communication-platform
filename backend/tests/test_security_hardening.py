@@ -23,6 +23,10 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.db.seed import seed_default_roles
 from app.models.user import User, Role
+from app.models.audience import AudienceMember
+from app.models.segment import Segment
+from app.models.template import Template
+from app.models.campaign import Campaign
 from app.core.security import get_password_hash, create_access_token
 
 
@@ -188,3 +192,207 @@ class TestSecurityHardening(unittest.TestCase):
         # Try to access Admin Channel settings
         resp2 = self.client.get("/admin/channels", headers=headers)
         assert resp2.status_code == 403
+
+    def test_campaign_preview_pii_masking_sec01(self):
+        """SEC-01: Verify campaign preview masks citizen email & phone and validates segment membership."""
+        token = create_access_token(subject=self.comm_user.id)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # 1. Seed audience members
+        delhi_citizen = AudienceMember(
+            name="Sunita Rao",
+            email="sunita.rao@example.gov.in",
+            phone="+919812345678",
+            city="New Delhi",
+            state="Delhi",
+            preferred_language="hi",
+            preferred_channel="email",
+            consent_status=True,
+        )
+        mumbai_citizen = AudienceMember(
+            name="Rajesh Patil",
+            email="rajesh.patil@example.gov.in",
+            phone="+919876501234",
+            city="Mumbai",
+            state="Maharashtra",
+            preferred_language="mr",
+            preferred_channel="sms",
+            consent_status=True,
+        )
+        self.db.add_all([delhi_citizen, mumbai_citizen])
+        self.db.commit()
+
+        # 2. Seed Delhi segment
+        delhi_seg = Segment(
+            name="Delhi Residents",
+            created_by=self.comm_user.id,
+            filter_rules={
+                "connector": "AND",
+                "conditions": [{"field": "city", "operator": "equals", "value": "New Delhi"}],
+            },
+        )
+        self.db.add(delhi_seg)
+        self.db.commit()
+
+        # 3. Seed template and campaign
+        template = Template(
+            title="Clean City Advisory",
+            category="Civic",
+            body="Hello {name}, keep {city} clean. Contact {email} or {phone}.",
+            created_by=self.comm_user.id,
+        )
+        self.db.add(template)
+        self.db.commit()
+
+        campaign = Campaign(
+            name="Clean Delhi Drive",
+            campaign_type="Awareness",
+            priority="Medium",
+            status="Draft",
+            channels=["Email", "SMS"],
+            created_by=self.comm_user.id,
+            template_id=template.id,
+        )
+        campaign.segments = [delhi_seg]
+        self.db.add(campaign)
+        self.db.commit()
+
+        # 4. GET /campaigns/{id}/preview with comm team token
+        resp = self.client.get(f"/campaigns/{campaign.id}/preview", headers=headers)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+
+        # Requirement 1: Verify PII masking in sample_recipient, rendered_content, and channel previews
+        sample = data["sample_recipient"]
+        self.assertEqual(sample["name"], "Sunita Rao")
+        self.assertEqual(sample["email"], "su***@example.gov.in")
+        self.assertEqual(sample["phone"], "+919****5678")
+        self.assertNotIn("sunita.rao@example.gov.in", sample["email"])
+        self.assertNotIn("+919812345678", sample["phone"])
+
+        rendered = data["rendered_content"]
+        self.assertIn("Hello Sunita Rao", rendered)
+        self.assertIn("keep New Delhi clean", rendered)
+        self.assertIn("su***@example.gov.in", rendered)
+        self.assertIn("+919****5678", rendered)
+        self.assertNotIn("sunita.rao@example.gov.in", rendered)
+        self.assertNotIn("+919812345678", rendered)
+
+        # Check all channel previews
+        for ch_name, ch_preview in data["channel_previews"].items():
+            self.assertNotIn("sunita.rao@example.gov.in", ch_preview["rendered_body"])
+            self.assertNotIn("+919812345678", ch_preview["rendered_body"])
+
+        # Requirement 2: Verify segment scoping across campaigns with multiple linked segments
+        mumbai_seg = Segment(
+            name="Mumbai Residents",
+            created_by=self.comm_user.id,
+            filter_rules={
+                "connector": "AND",
+                "conditions": [{"field": "city", "operator": "equals", "value": "Mumbai"}],
+            },
+        )
+        chennai_citizen = AudienceMember(
+            name="Anand Kumar",
+            email="anand.kumar@example.gov.in",
+            phone="+919844455566",
+            city="Chennai",
+            state="Tamil Nadu",
+            preferred_language="ta",
+            preferred_channel="whatsapp",
+            consent_status=True,
+        )
+        self.db.add_all([mumbai_seg, chennai_citizen])
+        self.db.commit()
+
+        campaign_multi = Campaign(
+            name="Metro Civic Drive",
+            campaign_type="Awareness",
+            priority="Medium",
+            status="Draft",
+            channels=["Email", "SMS"],
+            created_by=self.comm_user.id,
+            template_id=template.id,
+        )
+        campaign_multi.segments = [delhi_seg, mumbai_seg]
+        self.db.add(campaign_multi)
+        self.db.commit()
+
+        # Both Delhi and Mumbai citizens match the multi-segment campaign
+        resp_delhi = self.client.get(
+            f"/campaigns/{campaign_multi.id}/preview?audience_member_id={delhi_citizen.id}",
+            headers=headers,
+        )
+        self.assertEqual(resp_delhi.status_code, 200)
+        self.assertEqual(resp_delhi.json()["sample_recipient"]["name"], "Sunita Rao")
+
+        resp_mumbai = self.client.get(
+            f"/campaigns/{campaign_multi.id}/preview?audience_member_id={mumbai_citizen.id}",
+            headers=headers,
+        )
+        self.assertEqual(resp_mumbai.status_code, 200)
+        self.assertEqual(resp_mumbai.json()["sample_recipient"]["name"], "Rajesh Patil")
+
+        # Chennai citizen matches neither segment -> 400 Bad Request
+        resp_chennai = self.client.get(
+            f"/campaigns/{campaign_multi.id}/preview?audience_member_id={chennai_citizen.id}",
+            headers=headers,
+        )
+        self.assertEqual(resp_chennai.status_code, 400)
+        self.assertIn("does not match any linked campaign segment", resp_chennai.json()["detail"])
+        # Ensure error detail never leaks recipient contact information
+        self.assertNotIn("anand.kumar@example.gov.in", resp_chennai.text)
+        self.assertNotIn("+919844455566", resp_chennai.text)
+
+        # Requirement 3: Unauthorized (unauthenticated) users cannot access recipient info
+        unauth_resp = self.client.get(f"/campaigns/{campaign.id}/preview")
+        self.assertEqual(unauth_resp.status_code, 401)
+
+        # Single segment scoping rejection (mumbai citizen in delhi-only campaign)
+        unmatched_resp = self.client.get(
+            f"/campaigns/{campaign.id}/preview?audience_member_id={mumbai_citizen.id}",
+            headers=headers,
+        )
+        self.assertEqual(unmatched_resp.status_code, 400)
+        self.assertIn("does not match any linked campaign segment", unmatched_resp.json()["detail"])
+        self.assertNotIn("rajesh.patil@example.gov.in", unmatched_resp.text)
+        self.assertNotIn("+919876501234", unmatched_resp.text)
+
+        # Requirement 4: Confirm POST preview endpoint enforces identical protections
+        # 4a. POST with invalid segment recipient -> 400 Bad Request
+        post_unmatched = self.client.post(
+            f"/campaigns/{campaign.id}/preview",
+            headers=headers,
+            json={"audience_member_id": mumbai_citizen.id},
+        )
+        self.assertEqual(post_unmatched.status_code, 400)
+        self.assertIn("does not match any linked campaign segment", post_unmatched.json()["detail"])
+
+        # 4b. POST with valid recipient -> 200 OK with masked PII
+        post_matched = self.client.post(
+            f"/campaigns/{campaign.id}/preview",
+            headers=headers,
+            json={"audience_member_id": delhi_citizen.id},
+        )
+        self.assertEqual(post_matched.status_code, 200)
+        post_data = post_matched.json()
+        self.assertEqual(post_data["sample_recipient"]["email"], "su***@example.gov.in")
+        self.assertEqual(post_data["sample_recipient"]["phone"], "+919****5678")
+        self.assertNotIn("sunita.rao@example.gov.in", post_data["rendered_content"])
+
+        # Requirement 5: Confirm custom placeholder substitution remains functional in POST
+        post_custom = self.client.post(
+            f"/campaigns/{campaign.id}/preview",
+            headers=headers,
+            json={
+                "audience_member_id": delhi_citizen.id,
+                "custom_placeholders": {
+                    "{name}": "Chief Health Officer",
+                    "{email}": "helpline@health.gov.in",
+                },
+            },
+        )
+        self.assertEqual(post_custom.status_code, 200)
+        custom_data = post_custom.json()
+        self.assertIn("Hello Chief Health Officer", custom_data["rendered_content"])
+        self.assertIn("helpline@health.gov.in", custom_data["rendered_content"])
