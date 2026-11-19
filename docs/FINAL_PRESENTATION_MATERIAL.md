@@ -1,27 +1,29 @@
-# MassCommAI — Final Project Presentation Material
+# Civora — Final Project Presentation Material
 ## AI-Powered Multilingual Public Awareness, Audience Segmentation, and Mass Communication Platform
+### Powered by MassCommAI — Bringing communities closer.
 
-**Internship Program:** Infosys Springboard Virtual Internship
-**Project Track:** AI & Cloud Solutions for Civic Governance
-**Author / Engineering Lead:** MassCommAI Core Engineering Team
-**Date:** November 2026
-**Final Release:** Milestone 3 Final Release (v1.0.0-prod)
+**Internship Program:** Infosys Springboard Virtual Internship<br>
+**Project Track:** AI & Cloud Solutions for Civic Governance<br>
+**Author / Engineering Lead:** MassCommAI Core Engineering Team<br>
+**Date:** November 2026<br>
+**Final Release:** Milestones 1–3 Complete Release (v1.0.0-prod)<br>
+**Product Identity:** Civora (Public Brand) | MassCommAI (Underlying Technical Engine)
 
 ---
 
 ## Slide 1: Title & Executive Summary
 
 ### Title
-**MassCommAI: Enterprise-Grade AI-Powered Multilingual Public Awareness and Mass Communication Platform**
+**Civora — by MassCommAI: Enterprise-Grade AI-Powered Multilingual Public Awareness and Mass Communication Platform**
 
 ### Subtitle
 *Bridging Linguistic and Demographic Communication Chasms Across India's 1.4 Billion Citizens with Privacy-First Automation, Intelligent Fallback, and Civic Sentiment Analysis.*
 
 ### Executive Summary
-MassCommAI is a production-hardened, full-stack civic communication engine designed specifically for disaster management authorities, public health directorates, civic municipalities, and government departments. The platform unifies:
+Civora is a production-hardened, full-stack civic communication engine designed specifically for disaster management authorities, public health directorates, civic municipalities, and government departments. The platform unifies:
 1. **Zero-PII-Leak Demographic Audience Segmentation** with dynamic AST query compilation.
 2. **Channel-Constrained Multilingual Content Synthesis** (English, Hindi, Tamil, Telugu, Bengali, Marathi, etc.) with strict placeholder protection and automated editorial safety gates.
-3. **Multi-Channel Simulated & Carrier-Ready Distribution Engine** covering Email (SMTP/SES), SMS (Twilio/CDAC), WhatsApp (Meta Cloud API), Push Notifications (Web/FCM), and Emergency Web Broadcasts.
+3. **Multi-Channel Simulated & Carrier-Ready Distribution Engine** covering Email (SMTP/SES), SMS (Twilio/CDAC), WhatsApp (Meta Cloud API), Push Notifications (FCM HTTP v1 OAuth2), and Emergency Web Broadcasts.
 4. **Resilient Delivery Orchestration** featuring automated multi-channel fallbacks, exponential backoff retries, and bidirectional carrier webhooks.
 5. **Civic Engagement & Sentiment Intelligence** tracking delivery logs, email opens, URL click-throughs, citizen feedback, and model-based/lexicon sentiment analytics.
 6. **Executive Analytics Dashboards** delivering cross-campaign performance metrics, channel conversion funnels, language engagement rankings, and automated AI improvement insights.
@@ -52,11 +54,11 @@ flowchart LR
 ## Slide 3: Project Vision & Strategic Objectives
 
 ### Vision
-*To empower public administrators with an intelligent, reliable, auditable, and privacy-preserving platform capable of synthesizing, auditing, and dispatching localized public advisories to millions in seconds.*
+*To empower public administrators with an intelligent, reliable, auditable, and privacy-preserving platform designed to compose, translate, audit, and dispatch localized public advisories across large-scale civic populations.*
 
 ### Strategic Objectives
 - **Targeted Precision:** Filter audiences dynamically via visual rule builders supporting nested AND/OR criteria without raw SQL exposure.
-- **Multilingual Speed:** Reduce advisory authoring and translation latency from days to under 60 seconds using Google Gemini AI with strict placeholder retention (`{name}`, `{location}`, `{date}`).
+- **Multilingual Speed:** Reduce advisory authoring and translation latency from days to under 60 seconds using generative AI (Groq / Gemini) with strict placeholder retention (`{name}`, `{location}`, `{date}`).
 - **Editorial Safety Gate:** Enforce mandatory automated compliance checks (Flesch-Kincaid readability, sentiment guardrails, emergency helpline verification) before any campaign can be approved.
 - **Resilient Delivery:** Guarantee message arrival via multi-channel fallback (`WhatsApp` $\to$ `SMS` $\to$ `Email`) with maximum 3 retry attempts and exponential backoff.
 - **Citizen Feedback Loop:** Empower citizens to submit feedback in their native language and analyze community sentiment to guide governance decisions.
@@ -95,7 +97,7 @@ flowchart TD
 
     subgraph Services["Domain Intelligence Engine"]
         ASTCompiler["AST Query Compiler (SQLAlchemy 2.0)"]
-        AIFactory["AI Provider Factory (Gemini 2.5 / Mock)"]
+        AIFactory["AI Provider Factory\n(Groq / Gemini / Mock)"]
         QualityRules["Compliance & Readability Heuristics"]
         ChannelRegistry["Channel Registry & Dispatch Engine"]
         RetryManager["Retry Manager & Fallback Evaluator"]
@@ -103,15 +105,15 @@ flowchart TD
     end
 
     subgraph StorageLayer["Data & Cache Layer"]
-        PG[("PostgreSQL 16\n(17 Tables, B-Tree Indexes)")]
-        RedisCache[("Redis 7\n(Rate Limiting & Celery Queues)")]
+        PG[("PostgreSQL 16\n(30 Tables, B-Tree Indexes)")]
+        RedisCache[("Redis 7\n(Sliding-Window Rate Limiter)")]
     end
 
-    subgraph Channels["External Providers (Simulated / Live)"]
+    subgraph Channels["External Providers (Simulated / Carrier-Ready)"]
         EmailCh["Email (SMTP / Amazon SES)"]
         SMSCh["SMS (Twilio / CDAC Gateway)"]
         WACh["WhatsApp (Meta Cloud API)"]
-        PushCh["Web Push (FCM / VAPID)"]
+        PushCh["Web Push (FCM HTTP v1 OAuth2)"]
         BroadcastCh["Web Broadcast (Public Feed)"]
     end
 
@@ -130,12 +132,13 @@ flowchart TD
 | :--- | :--- | :--- | :--- |
 | **Backend Framework** | **FastAPI** | `0.115.6` | High-throughput asynchronous ASGI, native Pydantic v2 validation, auto-generated OpenAPI 3.1 docs. |
 | **Database & ORM** | **PostgreSQL + SQLAlchemy** | `16.15` / `2.0.36` | ACID compliance, row-level lease fencing (`SELECT ... FOR UPDATE`), composite indexes on message timestamps. |
-| **Database Migrations** | **Alembic** | `1.14.0` | Linear forward/rollback database versioning (8 verified revisions up to `b9c3d1e2f4a5`). |
+| **Database Migrations** | **Alembic** | `1.14.0` | Linear forward/rollback database versioning (17 verified revisions up to `b9c3d1e2f4a5`). |
 | **Caching & Rate Limiting**| **Redis + Py-Redis** | `7.2` / `5.2.1` | Sliding-window sorted sets (`ZREMRANGEBYSCORE`, `ZCARD`, `ZADD`) with in-memory thread-safe fallback. |
 | **Background Scheduling**| **APScheduler / BackgroundTasks**| `3.10.4` | In-process crontab and delayed one-shot job scheduling with persistent state tracking. |
 | **Frontend Framework** | **React + Vite** | `18.3.1` / `6.0.3` | Ultra-fast HMR, route-level code splitting via `React.lazy`, manual vendor chunking (<165 kB per chunk). |
 | **UI Design System** | **Tailwind CSS + Lucide** | `3.4.16` / `0.468` | Clean civic dashboard aesthetic, fully responsive mobile layouts, bilingual UI toggles. |
-| **AI Synthesis Engine** | **Google Gemini 2.5 Flash** | `@google/genai` | High-speed multilingual inference with deterministic offline mock provider fallback for air-gapped CI/CD. |
+| **AI Synthesis Engine** | **Groq (Primary) / Gemini (Legacy)** | `groq` / `@google/genai` | Ultra-low-latency multilingual inference (`openai/gpt-oss-120b` / `gemini-2.5-flash`) with deterministic offline mock fallback. |
+| **Push Authentication** | **Google Auth (OAuth2)** | `2.40+` | Google Cloud Service Account JSON credentials for secure FCM HTTP v1 dispatch with token caching. |
 | **Containerization** | **Docker & Docker Compose** | Multi-Stage | Non-root `appuser` (UID 10001), NGINX alpine reverse proxy, persistent volume mounts. |
 
 ---
@@ -148,8 +151,8 @@ Every communication campaign follows an auditable 12-stage lifecycle from citize
 sequenceDiagram
     autonumber
     actor Admin as Campaign Manager
-    participant App as MassCommAI Platform
-    participant AI as Gemini Multilingual AI
+    participant App as Civora Platform
+    participant AI as Multilingual AI (Groq / Gemini)
     participant Engine as Dispatch & Fallback Engine
     actor Citizen as Citizen (Audience)
 
@@ -182,21 +185,21 @@ sequenceDiagram
 
 ### 3. Automated Editorial Safety & Compliance Gate
 - Hard-blocks publication of any draft that scores below readability thresholds or triggers the **Panic Word Detection Filter** (e.g., *"lethal"*, *"deadly catastrophe"*).
-- Enforces statutory government requirements: emergency advisories must contain official helpline numbers (e.g., `108`, `112`, `1077`).
+- Enforces statutory government requirements: emergency advisories must contain official helpline numbers (e.g., `108`, `112`, `1075`).
 
 ### 4. Privacy-by-Design & Zero-PII Boundary
 - Strict log filtering scrubs email addresses, 10-digit phone numbers, JWT bearer tokens, and webhook secrets from stdout and disk logs.
 - API responses enforce non-nullable masked recipient addresses (`+919****3210`, `j****@example.com`).
 
 ### 5. Hybrid Sentiment Intelligence
-- Incoming SMS/WhatsApp replies and public web feedback are analyzed through an LLM provider (Gemini) with deterministic lexicon fallback.
+- Incoming SMS/WhatsApp replies and public web feedback are analyzed through an LLM provider (Groq / Gemini) with deterministic lexicon fallback.
 - Classifies responses into `Positive`, `Neutral`, or `Negative` with normalized confidence scores and automated civic topic extraction.
 
 ---
 
 ## Slide 8: Enterprise Security Hardening
 
-MassCommAI implements multi-layered security controls to protect civic infrastructure from unauthorized access, automated abuse, and data leakage:
+Civora implements multi-layered security controls to protect civic infrastructure from unauthorized access, automated abuse, and data leakage:
 
 ```mermaid
 flowchart TD
@@ -221,16 +224,19 @@ flowchart TD
 
 ## Slide 9: Verification Metrics & Test Suite Evidence
 
-MassCommAI has been subjected to rigorous automated verification across all layers of the application:
+Civora has been subjected to rigorous automated verification across all layers of the application:
 
 | Verification Metric | Target Benchmark | Actual Verified Result | Status |
 | :--- | :---: | :---: | :---: |
-| **Backend Test Suite** | $> 500$ passing tests | **522 Passed** (0 failures, 0 skipped) | **PASS** |
-| **Test Execution Time** | $< 180$ seconds | **140.23 seconds** | **PASS** |
-| **Security Hardening Tests**| 100% pass | **6 / 6 Passed** | **PASS** |
-| **End-to-End Workflow Tests**| 12-stage pass | **1 / 1 Complete Pipeline Passed** | **PASS** |
-| **Database Migrations** | Single clean head | **1 Head (`b9c3d1e2f4a5`)** | **PASS** |
-| **Frontend Production Build**| No bundle warnings | **Vite build in 1.23s (<165 kB chunks)**| **PASS** |
+| **Backend Test Suite** | $> 500$ passing tests | **576 Passed** (0 failures, 0 skipped, 13 subtests passed) | **PASS** |
+| **Test Execution Time** | $< 300$ seconds | **225.96 seconds** | **PASS** |
+| **FCM OAuth2 Authentication Tests**| 100% pass | **20 / 20 Passed** (`test_fcm_auth.py`) | **PASS** |
+| **Multichannel Task 14 Tests**| 100% pass | **20 / 20 Passed** (`test_multichannel_task14.py`) | **PASS** |
+| **Security Hardening Tests**| 100% pass | **7 / 7 Passed** (`test_security_hardening.py`) | **PASS** |
+| **Deployment Config Tests**| 100% pass | **8 / 8 Passed** (`test_deployment_config.py`) | **PASS** |
+| **Database Migrations** | Single clean head | **1 Head (`b9c3d1e2f4a5`, 17 revisions)** | **PASS** |
+| **Database Tables** | All domains mapped | **30 Tables in `Base.metadata.tables`** | **PASS** |
+| **Frontend Production Build**| No bundle warnings | **Vite build in 1.24s (<165 kB chunks)**| **PASS** |
 | **Demo Seeding Idempotency**| Zero duplicates | **100% Idempotent (0 duplicate records)**| **PASS** |
 | **Log PII Redaction** | Zero raw credentials | **100% Redacted (`[PHONE_MASKED]`, etc.)**| **PASS** |
 
@@ -241,12 +247,12 @@ MassCommAI has been subjected to rigorous automated verification across all laye
 The platform is demo-ready with pre-seeded civic scenarios accessible via role-based credentials:
 
 ### Demo Credentials
-- **Administrator:** `admin@masscomm.gov.in` / `Admin@12345` (Full access, user governance, compliance rules)
+- **Administrator:** `admin@masscomm.gov.in` / `Admin@12345` (Full access, user governance, compliance rules, channel configs)
 - **Campaign Manager:** `manager@masscomm.gov.in` / `Manager@12345` (Segmentation, AI studio, approvals, dispatch, analytics)
 - **Communication Team:** `team@masscomm.gov.in` / `Team@12345` (Content drafting, translation, view-only analytics)
 
 ### 7 Demonstration Acts
-1. **Act I:** Multi-Role Login & Security Boundary Check.
+1. **Act I:** Multi-Role Login & Security Boundary Check (including Admin Channel Settings with FCM OAuth2).
 2. **Act II:** Demographic Audience Filtering & Segment Compilation.
 3. **Act III:** Multilingual AI Generation with Quality Audit & Approval Gate.
 4. **Act IV:** Multi-Channel Broadcast with Simulated Provider Execution.
@@ -260,7 +266,7 @@ The platform is demo-ready with pre-seeded civic scenarios accessible via role-b
 
 ## Slide 11: Production Deployment & Containerization
 
-MassCommAI provides a turnkey production container setup via Docker and Docker Compose:
+Civora provides a turnkey production container setup via Docker and Docker Compose:
 
 ```text
 ├── docker-compose.yml       # 4-tier orchestration (db, redis, backend, frontend)
@@ -280,6 +286,10 @@ docker compose up --build -d
 - **PostgreSQL Database:** `localhost:5432` (Healthchecked via `pg_isready`)
 - **Redis Cache & Queue:** `localhost:6379` (Healthchecked via `redis-cli ping`)
 
+### Cloud Hosting Readiness Note
+- **Phase 1 Preparation (Completed):** Database URL normalization for Neon PostgreSQL (`postgresql+psycopg://`), centralized frontend API URL, and Vercel SPA rewrites are fully verified.
+- **Phase 2 Status:** Live cloud provisioning is currently frozen.
+
 ---
 
 ## Slide 12: Roadmap Progression & Future Horizons
@@ -287,7 +297,7 @@ docker compose up --build -d
 ### Roadmap Milestones Completed
 - [x] **Milestone 1 (Tasks 1–6):** Audience Ingestion, Dynamic Segmentation, Campaign State Machine, Template Library.
 - [x] **Milestone 2 (Tasks 7–12):** Multilingual AI Content Studio, Translation Engine (10 Indian languages), Tone Optimization, Automated Quality Audit, End-to-End Pipeline Wizard.
-- [x] **Milestone 3 (Tasks 13–18):** Multichannel Delivery (Email, SMS, WhatsApp, Push, Broadcast), Scheduling & Retries, Feedback Sentiment Analysis, Executive Analytics Dashboards, Security Hardening & Containerization.
+- [x] **Milestone 3 (Tasks 13–18):** Multichannel Delivery (Email, SMS, WhatsApp, Push with FCM OAuth2, Broadcast), Scheduling & Retries, Feedback Sentiment Analysis, Executive Analytics Dashboards, Security Hardening & Containerization.
 
 ### Future Horizons
 1. **GovTech Telecom API Integration:** Direct integration with CDAC Jan Parichay, NIC SMS gateway, and official Meta WhatsApp Cloud API accounts.
@@ -301,7 +311,7 @@ docker compose up --build -d
 
 ### Summary of Achievements
 - Delivered an end-to-end, enterprise-grade civic communication platform for India's diverse multilingual population.
-- Achieved a resilient architecture backed by **522 automated tests**, strict PII protection, and modular containerization.
+- Achieved a resilient architecture backed by **576 automated tests**, strict PII protection, and modular containerization.
 - Established an auditable bridge between generative AI and public administration safety standards.
 
 ### Thank You!

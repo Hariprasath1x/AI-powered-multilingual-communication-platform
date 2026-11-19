@@ -1,172 +1,206 @@
-# MassCommAI — Relational Database Architecture (Milestone 1)
+# Civora — Relational Database Architecture
+## Complete Data Model Specification (Milestones 1–3 Final Release)
+### Powered by MassCommAI — Bringing communities closer.
 
-This document specifies the initial relational database schema for the **AI-Powered Multilingual Public Awareness and Mass Communication Platform** (Infosys Springboard Virtual Internship).
-
-All tables are versioned and managed through **Alembic** migrations using **PostgreSQL 14+** and **SQLAlchemy 2.x**.
+- **Document Version:** 2.0.0
+- **Release Date:** November 19, 2026
+- **Architecture Lead:** MassCommAI Core Engineering Team
+- **Database Engine:** PostgreSQL 14+ (Cloud-compatible with Neon, AWS RDS, Docker Compose)
+- **ORM / Migrations:** SQLAlchemy 2.0.36 / Alembic 1.14.0
+- **Current Migration Head:** `b9c3d1e2f4a5` (17 linear revisions)
+- **Total Tables:** 30 tables managed via declarative SQLAlchemy models
 
 ---
 
-## 1. Entity Relationship (ER) Diagram
+## 1. Complete Entity Relationship (ER) Architecture
+
+The Civora database architecture spans 10 functional domains, providing referential integrity, row-level locking, and indexed audit tracking from citizen demographic ingestion to post-broadcast sentiment analysis.
 
 ```mermaid
 erDiagram
+    %% Core Identity & Roles
     ROLES ||--o{ USERS : "assigned to"
     USERS ||--o{ CAMPAIGNS : "creates"
     USERS ||--o{ SEGMENTS : "creates"
     USERS ||--o{ TEMPLATES : "creates"
-    
+    USERS ||--o{ CONTENT_ASSETS : "authors"
+    USERS ||--o{ COMPLIANCE_RULES : "manages"
+
+    %% Audience & Segmentation
+    AUDIENCE_MEMBERS ||--o{ CAMPAIGN_SEGMENTS : "filtered into"
+    SEGMENTS ||--o{ CAMPAIGN_SEGMENTS : "evaluates"
     CAMPAIGNS ||--o{ CAMPAIGN_SEGMENTS : "targets"
-    SEGMENTS ||--o{ CAMPAIGN_SEGMENTS : "targeted in"
-    
-    CAMPAIGNS ||--o{ MESSAGES : "generates"
-    AUDIENCE_MEMBERS ||--o{ MESSAGES : "receives"
-    TEMPLATES ||--o{ MESSAGES : "formats"
-    
-    MESSAGES ||--o{ DELIVERY_LOGS : "logs status"
-    
+
+    %% Campaigns, Templates & Content Studio
+    TEMPLATES ||--o{ CAMPAIGNS : "referenced by"
+    CAMPAIGNS ||--o{ CONTENT_ASSETS : "contains"
+    CONTENT_ASSETS ||--o{ CONTENT_VARIANTS : "generates variants"
+    CONTENT_ASSETS ||--o{ CONTENT_PIPELINE_RUNS : "tracks runs"
+    CONTENT_ASSETS ||--o{ CONTENT_QUALITY_ASSESSMENTS : "audited by"
+    CONTENT_QUALITY_ASSESSMENTS ||--o{ CONTENT_QUALITY_FINDINGS : "records violations"
+    CONTENT_ASSETS ||--o{ TRANSLATION_REVIEW_HISTORY : "review logs"
+
+    %% Distribution & Channels
+    CAMPAIGNS ||--o{ DISTRIBUTION_JOBS : "dispatches"
+    DISTRIBUTION_JOBS ||--o{ DELIVERY_RECORDS : "generates"
+    DELIVERY_RECORDS ||--o{ DELIVERY_ATTEMPTS : "records retries"
+    CHANNEL_CONFIGURATIONS ||--o{ DISTRIBUTION_JOBS : "executes via"
+    AUDIENCE_MEMBERS ||--o{ DEVICE_TOKENS : "registers"
+    CAMPAIGNS ||--o{ WEB_BROADCASTS : "publishes live"
+
+    %% Scheduling & Automation
+    CAMPAIGNS ||--o{ CAMPAIGN_SCHEDULES : "schedules"
+    AUTOMATION_RULES ||--o{ AUTOMATION_EXECUTION_LOGS : "triggers"
+
+    %% Tracking & Engagement Feedback
+    CAMPAIGNS ||--o{ TRACKED_LINKS : "contains"
+    CAMPAIGNS ||--o{ ENGAGEMENT_EVENTS : "tracks"
+    MESSAGES ||--o{ ENGAGEMENT_EVENTS : "logs"
     CAMPAIGNS ||--o{ FEEDBACK : "receives"
     AUDIENCE_MEMBERS ||--o{ FEEDBACK : "submits"
 
-    ROLES {
-        int id PK
-        string name UK "Admin, Campaign Manager, Communication Team"
-        string description
-        datetime created_at
-    }
-
-    USERS {
-        int id PK
-        string full_name
-        string email UK
-        string phone
-        string organization
-        string hashed_password
-        int role_id FK
-        boolean is_active
-        datetime created_at
-        datetime updated_at
-    }
-
-    AUDIENCE_MEMBERS {
-        int id PK
-        string name
-        string email UK "Partial unique (WHERE email IS NOT NULL)"
-        string phone UK "Partial unique (WHERE phone IS NOT NULL)"
-        int age
-        string gender
-        string city
-        string state
-        string preferred_language "Hindi, Tamil, Telugu, etc."
-        string occupation
-        string organization_department
-        string preferred_channel "Email, SMS, WhatsApp"
-        boolean consent_status
-        datetime created_at
-        datetime updated_at
-    }
-
-    SEGMENTS {
-        int id PK
-        string name
-        string description
-        jsonb filter_rules "Dynamic query criteria (AND/OR, field, operator, value)"
-        int created_by FK
-        datetime created_at
-        datetime updated_at
-    }
-
-    CAMPAIGN_SEGMENTS {
-        int campaign_id PK, FK
-        int segment_id PK, FK
-    }
-
-    CAMPAIGNS {
-        int id PK
-        string name
-        string campaign_type "Awareness, Emergency Alert, Educational, Announcement"
-        string objective
-        string priority "Low, Medium, High"
-        string status "Draft, In Review, Approved, Scheduled, Running, Completed, Failed"
-        jsonb channels "['Email', 'SMS', 'WhatsApp']"
-        datetime start_date
-        datetime end_date
-        int created_by FK
-        datetime created_at
-        datetime updated_at
-    }
-
-    TEMPLATES {
-        int id PK
-        string title
-        string category "Healthcare, Disaster, Education, Governance"
-        text body "Content with {name}, {area} placeholders"
-        string language
-        string tags
-        int created_by FK
-        datetime created_at
-        datetime updated_at
-    }
-
-    MESSAGES {
-        int id PK
-        int campaign_id FK
-        int audience_member_id FK
-        int template_id FK
-        string channel
-        string language
-        text rendered_content
-        string status "Pending, Sent, Delivered, Failed"
-        datetime scheduled_at
-        datetime sent_at
-        datetime created_at
-    }
-
-    DELIVERY_LOGS {
-        int id PK
-        int message_id FK
-        string channel
-        string status "Sent, Delivered, Failed"
-        text error_message
-        int retry_count
-        datetime timestamp
-    }
-
-    FEEDBACK {
-        int id PK
-        int campaign_id FK
-        int audience_member_id FK
-        int rating "1 to 5 stars"
-        text comment
-        string sentiment_label "Positive, Neutral, Negative (Milestone 3)"
-        float sentiment_score "Milestone 3"
-        string language
-        datetime created_at
-    }
+    %% Communication Audit Logs
+    CAMPAIGNS ||--o{ MESSAGES : "broadcasts"
+    AUDIENCE_MEMBERS ||--o{ MESSAGES : "receives"
+    MESSAGES ||--o{ DELIVERY_LOGS : "logs status"
 ```
 
 ---
 
-## 2. Table Specifications & Constraints
+## 2. Table Specifications by Functional Domain
 
-| Table Name | Primary Purpose | Key Constraints & Indexes |
-| :--- | :--- | :--- |
-| `roles` | Access-level definitions | `UNIQUE(name)` |
-| `users` | Staff, Manager, and Admin credentials | `UNIQUE(email)`, Index on `email`, FK to `roles.id` |
-| `audience_members` | Recipient directory for public communication | Partial unique indexes on `email` and `phone` (`WHERE ... IS NOT NULL`), indexes on `preferred_language`, `city`, `preferred_channel` |
-| `segments` | Reusable demographic filter definitions | `filter_rules` stored as native PostgreSQL `JSONB`, FK to `users.id` |
-| `campaign_segments` | Many-to-Many association | Composite PK `(campaign_id, segment_id)`, Cascading Foreign Keys |
-| `campaigns` | Campaign metadata, channels & lifecycle | FK to `users.id`, indexes on `status`, `priority`, `campaign_type` |
-| `templates` | Reusable content templates with `{name}` placeholders | FK to `users.id`, indexes on `category`, `language` |
-| `messages` | Generated outgoing communication items | FKs to `campaigns`, `audience_members`, and `templates` |
-| `delivery_logs` | Channel dispatch audit trail & retries | FK to `messages.id`, index on `status` |
-| `feedback` | Recipient satisfaction & future sentiment metrics | FKs to `campaigns` and `audience_members`, rating constraint (1–5) |
+Civora manages exactly 30 relational database tables across 10 functional domains:
+
+### 2.1 Core Identity & Access Governance
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `roles` | `Role` | RBAC role definitions (`Admin`, `Campaign Manager`, `Communication Team`). | `UNIQUE(name)`, `PK(id)` |
+| `users` | `User` | Institutional administrative users, credentials, role bindings. | `UNIQUE(email)`, Index on `email`, FK to `roles.id` |
+
+### 2.2 Audience Management & Demographic Segmentation
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `audience_members` | `AudienceMember` | Citizen demographic registry, language/channel preferences, tri-state consent. | Partial unique indexes on `email` and `phone` (`WHERE ... IS NOT NULL`), indexes on `preferred_language`, `city`, `preferred_channel`, `consent_status` |
+| `segments` | `Segment` | Reusable demographic filter definitions compiled to SQL via AST compiler. | FK to `users.id` (`created_by`), `filter_rules` stored as native PostgreSQL `JSONB` |
+| `campaign_segments` | Association Table | Many-to-many relationship linking campaigns to target audience segments. | Composite PK `(campaign_id, segment_id)`, Cascading Foreign Keys |
+
+### 2.3 Campaign Governance & Templates
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `campaigns` | `Campaign` | Central campaign entity tracking state machine, priority, and scheduled dates. | FK to `users.id`, FK to `templates.id` (`template_id`), indexes on `status`, `priority`, `campaign_type` |
+| `templates` | `Template` | Reusable message copy templates with `{name}`, `{city}`, `{date}` placeholders. | FK to `users.id`, indexes on `category`, `language` |
+
+### 2.4 AI Content Studio & Multilingual Engine
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `content_assets` | `ContentAsset` | Base drafted content brief, channel constraints, approval state. | FK to `campaigns.id`, FK to `users.id` (`created_by`), indexes on `campaign_id`, `status` |
+| `content_variants` | `ContentVariant` | Regional language translations and personalized demographic variants. | FK to `content_assets.id`, Composite Unique Index `(content_asset_id, language, audience_segment)` |
+| `content_pipeline_runs`| `ContentPipelineRun` | Tracks unified 5-step AI pipeline execution runs and metrics. | FK to `content_assets.id`, FK to `users.id` (`triggered_by`) |
+| `translation_cache` | `TranslationCache` | Keyed translation hash store preventing redundant AI token consumption. | `UNIQUE(cache_key)`, Index on `source_hash`, `target_language` |
+| `translation_review_history`| `TranslationReviewHistory`| Audit log for translation review approvals, delegations, and rejections. | FK to `content_assets.id`, FK to `users.id` (`reviewer_id`), Index on `content_asset_id` |
+
+### 2.5 Quality Assurance & Statutory Compliance
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `compliance_rules` | `ComplianceRule` | Organization-scoped dynamic rules (banned words, mandatory phrases, regex). | `UNIQUE(rule_code)`, Index on `is_active`, `category`, `organization` |
+| `content_quality_assessments`| `ContentQualityAssessment`| Historical automated quality evaluations scoring drafts before approval. | FK to `content_assets.id`, Index on `asset_id`, `created_at` |
+| `content_quality_findings`| `ContentQualityFinding` | Specific violations (panic words, missing helplines, readability issues). | FK to `content_quality_assessments.id`, Index on `severity` |
+
+### 2.6 Channel Configuration, Devices & Webcasts
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `channel_configurations`| `ChannelConfiguration`| Provider credentials, adapter selection, and sender metadata with API secret masking. | `UNIQUE(channel)`, Index on `channel` |
+| `device_tokens` | `DeviceToken` | Citizen FCM push registration tokens with automatic invalidation. | `UNIQUE(token)`, FK to `audience_members.id`, Index on `is_active` |
+| `web_broadcasts` | `WebBroadcast` | Public emergency broadcast feed with Server-Sent Events (SSE) support. | FK to `campaigns.id`, Index on `is_active`, `severity` |
+| `webhook_events` | `WebhookEvent` | Carrier delivery receipt and status webhook payloads with replay defense. | `UNIQUE(event_id, provider)`, Index on `processed_at` |
+
+### 2.7 Multichannel Distribution Engine
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `distribution_jobs` | `DistributionJob` | Asynchronous broadcast dispatch jobs, worker lease fencing, overall counters. | FK to `campaigns.id`, Index on `status`, `lease_expires_at` |
+| `delivery_records` | `DeliveryRecord` | Individual citizen message delivery records with non-nullable masked PII. | FK to `distribution_jobs.id`, FK to `audience_members.id`, `masked_recipient_address` |
+| `delivery_attempts` | `DeliveryAttempt` | Step-by-step cross-channel fallback logs (`WhatsApp` $\to$ `SMS` $\to$ `Email`). | FK to `delivery_records.id`, Index on `channel`, `status` |
+
+### 2.8 Scheduling & Event-Driven Automation
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `campaign_schedules` | `CampaignSchedule` | APScheduler cron and one-shot execution timestamps for scheduled campaigns. | FK to `campaigns.id`, Index on `scheduled_time`, `is_executed` |
+| `automation_rules` | `AutomationRule` | Event-driven trigger rules linking environmental metrics to automated dispatches. | Index on `is_active`, `event_type` |
+| `automation_execution_logs`| `AutomationExecutionLog`| Execution logs and outcome status for triggered automation rules. | FK to `automation_rules.id`, Index on `executed_at` |
+
+### 2.9 Citizen Engagement Tracking & Sentiment Feedback
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `tracked_links` | `TrackedLink` | Shortened URL identifiers embedded in messages to track Click-Through Rates. | `UNIQUE(link_id)`, Index on `link_id`, FK to `campaigns.id`, FK to `messages.id` |
+| `engagement_events` | `EngagementEvent` | Detailed timestamped event logs for email opens (pixel) and link clicks. | FK to `campaigns.id`, FK to `messages.id`, FK to `audience_members.id`, Index on `event_type`, `timestamp` |
+| `feedback` | `Feedback` | Citizen survey responses, 1–5 star ratings, and hybrid sentiment analysis scores. | FK to `campaigns.id`, FK to `audience_members.id`, Index on `created_at`, `sentiment_label` |
+
+### 2.10 Communication Audit Logs & Retries
+| Table Name | Model Class | Primary Purpose | Key Constraints & Indexes |
+| :--- | :--- | :--- | :--- |
+| `messages` | `Message` | Granular dispatched communication log tracking rendered content and delivery status. | FK to `campaigns.id`, FK to `audience_members.id`, FK to `templates.id`, Index on `created_at` |
+| `delivery_logs` | `DeliveryLog` | Chronological dispatch logs with gateway error messages and retry counters. | FK to `messages.id`, Index on `status`, `timestamp` |
 
 ---
 
-## 3. Migration Management
+## 3. Verified Linear Alembic Migration History
 
-- **Tool:** Alembic 1.13+
-- **Initial Migration:** `0de49a2cf7ef_initial_schema_all_models.py`
-- **Execution Command:** `alembic upgrade head`
-- **Rollback Command:** `alembic downgrade -1`
+The schema is maintained through a strictly linear, forward-only chain of 17 Alembic migrations with zero branches:
 
+```text
+0de49a2cf7ef (initial_schema_all_models)
+     ↓
+1a2b3c4d5e6f (allow_nullable_consent_status)
+     ↓
+a2da4799cf83 (add_template_id_to_campaigns)
+     ↓
+b3ea5891de12 (create_content_assets_table)
+     ↓
+c4fb6902ef23 (add_content_quality_evaluations)
+     ↓
+d5ec7a12fb34 (add_multichannel_distribution_engine)
+     ↓
+c069b45597ab (add_worker_lease_and_retry_backoff)
+     ↓
+f4b8c12a7d3e (add_translation_cache_and_pipeline)
+     ↓
+a1d8f349b2c1 (add_translation_variant_unique_index)
+     ↓
+e6c7d81a9f02 (add_compliance_rules_table)
+     ↓
+b7d4e1f8a29c (add_content_variants_table)
+     ↓
+a4c8e1f5d2b7 (add_content_pipeline_runs_table)
+     ↓
+c5e8b2d1f4a9 (add_channel_configs_and_extend_messages)
+     ↓
+d6f9c3e2b5a1 (add_task14_multichannel_and_webhooks)
+     ↓
+e7a1b4c3d2e5 (add_task15_scheduling_automation_retry)
+     ↓
+f8b2c5d4e3a6 (add_task16_engagement_tracking_sentiment)
+     ↓
+b9c3d1e2f4a5 (HEAD - add_message_and_feedback_created_at_indexes)
+```
+
+---
+
+## 4. Database Migration & Maintenance Commands
+
+### Apply Latest Migrations
+From the repository root:
+```bash
+alembic -c backend/alembic.ini upgrade head
+```
+
+### Inspect Migration Status
+```bash
+alembic -c backend/alembic.ini current
+alembic -c backend/alembic.ini heads
+```
+
+### Idempotent Demonstration Data Seeding
+The project provides an idempotent demo seeding utility that populates clean reference records across all 30 tables without creating duplicate entries:
+```bash
+python -m app.db.seed_demo
+```

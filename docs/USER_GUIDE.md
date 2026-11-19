@@ -1,20 +1,26 @@
-# MassCommAI — Platform User Guide
+# Civora — Platform User Guide
 ## Comprehensive Role-Based Operational Manual for Public Administration & Civic Messaging
+### Powered by MassCommAI — Bringing communities closer.
+
+- **Document Version:** 2.0.0
+- **Release Date:** November 19, 2026
+- **Architecture Lead:** MassCommAI Core Engineering Team
+- **Product Identity:** Civora (Public Brand) | MassCommAI (Underlying Technical Engine)
 
 ---
 
-## 1. About MassCommAI
+## 1. About Civora
 
-**MassCommAI** is an AI-powered mass communication, public awareness, and audience segmentation platform designed for civic administrations, emergency disaster management bodies, public health institutions, and governmental agencies.
+**Civora** is an enterprise-grade AI-powered mass communication, public awareness, and audience segmentation platform built upon the **MassCommAI** core architecture. Designed specifically for civic administrations, emergency disaster management bodies, public health institutions, and governmental agencies, Civora bridges communication chasms across linguistically diverse populations.
 
-The platform provides an end-to-end institutional workflow:
+The platform provides a complete end-to-end institutional workflow:
 `Audience Ingestion -> Demographic Segmentation -> Campaign Composition -> AI Content Synthesis -> Multilingual Translation -> Compliance Quality Audit -> Multi-Channel Dispatch -> Delivery Tracking -> Citizen Sentiment Feedback -> Executive Analytics`.
 
 ---
 
 ## 2. Institutional Role & Permission Matrix
 
-MassCommAI enforces Role-Based Access Control (RBAC) across three distinct organizational personas:
+Civora enforces Role-Based Access Control (RBAC) across three distinct organizational personas:
 
 | Capability / Module | System Administrator | Campaign Manager | Communication Team |
 | :--- | :---: | :---: | :---: |
@@ -58,7 +64,7 @@ The platform supports real-time bilingual interface switching between **English*
 The **Audience Database** (`/audience`) maintains localized demographic profiles while preserving strict citizen privacy.
 
 ### 4.1 Tri-State Consent Framework
-MassCommAI enforces strict legal privacy standards via tri-state consent:
+Civora enforces strict legal privacy standards via tri-state consent:
 - **Opt-in (`consent_status = True`, Green):** Citizen has explicitly consented to receive broadcast advisories. Messages can be dispatched.
 - **Opt-out (`consent_status = False`, Red):** Citizen has explicitly revoked consent. Dispatches are permanently blocked and withheld.
 - **Unconfirmed (`consent_status = None`, Amber):** Affirmative consent is missing. The system prevents broadcasts until consent is verified.
@@ -93,7 +99,7 @@ The **Audience Segments** module (`/segments`) allows campaign planners to group
 The **AI Content Studio** (`/content`) generates channel-constrained public communication copy and localized Indian language translations.
 
 ### 6.1 Synthesizing Content Briefs
-1. Select target distribution channel (`SMS`, `WhatsApp`, `Email`, `Voice`, `Web`).
+1. Select target distribution channel (`SMS`, `WhatsApp`, `Email`, `Voice`, `Web Push`, `Web Broadcast`).
 2. Select desired institutional tone:
    - `Formal`: Official governmental administrative notifications.
    - `Informative`: Educational guidelines and public welfare programs.
@@ -139,19 +145,41 @@ Approved campaigns can be broadcast across SMS, WhatsApp, Email, Push Notificati
 5. Real-time progress displays total intended recipients, eligible messages, and withheld opt-outs.
 
 ### 8.2 Fallback Delivery Logic
-If delivery over the primary channel (e.g., WhatsApp) encounters temporary carrier failure, the dispatch worker automatically retries over the secondary fallback channel (e.g., SMS), recording attempt history in `fallback_attempts`.
+If delivery over the primary channel (e.g., WhatsApp) encounters temporary carrier failure, the dispatch worker automatically retries over the secondary fallback channel (e.g., SMS), recording attempt history in `delivery_attempts`.
 
 ---
 
-## 9. Citizen Feedback & Sentiment Analysis
+## 9. Administrative Channel Settings & Push Authentication
+
+Administrators can configure live and simulated provider credentials via **Channel Settings** (`/admin/channels`).
+
+### 9.1 Configuring Firebase Cloud Messaging (FCM HTTP v1)
+Civora implements modern Google Cloud OAuth2 service-account authentication for FCM push notifications:
+1. Log in as an **Administrator** and navigate to **Channel Settings** (`/admin/channels`).
+2. Select or create the **Web Push (FCM)** channel configuration.
+3. Under **Authentication Method**, select **Google Service Account JSON**.
+4. Paste the content of your Google Cloud Service Account private key JSON file (or upload it). The JSON must contain:
+   - `type`: `"service_account"`
+   - `project_id`: Your Google Cloud / Firebase Project ID
+   - `private_key`: RSA private key
+   - `client_email`: Service account email (`...@...iam.gserviceaccount.com`)
+5. The platform securely stores the configuration in PostgreSQL, restricts access strictly to the Administrator role, and masks private keys and secrets (`••••••••`) in all API responses and application logs.
+6. During dispatch, the backend uses Google OAuth2 to exchange the key for short-lived, scoped Bearer tokens cached for 50 minutes with thread-safe refresh.
+7. If an endpoint encounters an invalid or unregistered device token (`UNREGISTERED` error), the system automatically marks the token inactive in `device_tokens`.
+8. *(Optional Legacy Fallback):* A static Server Key field is available strictly for backward compatibility with legacy testing scripts, but standard production push delivery uses OAuth2 service-account credentials.
+9. Click **"Test Connection"** to verify credential handshake without transmitting public citizen notifications.
+
+---
+
+## 10. Citizen Feedback & Sentiment Analysis
 
 Citizens receiving broadcasts can interact through two-way reply webhooks or the secure public feedback portal (`/feedback/{token}`).
 
-### 9.1 Zero-PII Public Portal
+### 10.1 Zero-PII Public Portal
 - The public link allows citizens to rate the communication (1 to 5 stars) and submit comments in their local language.
 - The form displays campaign metadata without exposing phone numbers, names, or email addresses.
 
-### 9.2 Real-Time Sentiment Scoring
+### 10.2 Real-Time Sentiment Scoring
 - Submitted feedback is analyzed for sentiment polarity:
   - **Positive (`score > 0.15`):** Citizen satisfaction, gratitude, clarity.
   - **Neutral (`-0.15 <= score <= 0.15`):** General inquiries, acknowledgment.
@@ -160,7 +188,7 @@ Citizens receiving broadcasts can interact through two-way reply webhooks or the
 
 ---
 
-## 10. Analytics Dashboards & Executive Reports
+## 11. Analytics Dashboards & Executive Reports
 
 The **Analytics Dashboard** (`/analytics`) aggregates performance metrics:
 - **Delivery Funnel:** Visualizes message drop-off at each stage (Sent → Delivered → Opened → Clicked → Feedback).
@@ -171,11 +199,13 @@ The **Analytics Dashboard** (`/analytics`) aggregates performance metrics:
 
 ---
 
-## 11. Frequently Asked Questions (FAQ) & Troubleshooting
+## 12. Frequently Asked Questions (FAQ) & Troubleshooting
 
 - **Why is a campaign blocked from being approved?**
   *A campaign must have an attached message template and its content asset must pass quality assessment without critical violations.*
 - **Why was an audience member excluded from broadcast?**
   *The recipient either lacks affirmative consent (`consent_status = None` or `False`), or lacks a valid phone/email address for the selected channel.*
+- **How do I configure FCM push notifications?**
+  *Navigate to `/admin/channels`, configure the Web Push channel, and upload your Google Cloud Service Account JSON key. Civora uses OAuth2 HTTP v1 authentication.*
 - **How do I reset demonstration data?**
   *Run `python -m app.db.seed_demo` in your terminal to idempotently repopulate clean demo records.*

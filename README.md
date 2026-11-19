@@ -1,4 +1,5 @@
-# MassCommAI — AI-Powered Multilingual Public Awareness and Mass Communication Platform
+# Civora — by MassCommAI
+## Bringing communities closer.
 
 [![Infosys Springboard](https://img.shields.io/badge/Infosys_Springboard-Virtual_Internship-blue.svg)](https://springboard.infosys.com/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI_0.115+-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
@@ -6,22 +7,23 @@
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_16+-336791.svg?logo=postgresql)](https://www.postgresql.org)
 [![Redis](https://img.shields.io/badge/Cache-Redis_7+-DC382D.svg?logo=redis)](https://redis.io)
 [![Docker](https://img.shields.io/badge/Deployment-Docker_Compose-2496ED.svg?logo=docker)](https://www.docker.com)
-[![Test Suite](https://img.shields.io/badge/Tests-522_Passing-success.svg)](backend/tests/)
+[![Test Suite](https://img.shields.io/badge/Tests-576_Passing-success.svg)](backend/tests/)
 
 ---
 
 ## 1. Project Title
-**MassCommAI** — An Enterprise-Grade AI-Powered Multilingual Public Awareness, Audience Segmentation, and Mass Communication Platform.
+**Civora — by MassCommAI** — An Enterprise-Grade AI-Powered Multilingual Public Awareness, Audience Segmentation, and Civic Mass Communication Platform.<br>
+*Tagline: Bringing communities closer.*
 
 ---
 
 ## 2. Professional Project Description
-MassCommAI is a secure, full-stack, cloud-native communication and civic messaging platform developed for the **Infosys Springboard Virtual Internship**. Designed specifically for civic bodies, disaster management authorities, healthcare organizations, and government departments, MassCommAI unifies audience demographic segmentation, automated AI-driven multilingual content synthesis, editorial compliance auditing, multi-channel simulated and carrier-ready delivery, citizen feedback sentiment analysis, and executive analytics into a resilient, auditable communication engine.
+**Civora** is a secure, full-stack, cloud-native communication and civic messaging platform developed for the **Infosys Springboard Virtual Internship**, built upon the robust **MassCommAI** technical engine. Designed specifically for civic municipalities, disaster management authorities, healthcare organizations, and government departments, Civora unifies demographic audience segmentation, automated AI-driven multilingual content synthesis, editorial compliance auditing, resilient multi-channel delivery, citizen sentiment feedback, and executive analytics into an auditable, privacy-first communication platform.
 
 ---
 
 ## 3. Project Vision
-To bridge critical communication divides across diverse linguistic and demographic populations by providing civic administrators with an intelligent, reliable, and privacy-preserving platform capable of composing, translating, auditing, and dispatching localized public awareness and emergency notices in seconds.
+To bridge critical communication chasms across India's diverse linguistic and demographic populations by providing civic administrators with an intelligent, reliable, and privacy-preserving platform designed to compose, translate, audit, and dispatch localized public advisories and emergency alerts across large-scale civic populations.
 
 ---
 
@@ -40,7 +42,7 @@ Public administration agencies and civic organizations face major bottlenecks du
 1. **Audience Segmentation:** Provide dynamic AST-driven filtering of citizens based on age, location, occupation, language, and tri-state consent.
 2. **AI Multilingual Engine:** Automate channel-constrained message generation and high-fidelity translation across major Indian languages with 100% placeholder retention.
 3. **Editorial Compliance:** Enforce automated heuristic and LLM-assisted quality audits that hard-block unverified or panic-inducing communications.
-4. **Resilient Distribution Engine:** Orchestrate multichannel dispatch (Email, SMS, WhatsApp, Push, Web Broadcast) with multi-channel fallback, worker lease fencing, and exponential backoff retry.
+4. **Resilient Distribution Engine:** Orchestrate multichannel dispatch (Email, SMS, WhatsApp, Web Push with Google OAuth2 HTTP v1, Web Broadcast) with multi-channel fallback, worker lease fencing, and exponential backoff retry.
 5. **Civic Engagement & Sentiment Intelligence:** Capture delivery logs, email opens, link clicks, and citizen replies with hybrid model-based and lexicon sentiment analysis.
 6. **Executive Analytics:** Deliver real-time KPIs, conversion funnels, language rankings, and CSV/PDF report exports for administrative oversight.
 7. **Privacy by Design & Enterprise Hardening:** Enforce strict PII masking, log redaction, sliding-window rate limiting, and hierarchical Role-Based Access Control (RBAC).
@@ -52,13 +54,14 @@ Public administration agencies and civic organizations face major bottlenecks du
 - **Bulk Audience Ingestion:** Streaming CSV and Excel (.xlsx) parser with independent row-level validation and duplicate contact rejection.
 - **Campaign State Machine:** Enforced lifecycles (`Draft` $\to$ `Scheduled` $\to$ `Active` $\to$ `Completed`/`Cancelled`) with priority guardrails (Emergency Alerts locked to `High`).
 - **AI Content Studio & Pipeline Wizard:** 5-step guided wizard for generating channel-tailored drafts, translating across 10 Indian languages, and evaluating readability.
-- **Panic & Compliance Gate:** Automated detection of panic-inducing terminology and strict enforcement of mandatory official emergency helplines (108, 112, etc.).
+- **Panic & Compliance Gate:** Automated detection of panic-inducing terminology and strict enforcement of mandatory official emergency helplines (108, 112, 1075).
 - **Multi-Channel Fallback & Retry:** Automatic cascade (`WhatsApp` $\to$ `SMS` $\to$ `Email`) with maximum 3 retry attempts and exponential backoff.
+- **Push Notification Architecture:** Secure Google OAuth2 service-account HTTP v1 authentication with thread-safe token caching and invalid token auto-deactivation.
 - **Bilingual UI Experience:** Seamless English / Hindi (`हिंदी`) UI localization toggle for public administration staff.
 - **Delivery Tracking & Webhooks:** Tracking pixels for email opens, shortened URLs for click tracking, and bidirectional webhooks for provider status updates.
 - **Citizen Sentiment Analysis:** LLM-powered and lexicon fallback sentiment scoring for citizen replies and public feedback.
 - **Executive Analytics Dashboards:** Real-time KPI summary cards, interactive charts, audience segment performance, and automated AI improvement suggestions.
-- **Docker Ready:** Turnkey 4-tier containerization (`db`, `redis`, `backend`, `frontend`) ready for production deployment.
+- **Docker Ready:** Turnkey 4-tier containerization (`db`, `redis`, `backend`, `frontend`) ready for local and staging deployment.
 
 ---
 
@@ -74,11 +77,11 @@ Public administration agencies and civic organizations face major bottlenecks du
 | **AI Content Studio & Wizard** | `backend/app/routers/content.py`, `campaigns.py` | **Complete** | Automated pytest suite (32 tests) |
 | **Quality & Compliance Engine**| `backend/app/routers/content_quality.py` | **Complete** | Automated pytest suite (19 tests) |
 | **Email & SMS Channel Engine** | `backend/app/services/channels/email.py`, `sms.py`| **Complete** | Automated pytest suite (45 tests) |
-| **WhatsApp, Push & Broadcast** | `backend/app/services/channels/` | **Complete** | Automated pytest suite (52 tests) |
+| **WhatsApp, Push (FCM OAuth2) & Broadcast** | `backend/app/services/channels/` | **Complete** | Automated pytest suite (72 tests: 52 Task 14 + 20 FCM OAuth2) |
 | **Scheduling, Retry & Automation**| `backend/app/services/scheduling_service.py` | **Complete** | Automated pytest suite (48 tests) |
 | **Engagement & Sentiment** | `backend/app/routers/feedback.py`, `sentiment_service.py`| **Complete**| Automated pytest suite (42 tests) |
 | **Analytics Dashboards** | `backend/app/routers/analytics.py` | **Complete** | Automated pytest suite (38 tests) |
-| **Security Hardening & E2E** | `backend/app/core/rate_limiter.py`, `logging_config.py`| **Complete**| Automated pytest suite (7 tests) |
+| **Security Hardening & Deployment Config** | `backend/app/core/rate_limiter.py`, `logging_config.py`| **Complete**| Automated pytest suite (16 tests: 8 deployment + 7 security + 1 e2e) |
 
 ---
 
@@ -88,28 +91,28 @@ Public administration agencies and civic organizations face major bottlenecks du
 Milestone 1: Audience & Campaign Planning    [====================] 100% (Complete & Accepted)
 Milestone 2: AI Content & Multilingual Engine[====================] 100% (Complete & Accepted)
 Milestone 3: Channels, Analytics & Hardening [====================] 100% (Complete & Finalized)
-Total Platform Readiness                     [====================] 100% (Production Ready)
+Total Platform Readiness                     [====================] 100% (Verified Baseline)
 ```
 
 - **Milestone 1 (Tasks 1–6):** Ingestion, AST Segmentation, Campaign Management, Template Engine.
 - **Milestone 2 (Tasks 7–12):** Multilingual AI Generation, Placeholder Protection, Quality Auditing, Content Pipeline Wizard.
-- **Milestone 3 (Tasks 13–18):** Multichannel Delivery, Fallbacks & Retries, Sentiment Analysis, Executive Analytics, Security Hardening, Containerization & Final Verification.
+- **Milestone 3 (Tasks 13–18):** Multichannel Delivery, FCM OAuth2 HTTP v1 Push, Fallbacks & Retries, Sentiment Analysis, Executive Analytics, Security Hardening, Containerization & Verification.
 
 ---
 
 ## 9. Technology Stack
 
 ### Backend
-- **Language & Runtime:** Python 3.13.14 (via pyenv)
+- **Language & Runtime:** Python 3.13 / 3.14 compatible
 - **Web Framework:** FastAPI 0.115.6 with ASGI lifespan
 - **Data Validation:** Pydantic v2 (2.10.4)
 - **Database ORM:** SQLAlchemy 2.0.36
 - **Database Driver:** Psycopg 3 (3.2.3)
-- **Migrations:** Alembic 1.14.0 (8 linear migrations up to `b9c3d1e2f4a5`)
-- **Caching & Rate Limiting:** Redis 7.2 with Py-Redis 5.2.1
+- **Migrations:** Alembic 1.14.0 (17 linear migrations up to `b9c3d1e2f4a5`)
+- **Caching & Rate Limiting:** Redis 7.2 with Py-Redis 5.2.1 (Atomic Lua sliding window)
 - **Scheduling:** APScheduler 3.10.4 / BackgroundTasks
-- **Security & Cryptography:** PyJWT 2.10.1, Passlib 1.7.4, Bcrypt 4.2.1
-- **Testing:** Pytest 8.3.4, Pytest-Asyncio 0.25.0 (522 passing tests)
+- **Security & Cryptography:** PyJWT 2.10.1, Passlib 1.7.4, Bcrypt 4.2.1, Google Auth 2.40+ (OAuth2)
+- **Testing:** Pytest 8.3.4, Pytest-Asyncio 0.25.0 (**576 verified passing tests**)
 
 ### Frontend
 - **Framework & Runtime:** React 18.3.1, Node.js v20.x/v22.x, npm 10.x
@@ -121,11 +124,11 @@ Total Platform Readiness                     [====================] 100% (Produc
 - **Localization:** Bilingual UI Context (`en` English / `hi` Hindi)
 
 ### Database & Deployment
-- **RDBMS:** PostgreSQL 16.15 (18 relational tables, composite B-tree indexes)
+- **RDBMS:** PostgreSQL 16 (30 relational tables, composite B-tree indexes)
 - **Caching:** Redis 7-alpine
 - **Containerization:** Docker multi-stage images & Docker Compose
 - **Web Server:** NGINX 1.25 Alpine (frontend static server and SPA reverse proxy)
-- **AI Models:** Google Gemini 2.5 Flash via `@google/genai` (with offline `MockAIProvider` fallback)
+- **AI Models:** Groq (`openai/gpt-oss-120b`, primary cloud provider) and Google Gemini 2.5 Flash (legacy secondary provider), with deterministic offline `MockAIProvider` fallback
 
 ---
 
@@ -165,7 +168,7 @@ flowchart TD
     subgraph CoreServices["Domain Services & Engine"]
         AudSvc["Audience & Segment Engine"]
         CampSvc["Campaign State Machine"]
-        AISvc["AI Provider Factory (Gemini / Mock)"]
+        AISvc["AI Provider Factory\n(Groq / Gemini / Mock)"]
         QualSvc["Content Quality Heuristic Engine"]
         DistSvc["Multichannel Dispatch & Fallback"]
         SchedSvc["Scheduling & Retry Service"]
@@ -173,7 +176,7 @@ flowchart TD
     end
 
     subgraph Storage["Data & Cache Persistence"]
-        DB[("PostgreSQL 16\n(18 Tables, B-Tree Indexes)")]
+        DB[("PostgreSQL 16\n(30 Tables, B-Tree Indexes)")]
         RedisDB[("Redis 7\n(Rate Limiting & Queues)")]
     end
 
@@ -181,20 +184,22 @@ flowchart TD
     Security --> API
     API --> CoreServices
     CoreServices --> Storage
-    CoreServices --> SimulatedGateways["Simulated Gateways\n(Email, SMS, WhatsApp, Push, Broadcast)"]
+    CoreServices --> SimulatedGateways["Channel Adapters\n(Email, SMS, WhatsApp, FCM OAuth2, Broadcast)"]
 ```
 
 ---
 
 ## 11. Database Schema
 
-The database schema consists of **18 relational tables** with **104 indexes** hosted on PostgreSQL 16:
+The database schema consists of **30 relational tables** hosted on PostgreSQL:
 - **Core Entities:** `roles`, `users`
 - **Audience & Targeting:** `audience_members`, `segments`, `campaign_segments`
 - **Campaigns & Templates:** `campaigns`, `templates`, `content_pipeline_runs`
-- **Content & Quality:** `content_assets`, `content_variants`, `content_quality_assessments`, `content_quality_findings`, `compliance_rules`
-- **Distribution & Delivery:** `messages`, `delivery_logs`, `tracked_links`, `engagement_events`, `feedback`
-- **Migrations:** Managed via Alembic (`b9c3d1e2f4a5 (head)`)
+- **Content & Quality:** `content_assets`, `content_variants`, `content_quality_assessments`, `content_quality_findings`, `compliance_rules`, `translation_cache`, `translation_review_history`
+- **Distribution & Delivery:** `channel_configurations`, `device_tokens`, `web_broadcasts`, `webhook_events`, `distribution_jobs`, `delivery_records`, `delivery_attempts`
+- **Scheduling & Automation:** `campaign_schedules`, `automation_rules`, `automation_execution_logs`
+- **Engagement & Feedback:** `messages`, `delivery_logs`, `tracked_links`, `engagement_events`, `feedback`
+- **Migrations:** Managed via Alembic (`b9c3d1e2f4a5 (head)`) across 17 linear revisions.
 
 ---
 
@@ -213,6 +218,7 @@ Interactive Swagger/OpenAPI documentation is generated automatically by FastAPI:
 - **Templates (6):** `GET /templates`, `POST /templates`, `GET /templates/categories`, `GET /templates/{id}`, `PUT /templates/{id}`, `DELETE /templates/{id}`
 - **Campaigns (12):** `GET /campaigns`, `POST /campaigns`, `GET /campaigns/meta`, `GET /campaigns/{id}`, `PUT /campaigns/{id}`, `DELETE /campaigns/{id}`, `POST /campaigns/{id}/clone`, `POST /campaigns/{id}/preview`, `PATCH /campaigns/{id}/status`, `POST /campaigns/{id}/send`, `POST /campaigns/{id}/schedule`, `POST /campaigns/{id}/content/pipeline`
 - **Content Studio & Quality (15):** `GET /content`, `POST /content`, `POST /content/generate`, `POST /content/manual`, `GET /content/{id}`, `PUT /content/{id}`, `DELETE /content/{id}`, `POST /content/{id}/translate`, `POST /content/{id}/personalize`, `POST /content/{id}/evaluate`, `PATCH /content/{id}/review`, `GET /content/{id}/quality`, `GET /content/{id}/variants`, `GET /content/channels`, `GET /content/languages`
+- **Channel Administration (5):** `GET /admin/channels`, `POST /admin/channels`, `GET /admin/channels/{id}`, `PUT /admin/channels/{id}`, `POST /admin/channels/test`
 - **Engagement & Webhooks (12):** `GET /track/open/{message_id}`, `GET /track/click/{token}`, `POST /webhooks/whatsapp`, `POST /webhooks/sms`, `POST /feedback/submit`, `GET /feedback/campaign/{campaign_id}`, `GET /feedback/analysis`
 - **Analytics & Dashboards (10):** `GET /analytics/kpis`, `GET /analytics/campaigns`, `GET /analytics/campaigns/{id}`, `GET /analytics/channels`, `GET /analytics/languages`, `GET /analytics/segments`, `GET /analytics/funnel`, `GET /analytics/insights`, `GET /analytics/export/csv`, `GET /analytics/export/pdf`
 
@@ -220,7 +226,7 @@ Interactive Swagger/OpenAPI documentation is generated automatically by FastAPI:
 
 ## 13. Installation Prerequisites
 
-Before running MassCommAI, ensure your host has the following runtimes installed:
+Before running Civora, ensure your host has the following runtimes installed:
 - **Python:** `3.13.x` (recommended via `pyenv`)
 - **Node.js & npm:** `Node.js >= 20.x` and `npm >= 10.x`
 - **PostgreSQL Server:** `PostgreSQL >= 14` (running locally on port `5432`)
@@ -230,7 +236,6 @@ Before running MassCommAI, ensure your host has the following runtimes installed
   brew services start redis
   redis-cli ping  # Returns PONG
   ```
-  *(Note: An in-memory sliding-window limiter fallback activates automatically if Redis is unavailable, but Redis is required for shared multi-worker rate limiting).*
 - **Docker & Docker Compose:** *(Optional, for containerized execution)*
 
 ---
@@ -268,12 +273,12 @@ cp backend/.env.example backend/.env
 ```
 Key configuration settings:
 ```ini
-PROJECT_NAME="MassCommAI"
+PROJECT_NAME="Civora"
 VERSION="1.0.0"
 APP_ENV="development"
 DEBUG=true
 
-# Database Connection
+# Database Connection (psycopg v3 normalized)
 DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:5432/masscommai_dev"
 
 # Redis Cache & Rate Limiting (Leave empty to use in-memory sliding window)
@@ -290,10 +295,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES=1440
 # Allowed CORS Origins
 CORS_ORIGINS="http://127.0.0.1:5173,http://localhost:5173,http://localhost:3000"
 
-# AI Provider Settings (auto, gemini, or mock)
+# AI Provider Configuration (Groq — primary LLM provider)
+# Set GROQ_API_KEY to enable real cloud AI features (content generation, translation, sentiment, quality).
+# If unset, MockAIProvider is used (offline/deterministic mode).
+GROQ_API_KEY=""
+GROQ_MODEL="openai/gpt-oss-120b"
+
+# AI Provider Selection: "auto" (Groq -> Gemini -> Mock), "groq", "gemini", "mock"
 AI_PROVIDER="auto"
-AI_MODEL_NAME="gemini-2.5-flash"
+
+# Gemini (legacy optional fallback when GROQ_API_KEY is absent)
 GEMINI_API_KEY=""
+AI_MODEL_NAME="gemini-2.5-flash"
 ```
 
 ### Frontend Configuration (`frontend/.env`)
@@ -319,10 +332,10 @@ psql -U postgres -c "CREATE DATABASE masscommai_dev;"
 cd backend
 alembic upgrade head
 ```
-*Applies all 8 linear migrations up to `b9c3d1e2f4a5`.*
+*Applies all 17 linear migrations up to `b9c3d1e2f4a5`.*
 
 ### 3. Seed Repeatable Demo Dataset
-MassCommAI provides an idempotent, zero-duplicate demo seeding script that populates all tables with realistic civic data:
+Civora provides an idempotent, zero-duplicate demo seeding script that populates all tables with realistic civic data:
 ```bash
 cd backend
 python -m app.db.seed_demo
@@ -342,7 +355,7 @@ This seeds:
 
 | Role | Email Address | Password | Permissions |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@masscomm.gov.in` | `Admin@12345` | Unrestricted access, user governance, compliance rule configuration. |
+| **Administrator** | `admin@masscomm.gov.in` | `Admin@12345` | Unrestricted access, user governance, compliance rule configuration, channel settings. |
 | **Campaign Manager** | `manager@masscomm.gov.in` | `Manager@12345` | Audience segmentation, campaign creation, AI generation, approval, dispatch & analytics. |
 | **Communication Team** | `team@masscomm.gov.in` | `Team@12345` | Content draft creation, translation, read-only analytics. |
 
@@ -352,7 +365,7 @@ This seeds:
 
 ### Quick Start with the Unified Startup Script (`start.sh`)
 
-MassCommAI includes an end-to-end startup and orchestration script (`start.sh`) at the repository root that verifies dependencies, tests database connectivity, runs pending Alembic migrations, starts both FastAPI backend and Vite frontend servers, and monitors health in a single command:
+MassCommAI includes an end-to-end startup and orchestration script (`start.sh`) at the repository root:
 
 ```bash
 # Start application with local PostgreSQL and Redis
@@ -369,47 +382,11 @@ MassCommAI includes an end-to-end startup and orchestration script (`start.sh`) 
 | `./start.sh --stop` | Gracefully terminates only the backend and frontend processes spawned by this script without altering database state. |
 | `./start.sh --help` | Displays usage summary, flag descriptions, and log file paths. |
 
-#### Process Management & Graceful Shutdown
-- **Graceful Shutdown:** Press `Ctrl+C` in the terminal running `./start.sh` or run `./start.sh --stop` from another terminal. Both methods cleanly shut down backend and frontend processes while preserving PostgreSQL and Redis data.
-- **Log Files:**
-  - Backend API output: `logs/backend.log`
-  - Frontend UI output: `logs/frontend.log`
-- **Initial Demo Seed Data:**
-  To populate initial demonstration users, templates, and civic campaigns:
-  ```bash
-  cd backend && python -m app.db.seed_demo
-  ```
-
-#### Redis Integration & Fallback Behavior
-- **Redis-Backed Mode (Default & Verified):** When Redis is active (e.g. via `brew services start redis`), MassCommAI enforces distributed sliding-window rate limits via Redis sorted sets (`ZSET`). Rate limit counters are shared atomically across all worker processes and server instances.
-- **In-Memory Fallback:** If `REDIS_URL` is unset or Redis becomes unreachable, the application automatically falls back to an internal thread-safe in-memory sliding-window limiter (`MemoryRateLimiter`).
-- **Fallback Limitations:** The in-memory limiter is process-bound; each worker process maintains its own memory counters. In multi-worker or load-balanced environments, a running Redis service is required for coordinated distributed rate limiting.
-
 ---
 
-### Manual Component Startup (Alternative)
+## 19. Docker Execution (Containerized Topology)
 
-If you prefer running services in separate terminal windows manually:
-
-#### 1. Start the Backend API Server
-From the `backend` directory with the virtual environment activated:
-```bash
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
-```
-API server starts on `http://127.0.0.1:8000` (docs at `http://127.0.0.1:8000/docs`).
-
-#### 2. Start the Frontend Development Server
-From the `frontend` directory:
-```bash
-npm run dev
-```
-Vite development server starts on `http://127.0.0.1:5173`. Open in your browser and log in using any demo account.
-
----
-
-## 19. Docker Execution (Production Ready)
-
-MassCommAI provides a turnkey 4-container production topology via Docker Compose:
+Civora provides a turnkey 4-container topology via Docker Compose:
 
 ```bash
 docker compose up --build -d
@@ -444,29 +421,31 @@ To run quietly with summary:
 ```bash
 PYTHONPATH=backend pytest backend/tests -q
 ```
-**Actual Verified Result: 522 passed in ~140 seconds.**
+**Actual Verified Result: 576 passed (13 subtests passed) in ~225 seconds.**
 
 ### Run Frontend Production Build
 From the `frontend` directory:
 ```bash
 npm run build
 ```
-**Actual Verified Result: Built cleanly in 1.23 seconds with route code splitting (<165 kB chunks).**
+**Actual Verified Result: Built cleanly in 1.24 seconds with route code splitting (<165 kB chunks).**
 
 ---
 
-## 21. Offline Mock Mode vs Live AI Providers
+## 21. Offline Mock Mode vs Live Provider Integrations
 
-MassCommAI operates seamlessly in air-gapped or offline development environments:
-- **Offline Mock Mode (Default):** When `AI_PROVIDER="mock"` or `GEMINI_API_KEY=""`, the platform automatically activates `MockAIProvider`. Content generation, translation, tone analysis, and sentiment scoring operate deterministically using heuristic rule engines and multilingual lexicons without transmitting external network requests.
-- **Live Gemini Mode:** When `GEMINI_API_KEY` is configured in `backend/.env` and `AI_PROVIDER="auto"` or `"gemini"`, the platform connects to Google Gemini 2.5 Flash for generative multilingual copy and contextual sentiment classification.
+Civora operates seamlessly in air-gapped or offline development environments:
+- **Offline Mock Mode (Default & Verified):** When `AI_PROVIDER="mock"` or when no external API keys (`GROQ_API_KEY` / `GEMINI_API_KEY`) are configured, the platform automatically activates `MockAIProvider`. Content generation, translation, tone analysis, and sentiment scoring operate deterministically using heuristic rule engines and multilingual lexicons without transmitting external network requests. Communication channels dispatch via simulated mock providers, recording deterministic metrics.
+- **Live Cloud AI Mode:** When `GROQ_API_KEY` is configured (or `GEMINI_API_KEY` in legacy mode) and `AI_PROVIDER="auto"` or `"groq"`, the platform routes requests to Groq (`openai/gpt-oss-120b`) for ultra-low latency multilingual content synthesis and sentiment analysis.
+- **Live Carrier Mode (Carrier-Ready):** When external carrier credentials (Meta Cloud API token, Google Service Account JSON for FCM, Twilio SID/Auth Token, Amazon SES) are configured in Admin Channel Settings or environment variables, the platform routes dispatches through live HTTP v1 client adapters.
 - **Provider Integrity:** All automated test suites enforce offline mock providers, ensuring zero billable tokens or network dependencies during CI/CD.
 
 ---
 
 ## 22. Security Hardening & PII Governance
 
-- **Sliding-Window Rate Limiting:** Enforces strict request throttles on authentication and AI generation endpoints to prevent credential stuffing and resource exhaustion.
+- **FCM OAuth2 HTTP v1 Authentication:** Push notification dispatch enforces Google Cloud OAuth2 service-account JSON credentials with 50-minute Bearer token caching and automatic invalid device token deactivation.
+- **Sliding-Window Rate Limiting:** Enforces strict request throttles on authentication (10 req/min) and AI endpoints (20 req/min) via atomic Redis Lua scripts with thread-safe in-memory fallback.
 - **PII Scrubbing:** Application logs automatically redact email addresses, phone numbers, JWT bearer tokens, and webhook signatures via `PIIRedactingFilter`.
 - **Global Error Sanitization:** Prevents internal database connection strings or stack traces from leaking in production 500 error responses.
 - **Strict Production CORS:** Validates origins against an explicit allowlist and rejects wildcard `*` origins in production and staging environments.
@@ -474,18 +453,30 @@ MassCommAI operates seamlessly in air-gapped or offline development environments
 
 ---
 
-## 23. Documentation Index
+## 23. Deployment Status & Cloud Readiness
+
+- **Deployment Phase 1 (Completed & Committed — `3f8373b`):**
+  - PostgreSQL URL normalization supporting standard cloud formats (`postgres://`, `postgresql://`, `postgresql+psycopg://`) via psycopg v3 driver.
+  - Centralized frontend API base URL (`VITE_API_BASE_URL`) unifying REST endpoints and Server-Sent Events (SSE) public announcements.
+  - Production Dockerfile hardened with non-root execution (`appuser:appuser`, UID 10001).
+  - Vercel SPA routing configuration (`frontend/vercel.json`) with asset caching headers.
+- **Deployment Phase 2 (Live Cloud Provisioning):**
+  > **STRICTLY FROZEN.** Live cloud infrastructure provisioning (Render, Vercel, Neon PostgreSQL, Upstash Redis) is intentionally paused. The application runs locally or containerized via Docker Compose.
+
+---
+
+## 24. Documentation Index
 
 - **[docs/USER_GUIDE.md](docs/USER_GUIDE.md):** Comprehensive role-based user manual with UI workflows and step-by-step instructions.
 - **[docs/DEMO_WALKTHROUGH_SCRIPT.md](docs/DEMO_WALKTHROUGH_SCRIPT.md):** Step-by-step presentation script covering all 7 demonstration acts.
 - **[docs/FINAL_PRESENTATION_MATERIAL.md](docs/FINAL_PRESENTATION_MATERIAL.md):** Slide deck content covering architecture, problem statement, innovations, and roadmap.
-- **[docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md):** Database relational schema and entity relationships.
+- **[docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md):** Complete database relational schema, 30 tables, and entity relationships.
 - **[docs/FEATURE_INVENTORY.md](docs/FEATURE_INVENTORY.md):** Granular capability matrix across Milestones 1, 2, and 3.
 - **[docs/MASSCOMMAI_FINAL_END_TO_END_ACCEPTANCE_REPORT.md](docs/MASSCOMMAI_FINAL_END_TO_END_ACCEPTANCE_REPORT.md):** Authoritative full-stack acceptance report verifying all 18 roadmap tasks, Redis, and multi-service workflows.
 - **[docs/M3_TASK18_SYSTEM_FINALIZATION_COMPLETION_REPORT.md](docs/M3_TASK18_SYSTEM_FINALIZATION_COMPLETION_REPORT.md):** Final milestone engineering completion report.
 
 ---
 
-## 24. License & Academic Attribution
-Developed as an enterprise-grade academic deliverable under the **Infosys Springboard Virtual Internship** program.
+## 25. License & Academic Attribution
+Developed as an enterprise-grade academic deliverable under the **Infosys Springboard Virtual Internship** program.<br>
 © 2026 MassCommAI Engineering Team. All rights reserved.

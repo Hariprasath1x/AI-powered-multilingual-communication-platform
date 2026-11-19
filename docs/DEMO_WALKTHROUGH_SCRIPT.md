@@ -1,11 +1,17 @@
-# MassCommAI — Institutional Live Demonstration Walkthrough Script
-## Complete End-to-End Workflow & Presentation Guide (Milestone 3 Final Release)
+# Civora — Live Demonstration Walkthrough Script
+## Complete End-to-End Workflow & Presentation Guide (Milestones 1–3 Final Release)
+### Powered by MassCommAI — Bringing communities closer.
+
+- **Document Version:** 2.0.0
+- **Release Date:** November 19, 2026
+- **Architecture Lead:** MassCommAI Core Engineering Team
+- **Product Identity:** Civora (Public Brand) | MassCommAI (Underlying Technical Engine)
 
 ---
 
 ## 1. Executive Demonstration Overview
 
-MassCommAI is an enterprise-grade, cloud-native communication and civic messaging platform designed for government departments, disaster management authorities, healthcare organizations, and public administration agencies.
+**Civora** is an enterprise-grade, cloud-native communication and civic messaging platform built upon the **MassCommAI** technical architecture. Designed for government departments, disaster management authorities, healthcare organizations, and public administration agencies, Civora unites multi-channel civic broadcast delivery with generative AI and automated statutory safety guardrails.
 
 This demonstration script provides an end-to-end walkthrough across three distinct institutional personas, showcasing dynamic audience segmentation, AI-driven multilingual content synthesis, automated compliance audits, resilient multi-channel simulated broadcast dispatch, citizen feedback with sentiment analysis, and executive analytics dashboards.
 
@@ -17,7 +23,7 @@ The platform includes an idempotent seeding utility (`python -m app.db.seed_demo
 
 | Institutional Role | Login Email | Password | Primary Capabilities |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `admin@masscomm.gov.in` | `Admin@12345` | Global user governance, channel provider credentials, compliance rules, security policies |
+| **System Administrator** | `admin@masscomm.gov.in` | `Admin@12345` | Global user governance, channel provider credentials (including FCM OAuth2), compliance rules, security policies |
 | **Campaign Manager** | `manager@masscomm.gov.in` | `Manager@12345` | Audience segmentation, campaign creation, AI content synthesis, editorial approval, dispatch, analytics |
 | **Communication Team** | `team@masscomm.gov.in` | `Team@12345` | Template browsing, audience inspection, delivery log tracking, citizen feedback resolution |
 
@@ -36,6 +42,11 @@ python -m app.db.seed_demo
 ```
 
 ### Step B: Start Backend and Frontend
+Using the unified orchestrator:
+```bash
+./start.sh
+```
+Or manually in separate terminals:
 ```bash
 # Terminal 1 (FastAPI Backend)
 uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
@@ -56,7 +67,9 @@ Open your browser at `http://127.0.0.1:5173`.
    - **System Connectivity Pill:** Point out the top header green pill ("API & DB Connected").
    - **Bilingual Interface Switcher:** Click the header language switcher pill ("English" / "हिंदी") to demonstrate real-time localized labels.
    - **User Governance (`/admin/users`):** Highlight user role assignment and account activation controls.
-   - **Channel Settings (`/admin/channels`):** Demonstrate administrative channel adapters for Email, SMS, WhatsApp, Web, and Push, noting credential encryption and connection testing.
+   - **Channel Settings (`/admin/channels`):** Demonstrate administrative channel adapters for Email, SMS, WhatsApp, Web, and Push:
+     - Point out the **Web Push (FCM)** configuration accepting Google Cloud Service Account JSON for secure HTTP v1 OAuth2 authentication.
+     - Note role-restricted administrative access, private key masking (`••••••••`), and non-destructive connection testing.
 
 ---
 
@@ -136,10 +149,10 @@ Open your browser at `http://127.0.0.1:5173`.
 ### Act 7: Executive Analytics & Performance Dashboards
 1. **Navigate to:** **Analytics Dashboard** (`/analytics`).
 2. **Showcase Global KPIs:**
-   - Total Dispatched Messages, Confirmed Delivery Rate (100%), Average Click-Through Rate.
+   - Total Dispatched Messages, Confirmed Delivery Rate, Average Click-Through Rate.
 3. **Showcase Visual Charts:**
    - **Delivery Funnel:** Sent → Delivered → Opened → Clicked → Feedback.
-   - **Channel Breakdown:** Comparative delivery and response rates across SMS, WhatsApp, Email.
+   - **Channel Breakdown:** Comparative delivery and response rates across SMS, WhatsApp, Email, Push.
    - **Language Performance:** Delivery volumes across Indian regional languages (`hi`, `en`, `ta`, `mr`, `kn`).
    - **Citizen Sentiment Distribution:** Real-time breakdown of Positive, Neutral, and Negative citizen sentiment scores.
 4. **Export Options:** Click **"Export CSV"** and **"Export PDF"** to demonstrate one-click institutional executive reports.
@@ -149,8 +162,10 @@ Open your browser at `http://127.0.0.1:5173`.
 ## 5. Demonstration FAQ & Defensive Notes
 
 - **Q: Are commercial telecoms contacted during the demo?**
-  *A: The system operates in compliant Mock Mode by default, executing realistic carrier simulations and webhook callbacks. Real credentials (SendGrid, Twilio, Meta Cloud API) can be configured instantly in Admin Channel Settings.*
+  *A: The system operates in compliant Mock Mode by default, executing realistic carrier simulations and webhook callbacks without incurring network fees or billable API costs. Real credentials (SendGrid, Twilio, Meta Cloud API, Google Service Account JSON for FCM) can be configured in Admin Channel Settings for live delivery.*
 - **Q: How is citizen privacy guaranteed?**
   *A: PII masking is systematically enforced at API serialization boundaries, in backend logs via `PIIRedactingFilter`, and in public feedback endpoints.*
+- **Q: How does push notification authentication work?**
+  *A: Civora uses Google Cloud OAuth2 service-account authentication (HTTP v1), exchanging private key JSON credentials for short-lived Bearer tokens cached for 50 minutes with thread-safe refresh locks.*
 - **Q: What happens if an API endpoint receives sudden traffic spikes?**
-  *A: Sliding window rate limiters (Redis or memory) throttle excessive requests with standard HTTP 429 and `Retry-After` headers.*
+  *A: Sliding-window rate limiters (backed by Redis sorted sets with thread-safe in-memory fallback) throttle excessive requests with standard HTTP 429 and `Retry-After` headers.*
