@@ -1,5 +1,6 @@
 import React from 'react';
 import { MessageSquareShare, Github, Heart } from 'lucide-react';
+import { API_BASE_URL } from '../../services/api';
 
 export default function Footer() {
   return (
@@ -36,7 +37,7 @@ export default function Footer() {
               <li><a href="#features" className="hover:text-white transition">Core Features</a></li>
               <li><a href="#how-it-works" className="hover:text-white transition">Workflow Engine</a></li>
               <li><a href="#impact" className="hover:text-white transition">Impact Domains</a></li>
-              <li><a href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer" className="hover:text-blue-400 transition">API Documentation</a></li>
+              <li><a href={`${API_BASE_URL}/docs`} target="_blank" rel="noreferrer" className="hover:text-blue-400 transition">API Documentation</a></li>
             </ul>
           </div>
 

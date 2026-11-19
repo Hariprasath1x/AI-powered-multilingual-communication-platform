@@ -1,6 +1,6 @@
 from functools import lru_cache
 from typing import List, Optional
-from pydantic import computed_field, model_validator
+from pydantic import computed_field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -56,6 +56,37 @@ class Settings(BaseSettings):
     EMAIL_SUBJECT_RECOMMENDED_LIMIT_CHARS: int = 78
     EMAIL_BODY_RECOMMENDED_WORDS: int = 800
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: Optional[str]) -> str:
+        """
+        Normalize cloud PostgreSQL URLs for compatibility with psycopg v3.
+        Handles standard formats:
+        - postgres://... -> postgresql+psycopg://...
+        - postgresql://... -> postgresql+psycopg://...
+        - postgresql+psycopg://... -> unchanged (avoids double prefixing)
+        - Preserves sqlite:// and other explicit drivers untouched.
+        """
+        if not v:
+            return "postgresql+psycopg://postgres:postgres@localhost:5432/masscommai_dev"
+        url = v.strip()
+        if url.startswith("postgresql+"):
+            return url
+        if url.startswith("postgres://"):
+            return "postgresql+psycopg://" + url[len("postgres://"):]
+        if url.startswith("postgresql://"):
+            return "postgresql+psycopg://" + url[len("postgresql://"):]
+        return url
+
+    @field_validator("REDIS_URL", mode="before")
+    @classmethod
+    def normalize_redis_url(cls, v: Optional[str]) -> Optional[str]:
+        """Convert empty string or whitespace REDIS_URL to None to activate in-memory fallback."""
+        if v is None:
+            return None
+        v = v.strip()
+        return v if v else None
+
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":
         """
@@ -99,10 +130,15 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def cors_origins_list(self) -> List[str]:
-        """Convert comma-separated CORS_ORIGINS string into a list of origins."""
+        """Convert comma-separated CORS_ORIGINS string into a list of origins, stripping trailing slashes."""
         if not self.CORS_ORIGINS:
             return ["http://127.0.0.1:5173", "http://localhost:5173"]
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        origins = []
+        for origin in self.CORS_ORIGINS.split(","):
+            cleaned = origin.strip().rstrip("/")
+            if cleaned:
+                origins.append(cleaned)
+        return origins or ["http://127.0.0.1:5173", "http://localhost:5173"]
 
     model_config = SettingsConfigDict(
         env_file=("backend/.env", ".env"),

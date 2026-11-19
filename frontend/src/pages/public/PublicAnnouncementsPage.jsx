@@ -12,6 +12,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import { getPublicAnnouncements, registerDeviceToken } from '../../services/channelService';
+import { API_BASE_URL } from '../../services/api';
 
 export default function PublicAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
@@ -47,7 +48,7 @@ export default function PublicAnnouncementsPage() {
     // Connect to SSE stream for live real-time broadcasts
     let eventSource;
     try {
-      const sseUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/broadcast/sse`;
+      const sseUrl = `${API_BASE_URL}/broadcast/sse`;
       eventSource = new EventSource(sseUrl);
 
       eventSource.onmessage = (event) => {

@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 // Resolve API base URL from Vite environment or default to local FastAPI host
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+export const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  'http://127.0.0.1:8000'
+).replace(/\/+$/, '');
 
 export const AUTH_TOKEN_KEY = 'masscomm_auth_token';
 export const AUTH_USER_KEY = 'masscomm_auth_user';
