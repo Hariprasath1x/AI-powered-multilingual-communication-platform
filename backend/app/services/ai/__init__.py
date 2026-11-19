@@ -17,6 +17,7 @@ from app.services.ai.base import (
 )
 from app.services.ai.mock_provider import MockAIProvider, SUPPORTED_LANGUAGES
 from app.services.ai.gemini_provider import GeminiAIProvider
+from app.services.ai.groq_provider import GroqAIProvider
 from app.services.ai.factory import get_ai_provider
 
 __all__ = [
@@ -35,6 +36,7 @@ __all__ = [
     "SentimentAnalysisResult",
     "MockAIProvider",
     "GeminiAIProvider",
+    "GroqAIProvider",
     "SUPPORTED_LANGUAGES",
     "get_ai_provider",
 ]

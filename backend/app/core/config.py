@@ -29,10 +29,17 @@ class Settings(BaseSettings):
     RATE_LIMIT_LOGIN_PER_MINUTE: int = 10
     RATE_LIMIT_AI_PER_MINUTE: int = 20
 
-    # AI Generation & Translation
+    # AI Generation & Translation — Groq (primary) / Gemini (legacy) / Mock (fallback)
+    # Groq
+    GROQ_API_KEY: Optional[str] = None
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
+    # Gemini (legacy; kept for backward compatibility)
     GEMINI_API_KEY: Optional[str] = None
-    AI_PROVIDER: str = "auto"  # "auto", "mock", "gemini"
+    # Provider selection: "auto" (Groq→Gemini→Mock), "groq", "gemini", "mock"
+    AI_PROVIDER: str = "auto"
+    # Fallback model name used by GeminiAIProvider when AI_MODEL_NAME is set
     AI_MODEL_NAME: str = "gemini-2.5-flash"
+    # Shared retry/timeout settings
     AI_REQUEST_TIMEOUT_SECONDS: float = 30.0
     AI_MAX_RETRIES: int = 2
     AI_INITIAL_BACKOFF_SECONDS: float = 1.0

@@ -98,7 +98,7 @@ class ContentBatchTranslateRequest(BaseModel):
         description="List of target Indian language codes (e.g. ['hi', 'kn', 'ta', 'te'])",
     )
     notes: Optional[str] = Field(None, max_length=500, description="Additional context or stylistic guidance")
-    provider_type: Optional[str] = Field(None, description="Optional provider override (e.g. 'mock' or 'gemini')")
+    provider_type: Optional[str] = Field(None, description="Optional provider override (e.g. 'mock', 'groq', or 'gemini')")
 
     @field_validator("target_languages")
     @classmethod

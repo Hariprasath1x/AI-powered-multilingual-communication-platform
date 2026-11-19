@@ -316,6 +316,8 @@ async def analyze_sentiment_model(
             from app.core.config import settings
             if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY in sanitized_err:
                 sanitized_err = sanitized_err.replace(settings.GEMINI_API_KEY, "[REDACTED]")
+            if settings.GROQ_API_KEY and settings.GROQ_API_KEY in sanitized_err:
+                sanitized_err = sanitized_err.replace(settings.GROQ_API_KEY, "[REDACTED]")
         except Exception:
             pass
 

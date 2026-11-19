@@ -86,5 +86,5 @@ class QualityEvaluateRequest(BaseModel):
     """Optional parameters when triggering a quality assessment."""
 
     reference_facts: Optional[str] = Field(None, max_length=2000, description="Explicit facts to verify against")
-    provider_type: Optional[str] = Field(None, description="mock, gemini, or auto")
+    provider_type: Optional[str] = Field(None, description="mock, groq, gemini, or auto")
 
