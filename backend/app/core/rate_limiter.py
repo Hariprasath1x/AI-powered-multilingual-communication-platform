@@ -8,6 +8,7 @@ Provides sliding-window rate limiting with dual backends:
 import logging
 import threading
 import time
+import uuid
 from collections import defaultdict, deque
 from typing import Optional, Tuple
 from fastapi import HTTPException, Request, status
@@ -54,11 +55,44 @@ class MemoryRateLimiter:
 
 
 class RedisRateLimiter:
-    """Distributed Redis sliding window rate limiter using sorted sets."""
+    """Distributed Redis sliding window rate limiter using atomic Lua scripting."""
+
+    # Atomic Lua script executing sliding window rate limit evaluation in a single Redis transaction
+    LUA_SLIDING_WINDOW = """
+    local key = KEYS[1]
+    local now = tonumber(ARGV[1])
+    local window = tonumber(ARGV[2])
+    local limit = tonumber(ARGV[3])
+    local member = ARGV[4]
+    local cutoff = now - window
+
+    -- 1. Prune expired entries older than cutoff
+    redis.call('ZREMRANGEBYSCORE', key, '-inf', cutoff)
+
+    -- 2. Count current active requests in sliding window
+    local current_count = redis.call('ZCARD', key)
+
+    if current_count < limit then
+        -- Within limit: atomically add request and set TTL
+        redis.call('ZADD', key, now, member)
+        redis.call('EXPIRE', key, window + 5)
+        return {1, 0}
+    else
+        -- Exceeded limit: calculate retry_after from oldest entry
+        local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
+        local retry_after = window
+        if oldest and #oldest >= 2 then
+            local oldest_ts = tonumber(oldest[2])
+            retry_after = math.max(1, math.floor(window - (now - oldest_ts)) + 1)
+        end
+        return {0, retry_after}
+    end
+    """
 
     def __init__(self, redis_url: str) -> None:
         self.redis_url = redis_url
         self._client = None
+        self._script = None
 
     def _get_client(self):
         if self._client is None:
@@ -70,48 +104,60 @@ class RedisRateLimiter:
                     socket_connect_timeout=2.0,
                     socket_timeout=2.0,
                 )
+                self._script = self._client.register_script(self.LUA_SLIDING_WINDOW)
             except Exception as exc:
                 logger.warning("Failed to initialize Redis rate limit client: %s", exc)
+                self._client = None
+                self._script = None
                 return None
         return self._client
 
     def is_allowed(self, key: str, limit: int, window_seconds: int) -> Tuple[bool, int]:
         client = self._get_client()
-        if client is None:
-            return True, 0  # Fail open if Redis cannot be contacted
+        if client is None or self._script is None:
+            logger.warning("Redis client unavailable; falling back to in-memory rate limiter")
+            return _memory_limiter.is_allowed(key, limit, window_seconds)
 
         now = time.time()
-        cutoff = now - window_seconds
         redis_key = f"masscomm:rl:{key}"
+        # Unique member prevents ZSET key collision even under identical microsecond timestamps
+        unique_member = f"{now}:{uuid.uuid4().hex[:8]}"
 
         try:
-            pipe = client.pipeline()
-            pipe.zremrangebyscore(redis_key, 0, cutoff)
-            pipe.zcard(redis_key)
-            pipe.zrange(redis_key, 0, 0, withscores=True)
-            results = pipe.execute()
-
-            current_count = results[1]
-            oldest_entries = results[2]
-
-            if current_count < limit:
-                pipe = client.pipeline()
-                pipe.zadd(redis_key, {str(now): now})
-                pipe.expire(redis_key, window_seconds + 5)
-                pipe.execute()
-                return True, 0
-
-            # Limit exceeded; calculate retry_after
-            if oldest_entries:
-                oldest_ts = float(oldest_entries[0][1])
-                retry_after = max(1, int(window_seconds - (now - oldest_ts)) + 1)
-            else:
-                retry_after = window_seconds
-
-            return False, retry_after
+            result = self._script(
+                keys=[redis_key],
+                args=[now, window_seconds, limit, unique_member],
+            )
+            allowed = bool(result[0])
+            retry_after = int(result[1])
+            return allowed, retry_after
         except Exception as exc:
-            logger.warning("Redis rate limit operation failed, failing open: %s", exc)
-            return True, 0
+            logger.warning("Redis rate limit operation failed (%s); falling back to in-memory limiter", exc)
+            self._client = None  # Reset client so next request re-establishes connection
+            self._script = None
+            return _memory_limiter.is_allowed(key, limit, window_seconds)
+
+    def reset(self) -> None:
+        """Clear all stored rate limit keys in Redis matching masscomm:rl:*."""
+        client = self._get_client()
+        if client is not None:
+            try:
+                keys = list(client.scan_iter(match="masscomm:rl:*", count=100))
+                if keys:
+                    client.delete(*keys)
+            except Exception as exc:
+                logger.warning("Failed to reset Redis rate limit keys: %s", exc)
+
+    def close(self) -> None:
+        """Close Redis connection and release pool."""
+        if self._client is not None:
+            try:
+                self._client.close()
+            except Exception as exc:
+                logger.warning("Error closing Redis client: %s", exc)
+            finally:
+                self._client = None
+                self._script = None
 
 
 # Global limiter instances
@@ -130,8 +176,17 @@ def get_rate_limiter_backend():
 
 
 def reset_rate_limiters() -> None:
-    """Helper for test suites to reset memory limiter counters."""
+    """Helper for test suites to reset memory and Redis limiter counters."""
     _memory_limiter.reset()
+    if _redis_limiter is not None:
+        _redis_limiter.reset()
+
+
+def close_rate_limiters() -> None:
+    """Close active rate limiter connections on application shutdown."""
+    global _redis_limiter
+    if _redis_limiter is not None:
+        _redis_limiter.close()
 
 
 class RateLimiter:

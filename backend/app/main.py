@@ -56,6 +56,19 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("APScheduler startup encountered error: %s", exc)
 
+    # Initialize and verify Redis connectivity if configured
+    if settings.REDIS_URL:
+        try:
+            from app.core.rate_limiter import get_rate_limiter_backend
+            backend = get_rate_limiter_backend()
+            client = getattr(backend, "_get_client", lambda: None)()
+            if client is not None and client.ping():
+                logger.info("Redis connection established at %s (Distributed Rate Limiting active).", settings.REDIS_URL)
+            else:
+                logger.warning("Redis configured at %s but unreachable; in-memory fallback active.", settings.REDIS_URL)
+        except Exception as exc:
+            logger.warning("Redis startup connectivity check encountered error: %s", exc)
+
     yield
 
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
@@ -63,6 +76,12 @@ async def lifespan(app: FastAPI):
         shutdown_scheduler()
     except Exception as exc:
         logger.warning("APScheduler shutdown encountered error: %s", exc)
+    try:
+        from app.core.rate_limiter import close_rate_limiters
+        close_rate_limiters()
+        logger.info("Rate limiter connections closed.")
+    except Exception as exc:
+        logger.warning("Rate limiter shutdown encountered error: %s", exc)
 
 
 app = FastAPI(
