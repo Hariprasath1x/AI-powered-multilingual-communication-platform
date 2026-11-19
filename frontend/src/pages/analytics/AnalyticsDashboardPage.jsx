@@ -238,22 +238,22 @@ export default function AnalyticsDashboardPage() {
   }, [chartPoints, activeMetrics]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* 1. Header & Actions Bar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
                 Civic Analytics & Intelligence
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
                   Milestone 3
                 </span>
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-500">
                 Cross-channel telemetry, citizen engagement, multilingual reach, and AI-driven recommendations.
               </p>
             </div>
@@ -265,46 +265,46 @@ export default function AnalyticsDashboardPage() {
           <button
             onClick={loadAnalytics}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-300 shadow-sm transition"
             title="Refresh analytics data"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
 
           <button
             onClick={handleExportCsv}
             disabled={exportingCsv || loading}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 transition disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-sm transition disabled:opacity-50"
             title="Export filtered data to CSV"
           >
-            <FileSpreadsheet className="w-4 h-4" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             {exportingCsv ? 'Generating CSV...' : 'Export CSV'}
           </button>
 
           <button
             onClick={handleExportPdf}
             disabled={exportingPdf || loading}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 transition disabled:opacity-50 shadow-sm"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-300 shadow-sm transition disabled:opacity-50"
             title="Export executive PDF report"
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-4 h-4 text-purple-600" />
             {exportingPdf ? 'Generating PDF...' : 'Export PDF'}
           </button>
         </div>
       </div>
 
       {/* 2. Global Filter Toolbar */}
-      <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-800 p-4 space-y-3 shadow-md">
-        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-2">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
+        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-2">
           <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-indigo-400" />
+            <Filter className="w-3.5 h-3.5 text-indigo-600" />
             Dashboard Filters & Telemetry Scope
           </div>
           {(selectedCampaign || selectedChannel || selectedLanguage || selectedSegment || datePreset !== '30d') && (
             <button
               onClick={handleResetFilters}
-              className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition"
+              className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition"
             >
               <X className="w-3 h-3" />
               Reset Filters
@@ -315,11 +315,11 @@ export default function AnalyticsDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           {/* Date Presets */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">Time Window</label>
+            <label className="text-xs font-medium text-slate-700">Time Window</label>
             <select
               value={datePreset}
               onChange={(e) => setDatePreset(e.target.value)}
-              className="w-full bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             >
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
@@ -331,11 +331,11 @@ export default function AnalyticsDashboardPage() {
 
           {/* Campaign Selector */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">Campaign</label>
+            <label className="text-xs font-medium text-slate-700">Campaign</label>
             <select
               value={selectedCampaign}
               onChange={(e) => setSelectedCampaign(e.target.value)}
-              className="w-full bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none truncate"
+              className="w-full bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none truncate"
             >
               <option value="">All Campaigns</option>
               {campaignOptions.map((c) => (
@@ -348,11 +348,11 @@ export default function AnalyticsDashboardPage() {
 
           {/* Channel Selector */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">Channel</label>
+            <label className="text-xs font-medium text-slate-700">Channel</label>
             <select
               value={selectedChannel}
               onChange={(e) => setSelectedChannel(e.target.value)}
-              className="w-full bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             >
               <option value="">All Channels</option>
               <option value="SMS">SMS</option>
@@ -365,11 +365,11 @@ export default function AnalyticsDashboardPage() {
 
           {/* Language Selector */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">Language</label>
+            <label className="text-xs font-medium text-slate-700">Language</label>
             <select
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
-              className="w-full bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             >
               <option value="">All Languages</option>
               <option value="en">English (en)</option>
@@ -383,11 +383,11 @@ export default function AnalyticsDashboardPage() {
 
           {/* Audience Segment */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-300">Audience Segment</label>
+            <label className="text-xs font-medium text-slate-700">Audience Segment</label>
             <select
               value={selectedSegment}
               onChange={(e) => setSelectedSegment(e.target.value)}
-              className="w-full bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none truncate"
+              className="w-full bg-white text-slate-800 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none truncate"
             >
               <option value="">All Segments</option>
               {segmentOptions.map((s) => (
@@ -401,26 +401,26 @@ export default function AnalyticsDashboardPage() {
           {/* Custom Date Pickers if enabled */}
           {datePreset === 'custom' ? (
             <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-300">Dates (From - To)</label>
+              <label className="text-xs font-medium text-slate-700">Dates (From - To)</label>
               <div className="flex items-center gap-1">
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-1/2 bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500"
+                  className="w-1/2 bg-white text-slate-800 border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500"
                 />
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-1/2 bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500"
+                  className="w-1/2 bg-white text-slate-800 border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
           ) : (
             <div className="flex items-end">
-              <div className="text-xs text-slate-400 bg-slate-800/60 rounded-lg p-2.5 w-full border border-slate-800 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+              <div className="text-xs text-slate-600 bg-slate-50 rounded-lg p-2.5 w-full border border-slate-200 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                 <span className="truncate">
                   {kpis?.total_campaigns || 0} active campaigns in scope
                 </span>
@@ -432,14 +432,14 @@ export default function AnalyticsDashboardPage() {
 
       {/* Error Banner */}
       {error && (
-        <div className="p-4 bg-red-950/80 border border-red-800 rounded-xl text-red-200 flex items-center justify-between">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
             <p className="text-sm">{error}</p>
           </div>
           <button
             onClick={loadAnalytics}
-            className="px-3 py-1 bg-red-900 hover:bg-red-800 text-white rounded text-xs font-semibold"
+            className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-semibold"
           >
             Retry
           </button>
@@ -449,93 +449,93 @@ export default function AnalyticsDashboardPage() {
       {/* 3. Primary KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Messages Sent */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm relative overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Sent</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-950 text-blue-400 border border-blue-800 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Sent</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
               <Send className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-white">
+            <span className="text-3xl font-extrabold text-slate-900">
               {loading ? '-' : (kpis?.total_messages_sent || 0).toLocaleString()}
             </span>
-            <span className="text-xs text-slate-400">dispatches</span>
+            <span className="text-xs text-slate-500">dispatches</span>
           </div>
-          <div className="mt-2 text-xs text-slate-400 flex items-center gap-2">
-            <span className="text-emerald-400 font-semibold">{kpis?.delivery_rate || 0}%</span> delivery rate
-            <span className="text-slate-600">•</span>
-            <span className="text-rose-400">{kpis?.bounce_rate || 0}%</span> bounce
+          <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
+            <span className="text-emerald-600 font-semibold">{kpis?.delivery_rate || 0}%</span> delivery rate
+            <span className="text-slate-300">•</span>
+            <span className="text-rose-600 font-medium">{kpis?.bounce_rate || 0}%</span> bounce
           </div>
         </div>
 
         {/* Total Reach */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm relative overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Citizen Reach</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Citizen Reach</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-white">
+            <span className="text-3xl font-extrabold text-slate-900">
               {loading ? '-' : (kpis?.total_reach || 0).toLocaleString()}
             </span>
-            <span className="text-xs text-slate-400">unique citizens reached</span>
+            <span className="text-xs text-slate-500">unique citizens reached</span>
           </div>
-          <div className="mt-2 text-xs text-slate-400 flex items-center gap-2">
-            <span className="text-emerald-400 font-semibold">{(kpis?.total_delivered || 0).toLocaleString()}</span> total delivered
+          <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
+            <span className="text-emerald-600 font-semibold">{(kpis?.total_delivered || 0).toLocaleString()}</span> total delivered
           </div>
         </div>
 
         {/* Open Rate */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm relative overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Average Open Rate</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-950 text-indigo-400 border border-indigo-800 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Average Open Rate</span>
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center">
               <Eye className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-white">
+            <span className="text-3xl font-extrabold text-slate-900">
               {loading ? '-' : `${kpis?.average_open_rate || 0}%`}
             </span>
-            <span className="text-xs text-slate-400">opens / delivered</span>
+            <span className="text-xs text-slate-500">opens / delivered</span>
           </div>
-          <div className="mt-2 text-xs text-slate-400 flex items-center gap-2">
-            <span className="text-indigo-400 font-semibold">{kpis?.average_click_through_rate || 0}%</span> Click-Through (CTR)
+          <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
+            <span className="text-indigo-600 font-semibold">{kpis?.average_click_through_rate || 0}%</span> Click-Through (CTR)
           </div>
         </div>
 
         {/* Response & Feedback Rate */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm relative overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Citizen Response Rate</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-950 text-purple-400 border border-purple-800 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Citizen Response Rate</span>
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center">
               <MessageSquare className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-white">
+            <span className="text-3xl font-extrabold text-slate-900">
               {loading ? '-' : `${kpis?.response_rate || 0}%`}
             </span>
-            <span className="text-xs text-slate-400">inbound replies</span>
+            <span className="text-xs text-slate-500">inbound replies</span>
           </div>
-          <div className="mt-2 text-xs text-slate-400 flex items-center gap-2">
-            <span className="text-purple-400 font-semibold">{kpis?.participation_rate || 0}%</span> feedback participation
+          <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
+            <span className="text-purple-600 font-semibold">{kpis?.participation_rate || 0}%</span> feedback participation
           </div>
         </div>
       </div>
 
       {/* 4. Engagement Trends Over Time (Interactive Line Chart) */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-indigo-400" />
+            <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-indigo-600" />
               Engagement Trends Time-Series
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               Daily/periodic citizen telemetry: dispatches, deliveries, email opens, link clicks, and inbound responses.
             </p>
           </div>
@@ -546,55 +546,55 @@ export default function AnalyticsDashboardPage() {
               onClick={() => setActiveMetrics((m) => ({ ...m, sent: !m.sent }))}
               className={`px-2.5 py-1 text-xs rounded-full border transition flex items-center gap-1.5 ${
                 activeMetrics.sent
-                  ? 'bg-blue-950 text-blue-300 border-blue-700'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 opacity-60'
+                  ? 'bg-blue-50 text-blue-700 border-blue-300 font-medium'
+                  : 'bg-slate-100 text-slate-500 border-slate-200 opacity-70 hover:bg-slate-200'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              <span className="w-2 h-2 rounded-full bg-blue-600" />
               Sent
             </button>
             <button
               onClick={() => setActiveMetrics((m) => ({ ...m, delivered: !m.delivered }))}
               className={`px-2.5 py-1 text-xs rounded-full border transition flex items-center gap-1.5 ${
                 activeMetrics.delivered
-                  ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 opacity-60'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-medium'
+                  : 'bg-slate-100 text-slate-500 border-slate-200 opacity-70 hover:bg-slate-200'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="w-2 h-2 rounded-full bg-emerald-600" />
               Delivered
             </button>
             <button
               onClick={() => setActiveMetrics((m) => ({ ...m, opens: !m.opens }))}
               className={`px-2.5 py-1 text-xs rounded-full border transition flex items-center gap-1.5 ${
                 activeMetrics.opens
-                  ? 'bg-indigo-950 text-indigo-300 border-indigo-700'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 opacity-60'
+                  ? 'bg-indigo-50 text-indigo-700 border-indigo-300 font-medium'
+                  : 'bg-slate-100 text-slate-500 border-slate-200 opacity-70 hover:bg-slate-200'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-indigo-400" />
+              <span className="w-2 h-2 rounded-full bg-indigo-600" />
               Opens
             </button>
             <button
               onClick={() => setActiveMetrics((m) => ({ ...m, clicks: !m.clicks }))}
               className={`px-2.5 py-1 text-xs rounded-full border transition flex items-center gap-1.5 ${
                 activeMetrics.clicks
-                  ? 'bg-amber-950 text-amber-300 border-amber-700'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 opacity-60'
+                  ? 'bg-amber-50 text-amber-700 border-amber-300 font-medium'
+                  : 'bg-slate-100 text-slate-500 border-slate-200 opacity-70 hover:bg-slate-200'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span className="w-2 h-2 rounded-full bg-amber-600" />
               Clicks
             </button>
             <button
               onClick={() => setActiveMetrics((m) => ({ ...m, replies: !m.replies }))}
               className={`px-2.5 py-1 text-xs rounded-full border transition flex items-center gap-1.5 ${
                 activeMetrics.replies
-                  ? 'bg-purple-950 text-purple-300 border-purple-700'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 opacity-60'
+                  ? 'bg-purple-50 text-purple-700 border-purple-300 font-medium'
+                  : 'bg-slate-100 text-slate-500 border-slate-200 opacity-70 hover:bg-slate-200'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-purple-400" />
+              <span className="w-2 h-2 rounded-full bg-purple-600" />
               Replies
             </button>
           </div>
@@ -603,7 +603,7 @@ export default function AnalyticsDashboardPage() {
         {/* SVG Line Chart */}
         <div className="relative h-64 w-full pt-4">
           {chartPoints.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-xs text-slate-500">
+            <div className="h-full flex items-center justify-center text-xs text-slate-400">
               No trend telemetry recorded in the selected window.
             </div>
           ) : (
@@ -620,9 +620,9 @@ export default function AnalyticsDashboardPage() {
                   y1={y}
                   x2={chartPoints.length * 60}
                   y2={y}
-                  stroke="#334155"
+                  stroke="#e2e8f0"
                   strokeDasharray="3 3"
-                  strokeWidth="0.5"
+                  strokeWidth="0.8"
                 />
               ))}
 
@@ -630,7 +630,7 @@ export default function AnalyticsDashboardPage() {
               {activeMetrics.sent && (
                 <polyline
                   fill="none"
-                  stroke="#60a5fa"
+                  stroke="#2563eb"
                   strokeWidth="2.5"
                   points={chartPoints
                     .map((p, i) => `${i * 60 + 30},${190 - (p.sent / maxTrendValue) * 170}`)
@@ -640,7 +640,7 @@ export default function AnalyticsDashboardPage() {
               {activeMetrics.delivered && (
                 <polyline
                   fill="none"
-                  stroke="#34d399"
+                  stroke="#10b981"
                   strokeWidth="2.5"
                   points={chartPoints
                     .map((p, i) => `${i * 60 + 30},${190 - (p.delivered / maxTrendValue) * 170}`)
@@ -650,7 +650,7 @@ export default function AnalyticsDashboardPage() {
               {activeMetrics.opens && (
                 <polyline
                   fill="none"
-                  stroke="#818cf8"
+                  stroke="#6366f1"
                   strokeWidth="2.5"
                   points={chartPoints
                     .map((p, i) => `${i * 60 + 30},${190 - (p.opens / maxTrendValue) * 170}`)
@@ -660,7 +660,7 @@ export default function AnalyticsDashboardPage() {
               {activeMetrics.clicks && (
                 <polyline
                   fill="none"
-                  stroke="#fbbf24"
+                  stroke="#f59e0b"
                   strokeWidth="2.5"
                   points={chartPoints
                     .map((p, i) => `${i * 60 + 30},${190 - (p.clicks / maxTrendValue) * 170}`)
@@ -670,7 +670,7 @@ export default function AnalyticsDashboardPage() {
               {activeMetrics.replies && (
                 <polyline
                   fill="none"
-                  stroke="#c084fc"
+                  stroke="#a855f7"
                   strokeWidth="2.5"
                   points={chartPoints
                     .map((p, i) => `${i * 60 + 30},${190 - (p.replies / maxTrendValue) * 170}`)
@@ -693,16 +693,16 @@ export default function AnalyticsDashboardPage() {
                       onMouseLeave={() => setHoveredTrendPoint(null)}
                     />
                     {hoveredTrendPoint?.date === p.date && (
-                      <line x1={x} y1="0" x2={x} y2="190" stroke="#64748b" strokeWidth="1" strokeDasharray="2 2" />
+                      <line x1={x} y1="0" x2={x} y2="190" stroke="#94a3b8" strokeWidth="1" strokeDasharray="2 2" />
                     )}
                     {activeMetrics.delivered && (
                       <circle
                         cx={x}
                         cy={190 - (p.delivered / maxTrendValue) * 170}
-                        r="3.5"
-                        fill="#34d399"
-                        stroke="#0f172a"
-                        strokeWidth="1.5"
+                        r="4"
+                        fill="#10b981"
+                        stroke="#ffffff"
+                        strokeWidth="2"
                       />
                     )}
                   </g>
@@ -714,20 +714,20 @@ export default function AnalyticsDashboardPage() {
           {/* Hover Tooltip Box */}
           {hoveredTrendPoint && (
             <div
-              className="absolute top-2 bg-slate-900 border border-slate-700 text-xs rounded-lg p-2.5 shadow-xl pointer-events-none z-10 space-y-1"
+              className="absolute top-2 bg-white border border-slate-200 text-xs rounded-lg p-2.5 shadow-lg pointer-events-none z-10 space-y-1"
               style={{
                 left: `${Math.min(Math.max(10, (hoveredTrendPoint.x / (chartPoints.length * 60)) * 100), 80)}%`,
               }}
             >
-              <div className="font-semibold text-slate-200 border-b border-slate-800 pb-1">
+              <div className="font-semibold text-slate-800 border-b border-slate-100 pb-1">
                 {hoveredTrendPoint.date}
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-slate-300">
-                <span className="text-blue-400">Sent:</span> <span>{hoveredTrendPoint.sent}</span>
-                <span className="text-emerald-400">Delivered:</span> <span>{hoveredTrendPoint.delivered}</span>
-                <span className="text-indigo-400">Opens:</span> <span>{hoveredTrendPoint.opens}</span>
-                <span className="text-amber-400">Clicks:</span> <span>{hoveredTrendPoint.clicks}</span>
-                <span className="text-purple-400">Replies:</span> <span>{hoveredTrendPoint.replies}</span>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-slate-600">
+                <span className="text-blue-600 font-medium">Sent:</span> <span className="font-semibold text-slate-800">{hoveredTrendPoint.sent}</span>
+                <span className="text-emerald-600 font-medium">Delivered:</span> <span className="font-semibold text-slate-800">{hoveredTrendPoint.delivered}</span>
+                <span className="text-indigo-600 font-medium">Opens:</span> <span className="font-semibold text-slate-800">{hoveredTrendPoint.opens}</span>
+                <span className="text-amber-600 font-medium">Clicks:</span> <span className="font-semibold text-slate-800">{hoveredTrendPoint.clicks}</span>
+                <span className="text-purple-600 font-medium">Replies:</span> <span className="font-semibold text-slate-800">{hoveredTrendPoint.replies}</span>
               </div>
             </div>
           )}
@@ -737,48 +737,48 @@ export default function AnalyticsDashboardPage() {
       {/* 5. Channel Performance Breakdown & Conversion Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Channel Comparison */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <Radio className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+              <Radio className="w-4 h-4 text-emerald-600" />
               Channel Effectiveness Breakdown
             </h2>
-            <span className="text-xs text-slate-400">5 Delivery Channels</span>
+            <span className="text-xs text-slate-500 font-medium">5 Delivery Channels</span>
           </div>
 
           <div className="space-y-3">
             {Object.entries(breakdowns?.by_channel || {}).map(([chName, chData]) => (
-              <div key={chName} className="p-3 bg-slate-800/60 rounded-lg border border-slate-800 space-y-2">
+              <div key={chName} className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">{chName}</span>
+                  <span className="text-sm font-semibold text-slate-900">{chName}</span>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-slate-400">{chData.sent} sent</span>
-                    <span className="text-slate-600">•</span>
-                    <span className="text-emerald-400 font-medium">{chData.delivery_rate}% delivered</span>
+                    <span className="text-slate-500">{chData.sent} sent</span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-emerald-600 font-medium">{chData.delivery_rate}% delivered</span>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden flex">
+                <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden flex">
                   <div
                     className="bg-emerald-500 h-full"
                     style={{ width: `${Math.min(chData.delivery_rate, 100)}%` }}
                   />
                   <div
-                    className="bg-rose-500 h-full"
+                    className="bg-rose-400 h-full"
                     style={{ width: `${Math.min(100 - chData.delivery_rate, 100)}%` }}
                   />
                 </div>
 
-                <div className="grid grid-cols-3 text-xs text-slate-400 pt-1">
+                <div className="grid grid-cols-3 text-xs text-slate-500 pt-1">
                   <div>
-                    Open Rate: <span className="text-indigo-400 font-medium">{chData.open_rate}%</span>
+                    Open Rate: <span className="text-indigo-600 font-medium">{chData.open_rate}%</span>
                   </div>
                   <div>
-                    CTR: <span className="text-amber-400 font-medium">{chData.ctr}%</span>
+                    CTR: <span className="text-amber-600 font-medium">{chData.ctr}%</span>
                   </div>
                   <div>
-                    Replies: <span className="text-purple-400 font-medium">{chData.replies}</span>
+                    Replies: <span className="text-purple-600 font-medium">{chData.replies}</span>
                   </div>
                 </div>
               </div>
@@ -787,13 +787,13 @@ export default function AnalyticsDashboardPage() {
         </div>
 
         {/* 5-Stage Conversion Funnel */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <Layers className="w-4 h-4 text-purple-400" />
+            <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-purple-600" />
               Campaign Conversion Funnel
             </h2>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
               End-to-End: {funnel?.overall_conversion_rate || 0}%
             </span>
           </div>
@@ -810,32 +810,32 @@ export default function AnalyticsDashboardPage() {
               const barColor = colors[idx % colors.length];
 
               return (
-                <div key={stage.stage} className="p-3 bg-slate-800/60 rounded-lg border border-slate-800 space-y-1.5">
+                <div key={stage.stage} className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-slate-700 text-slate-300 text-xs flex items-center justify-center font-bold">
+                    <span className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold">
                         {idx + 1}
                       </span>
                       {stage.stage}
                     </span>
-                    <span className="text-sm font-bold text-white">{stage.count.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-slate-900">{stage.count.toLocaleString()}</span>
                   </div>
 
                   {/* Relative bar width */}
-                  <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                     <div
                       className={`${barColor} h-full transition-all duration-500`}
                       style={{ width: `${Math.min(stage.conversion_from_top, 100)}%` }}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-0.5">
                     <span>
-                      From Top: <span className="text-slate-200 font-medium">{stage.conversion_from_top}%</span>
+                      From Top: <span className="text-slate-700 font-medium">{stage.conversion_from_top}%</span>
                     </span>
                     {idx > 0 && (
                       <span>
-                        Step Dropoff: <span className="text-rose-400 font-medium">{stage.dropoff_rate}%</span>
+                        Step Dropoff: <span className="text-rose-600 font-medium">{stage.dropoff_rate}%</span>
                       </span>
                     )}
                   </div>
@@ -847,29 +847,29 @@ export default function AnalyticsDashboardPage() {
       </div>
 
       {/* 6. Language-wise Analytics Table & Sentiment Distribution */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <Globe className="w-4 h-4 text-teal-400" />
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+            <Globe className="w-4 h-4 text-teal-600" />
             Multilingual Engagement & Sentiment Matrix
           </h2>
-          <span className="text-xs text-slate-400">Language Equity Monitoring</span>
+          <span className="text-xs text-slate-500 font-medium">Language Equity Monitoring</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-800/60 uppercase tracking-wider text-slate-400 border-b border-slate-700">
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="bg-slate-50 uppercase tracking-wider text-slate-500 border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">Language</th>
-                <th className="py-3 px-4">Messages</th>
-                <th className="py-3 px-4">Delivered</th>
-                <th className="py-3 px-4">Open Rate</th>
-                <th className="py-3 px-4">CTR</th>
-                <th className="py-3 px-4">Response Rate</th>
-                <th className="py-3 px-4">Sentiment Split</th>
+                <th className="py-3 px-4 font-semibold">Language</th>
+                <th className="py-3 px-4 font-semibold">Messages</th>
+                <th className="py-3 px-4 font-semibold">Delivered</th>
+                <th className="py-3 px-4 font-semibold">Open Rate</th>
+                <th className="py-3 px-4 font-semibold">CTR</th>
+                <th className="py-3 px-4 font-semibold">Response Rate</th>
+                <th className="py-3 px-4 font-semibold">Sentiment Split</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-100">
               {Object.entries(breakdowns?.by_language || {}).map(([lCode, lData]) => {
                 const langLabels = {
                   en: 'English (en)',
@@ -886,28 +886,28 @@ export default function AnalyticsDashboardPage() {
                   (lData.sentiment_distribution?.Negative || 0);
 
                 return (
-                  <tr key={lCode} className="hover:bg-slate-800/40 transition">
-                    <td className="py-3 px-4 font-semibold text-white">{langName}</td>
-                    <td className="py-3 px-4">{lData.messages}</td>
-                    <td className="py-3 px-4">{lData.delivered}</td>
-                    <td className="py-3 px-4 text-indigo-400 font-medium">{lData.open_rate}%</td>
-                    <td className="py-3 px-4 text-amber-400 font-medium">{lData.ctr}%</td>
-                    <td className="py-3 px-4 text-purple-400 font-medium">{lData.response_rate}%</td>
+                  <tr key={lCode} className="hover:bg-slate-50/80 transition">
+                    <td className="py-3 px-4 font-semibold text-slate-900">{langName}</td>
+                    <td className="py-3 px-4 text-slate-600">{lData.messages}</td>
+                    <td className="py-3 px-4 text-slate-600">{lData.delivered}</td>
+                    <td className="py-3 px-4 text-indigo-600 font-medium">{lData.open_rate}%</td>
+                    <td className="py-3 px-4 text-amber-600 font-medium">{lData.ctr}%</td>
+                    <td className="py-3 px-4 text-purple-600 font-medium">{lData.response_rate}%</td>
                     <td className="py-3 px-4">
                       {totalFb > 0 ? (
                         <div className="flex items-center gap-1.5 text-xs">
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
                             +{lData.sentiment_distribution?.Positive || 0}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-medium">
                             ~{lData.sentiment_distribution?.Neutral || 0}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
+                          <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-medium">
                             -{lData.sentiment_distribution?.Negative || 0}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-slate-500">No feedback yet</span>
+                        <span className="text-slate-400">No feedback yet</span>
                       )}
                     </td>
                   </tr>
@@ -921,9 +921,9 @@ export default function AnalyticsDashboardPage() {
       {/* 7. Audience Segment Performance & Campaign Rankings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Performing Campaigns */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <ThumbsUp className="w-4 h-4 text-emerald-400" />
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+            <ThumbsUp className="w-4 h-4 text-emerald-600" />
             Top Ranked Campaigns
           </h2>
           <div className="space-y-2.5">
@@ -931,38 +931,38 @@ export default function AnalyticsDashboardPage() {
               breakdowns.best_performing.map((c, i) => (
                 <div
                   key={c.campaign_id}
-                  className="p-3 bg-slate-800/60 rounded-lg border border-slate-800 flex items-center justify-between"
+                  className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between"
                 >
                   <div className="space-y-0.5">
-                    <div className="text-sm font-semibold text-white flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 text-xs flex items-center justify-center font-bold">
+                    <div className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300 text-xs flex items-center justify-center font-bold">
                         #{i + 1}
                       </span>
                       {c.campaign_name}
                     </div>
-                    <div className="text-xs text-slate-400 flex items-center gap-2">
+                    <div className="text-xs text-slate-500 flex items-center gap-2">
                       <span>{c.delivered} delivered</span>
-                      <span>•</span>
-                      <span className="text-indigo-400">Open: {c.open_rate}%</span>
-                      <span>•</span>
-                      <span className="text-amber-400">CTR: {c.ctr}%</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-indigo-600 font-medium">Open: {c.open_rate}%</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-amber-600 font-medium">CTR: {c.ctr}%</span>
                     </div>
                   </div>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold">
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                     Score: {c.engagement_score}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="text-xs text-slate-500 py-4 text-center">No ranked campaign activity recorded.</div>
+              <div className="text-xs text-slate-400 py-4 text-center">No ranked campaign activity recorded.</div>
             )}
           </div>
         </div>
 
         {/* Attention Needed / Low Engagement Campaigns */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
             Campaigns Requiring Attention
           </h2>
           <div className="space-y-2.5">
@@ -970,38 +970,38 @@ export default function AnalyticsDashboardPage() {
               breakdowns.worst_performing.map((c) => (
                 <div
                   key={c.campaign_id}
-                  className="p-3 bg-slate-800/60 rounded-lg border border-slate-800 flex items-center justify-between"
+                  className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between"
                 >
                   <div className="space-y-0.5">
-                    <div className="text-sm font-semibold text-white">{c.campaign_name}</div>
-                    <div className="text-xs text-slate-400 flex items-center gap-2">
+                    <div className="text-sm font-semibold text-slate-900">{c.campaign_name}</div>
+                    <div className="text-xs text-slate-500 flex items-center gap-2">
                       <span>{c.delivered} delivered</span>
-                      <span>•</span>
-                      <span className="text-rose-400">Open: {c.open_rate}%</span>
-                      <span>•</span>
-                      <span className="text-slate-400">Response: {c.response_rate}%</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-rose-600 font-medium">Open: {c.open_rate}%</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-slate-600">Response: {c.response_rate}%</span>
                     </div>
                   </div>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-semibold">
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
                     Score: {c.engagement_score}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="text-xs text-slate-500 py-4 text-center">No campaign distress detected.</div>
+              <div className="text-xs text-slate-400 py-4 text-center">No campaign distress detected.</div>
             )}
           </div>
         </div>
       </div>
 
       {/* 8. AI / Rules-Based Actionable Insights */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-sm space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-purple-600" />
             AI & Rules-Based Actionable Insights
           </h2>
-          <span className="text-xs text-slate-400 font-mono">
+          <span className="text-xs text-slate-500 font-mono">
             Engine: {insights?.generation_method || 'rules_engine_fallback'}
           </span>
         </div>
@@ -1009,37 +1009,37 @@ export default function AnalyticsDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {insights?.insights?.map((ins) => {
             const badgeStyles = {
-              positive: 'bg-emerald-950 text-emerald-300 border-emerald-800',
-              warning: 'bg-amber-950 text-amber-300 border-amber-800',
-              info: 'bg-blue-950 text-blue-300 border-blue-800',
-              recommendation: 'bg-purple-950 text-purple-300 border-purple-800',
-            }[ins.type] || 'bg-slate-800 text-slate-300 border-slate-700';
+              positive: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+              warning: 'bg-amber-50 text-amber-700 border-amber-200',
+              info: 'bg-blue-50 text-blue-700 border-blue-200',
+              recommendation: 'bg-purple-50 text-purple-700 border-purple-200',
+            }[ins.type] || 'bg-slate-100 text-slate-700 border-slate-200';
 
             return (
               <div
                 key={ins.id}
-                className="p-4 bg-slate-800/60 rounded-xl border border-slate-800 space-y-2.5 flex flex-col justify-between"
+                className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5 flex flex-col justify-between"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-white">{ins.title}</span>
+                    <span className="text-sm font-semibold text-slate-900">{ins.title}</span>
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${badgeStyles}`}>
                       {ins.type}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">{ins.description}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed">{ins.description}</p>
                 </div>
 
-                <div className="space-y-1.5 pt-2 border-t border-slate-700/60 text-xs">
+                <div className="space-y-1.5 pt-2 border-t border-slate-200 text-xs">
                   {ins.evidence && (
-                    <div className="text-slate-400 flex items-start gap-1.5">
-                      <span className="font-semibold text-slate-300 shrink-0">Evidence:</span>
+                    <div className="text-slate-600 flex items-start gap-1.5">
+                      <span className="font-semibold text-slate-700 shrink-0">Evidence:</span>
                       <span>{ins.evidence}</span>
                     </div>
                   )}
                   {ins.recommendation && (
-                    <div className="text-indigo-300 flex items-start gap-1.5">
-                      <span className="font-semibold text-indigo-200 shrink-0">Action:</span>
+                    <div className="text-indigo-700 flex items-start gap-1.5">
+                      <span className="font-semibold text-indigo-800 shrink-0">Action:</span>
                       <span>{ins.recommendation}</span>
                     </div>
                   )}
