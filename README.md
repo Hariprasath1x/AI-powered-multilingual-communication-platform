@@ -224,7 +224,13 @@ Before running MassCommAI, ensure your host has the following runtimes installed
 - **Python:** `3.13.x` (recommended via `pyenv`)
 - **Node.js & npm:** `Node.js >= 20.x` and `npm >= 10.x`
 - **PostgreSQL Server:** `PostgreSQL >= 14` (running locally on port `5432`)
-- **Redis Server:** `Redis >= 7` (optional for local dev; in-memory fallback is automatic)
+- **Redis Server:** `Redis >= 7` (e.g. Redis 8.x via Homebrew on macOS)
+  ```bash
+  brew install redis
+  brew services start redis
+  redis-cli ping  # Returns PONG
+  ```
+  *(Note: An in-memory sliding-window limiter fallback activates automatically if Redis is unavailable, but Redis is required for shared multi-worker rate limiting).*
 - **Docker & Docker Compose:** *(Optional, for containerized execution)*
 
 ---
@@ -271,7 +277,7 @@ DEBUG=true
 DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:5432/masscommai_dev"
 
 # Redis Cache & Rate Limiting (Leave empty to use in-memory sliding window)
-REDIS_URL="redis://localhost:6379/0"
+REDIS_URL="redis://127.0.0.1:6379/0"
 RATE_LIMIT_ENABLED=true
 RATE_LIMIT_LOGIN_PER_MINUTE=10
 RATE_LIMIT_AI_PER_MINUTE=20
@@ -342,16 +348,57 @@ This seeds:
 
 ---
 
-## 18. Running the Application Locally
+## 18. Running the Application
 
-### 1. Start the Backend API Server
+### Quick Start with the Unified Startup Script (`start.sh`)
+
+MassCommAI includes an end-to-end startup and orchestration script (`start.sh`) at the repository root that verifies dependencies, tests database connectivity, runs pending Alembic migrations, starts both FastAPI backend and Vite frontend servers, and monitors health in a single command:
+
+```bash
+# Start application with local PostgreSQL and Redis
+./start.sh
+```
+
+#### Available Script Modes and Commands
+
+| Command | Description |
+| :--- | :--- |
+| `./start.sh` | Normal local startup. Verifies environment, runs migrations, and launches backend & frontend using local PostgreSQL. |
+| `./start.sh --docker` | Starts or reuses PostgreSQL and Redis via Docker Compose (`db` and `redis`), runs migrations, and launches application servers. |
+| `./start.sh --status` | Non-destructive status inspection. Reports health and PIDs of Backend API, Frontend UI, PostgreSQL, Redis, and Alembic head. |
+| `./start.sh --stop` | Gracefully terminates only the backend and frontend processes spawned by this script without altering database state. |
+| `./start.sh --help` | Displays usage summary, flag descriptions, and log file paths. |
+
+#### Process Management & Graceful Shutdown
+- **Graceful Shutdown:** Press `Ctrl+C` in the terminal running `./start.sh` or run `./start.sh --stop` from another terminal. Both methods cleanly shut down backend and frontend processes while preserving PostgreSQL and Redis data.
+- **Log Files:**
+  - Backend API output: `logs/backend.log`
+  - Frontend UI output: `logs/frontend.log`
+- **Initial Demo Seed Data:**
+  To populate initial demonstration users, templates, and civic campaigns:
+  ```bash
+  cd backend && python -m app.db.seed_demo
+  ```
+
+#### Redis Integration & Fallback Behavior
+- **Redis-Backed Mode (Default & Verified):** When Redis is active (e.g. via `brew services start redis`), MassCommAI enforces distributed sliding-window rate limits via Redis sorted sets (`ZSET`). Rate limit counters are shared atomically across all worker processes and server instances.
+- **In-Memory Fallback:** If `REDIS_URL` is unset or Redis becomes unreachable, the application automatically falls back to an internal thread-safe in-memory sliding-window limiter (`MemoryRateLimiter`).
+- **Fallback Limitations:** The in-memory limiter is process-bound; each worker process maintains its own memory counters. In multi-worker or load-balanced environments, a running Redis service is required for coordinated distributed rate limiting.
+
+---
+
+### Manual Component Startup (Alternative)
+
+If you prefer running services in separate terminal windows manually:
+
+#### 1. Start the Backend API Server
 From the `backend` directory with the virtual environment activated:
 ```bash
 uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-API server starts on `http://127.0.0.1:8000`.
+API server starts on `http://127.0.0.1:8000` (docs at `http://127.0.0.1:8000/docs`).
 
-### 2. Start the Frontend Development Server
+#### 2. Start the Frontend Development Server
 From the `frontend` directory:
 ```bash
 npm run dev
@@ -433,6 +480,8 @@ MassCommAI operates seamlessly in air-gapped or offline development environments
 - **[docs/DEMO_WALKTHROUGH_SCRIPT.md](docs/DEMO_WALKTHROUGH_SCRIPT.md):** Step-by-step presentation script covering all 7 demonstration acts.
 - **[docs/FINAL_PRESENTATION_MATERIAL.md](docs/FINAL_PRESENTATION_MATERIAL.md):** Slide deck content covering architecture, problem statement, innovations, and roadmap.
 - **[docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md):** Database relational schema and entity relationships.
+- **[docs/FEATURE_INVENTORY.md](docs/FEATURE_INVENTORY.md):** Granular capability matrix across Milestones 1, 2, and 3.
+- **[docs/MASSCOMMAI_FINAL_END_TO_END_ACCEPTANCE_REPORT.md](docs/MASSCOMMAI_FINAL_END_TO_END_ACCEPTANCE_REPORT.md):** Authoritative full-stack acceptance report verifying all 18 roadmap tasks, Redis, and multi-service workflows.
 - **[docs/M3_TASK18_SYSTEM_FINALIZATION_COMPLETION_REPORT.md](docs/M3_TASK18_SYSTEM_FINALIZATION_COMPLETION_REPORT.md):** Final milestone engineering completion report.
 
 ---
