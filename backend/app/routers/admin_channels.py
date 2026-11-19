@@ -156,7 +156,7 @@ def update_channel_configuration(
             # Merge with existing credentials to avoid wiping out unmodified keys
             existing_creds = dict(config.credentials or {})
             for k, v in payload.credentials.items():
-                if v and not str(v).startswith("****"):  # Don't overwrite with masked string
+                if v and "****" not in str(v):  # Don't overwrite with masked string
                     existing_creds[k] = v
             config.credentials = existing_creds
 

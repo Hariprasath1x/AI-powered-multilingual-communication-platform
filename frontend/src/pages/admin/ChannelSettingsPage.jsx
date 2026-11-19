@@ -85,6 +85,9 @@ export default function ChannelSettingsPage() {
       sender_name: 'MassCommAI Citizen Push',
       credentials: {
         project_id: 'masscommai-fcm-project',
+        client_email: '',
+        private_key: '',
+        service_account_json: '',
         server_key: '',
       },
     },
@@ -556,26 +559,63 @@ export default function ChannelSettingsPage() {
               <div className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
                   <Key className="w-4 h-4 text-indigo-600" />
-                  Firebase Cloud Messaging (FCM) Credentials
+                  Firebase Cloud Messaging (FCM HTTP v1) Google Service Account Credentials
                 </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Firebase Project ID</label>
+                    <input
+                      type="text"
+                      value={curData.credentials?.project_id || ''}
+                      onChange={(e) => handleCredChange('Push', 'project_id', e.target.value)}
+                      placeholder="masscommai-production"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Client Email (IAM Service Account)</label>
+                    <input
+                      type="text"
+                      value={curData.credentials?.client_email || ''}
+                      onChange={(e) => handleCredChange('Push', 'client_email', e.target.value)}
+                      placeholder="firebase-adminsdk-xyz@project.iam.gserviceaccount.com"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Firebase Project ID</label>
-                  <input
-                    type="text"
-                    value={curData.credentials?.project_id || ''}
-                    onChange={(e) => handleCredChange('Push', 'project_id', e.target.value)}
-                    placeholder="masscommai-production"
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Service Account Private Key (PEM format)</label>
+                  <div className="relative">
+                    <textarea
+                      rows={3}
+                      value={curData.credentials?.private_key || ''}
+                      onChange={(e) => handleCredChange('Push', 'private_key', e.target.value)}
+                      placeholder="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Or Full Service Account JSON</label>
+                  <textarea
+                    rows={3}
+                    value={curData.credentials?.service_account_json || ''}
+                    onChange={(e) => handleCredChange('Push', 'service_account_json', e.target.value)}
+                    placeholder='{"type": "service_account", "project_id": "...", "private_key": "...", "client_email": "..."}'
                     className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono text-xs"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Server Key / OAuth Bearer Token</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Optional Bearer Token Override / Static Key</label>
                   <div className="relative">
                     <input
                       type={showSecrets.fcm_server_key ? 'text' : 'password'}
                       value={curData.credentials?.server_key || ''}
                       onChange={(e) => handleCredChange('Push', 'server_key', e.target.value)}
-                      placeholder="AAAA••••••••••••••••••••"
+                      placeholder="Optional fallback bearer token"
                       className="w-full px-3 py-2 pr-9 text-sm border border-slate-300 rounded-lg font-mono text-xs"
                     />
                     <button
