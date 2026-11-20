@@ -69,11 +69,11 @@ def list_channel_configurations(
     modified = False
 
     defaults = [
-        ("Email", "mock", "notifications@masscomm.gov.in", "MassCommAI Citizen Communications", {}),
+        ("Email", "mock", "notifications@masscomm.gov.in", "Civora Citizen Communications", {}),
         ("SMS", "mock", "GOVMSG", "Govt Citizen Alert", {}),
-        ("WhatsApp", "mock", "+1555010099", "MassCommAI WhatsApp Official", {"phone_number_id": "1000000001", "waba_id": "2000000002"}),
-        ("Push", "mock", "masscommai-fcm-project", "MassCommAI Citizen Push", {"project_id": "masscommai-mock-fcm"}),
-        ("Web", "mock", "masscomm-broadcast-hub", "MassCommAI Web Broadcast", {}),
+        ("WhatsApp", "mock", "+1555010099", "Civora WhatsApp Official", {"phone_number_id": "1000000001", "waba_id": "2000000002"}),
+        ("Push", "mock", "masscommai-fcm-project", "Civora Citizen Push", {"project_id": "masscommai-mock-fcm"}),
+        ("Web", "mock", "masscomm-broadcast-hub", "Civora Web Broadcast", {}),
     ]
 
     for ch_name, prov, s_addr, s_name, def_creds in defaults:
@@ -180,7 +180,7 @@ async def test_channel_connectivity(
     adapter: BaseChannel = get_configured_channel(db, channel)
     result = await adapter.send_test(
         destination=payload.destination,
-        body=payload.message or "MassCommAI automated connectivity test.",
+        body=payload.message or "Civora automated connectivity test.",
         subject=payload.subject,
     )
     return ChannelTestResponse(

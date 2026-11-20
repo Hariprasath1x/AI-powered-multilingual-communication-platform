@@ -103,7 +103,7 @@ export default function ContentGeneratorModal({ isOpen, onClose, onGenerated }) 
         <div className="mx-6 mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
           <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            <strong>Factual Integrity Guard:</strong> MassCommAI generates drafts based strictly on your provided facts.
+            <strong>Factual Integrity Guard:</strong> Civora generates drafts based strictly on your provided facts.
             Emergency helplines, official dates, and schemes are never invented. All generated copy requires human review before campaign use.
           </p>
         </div>

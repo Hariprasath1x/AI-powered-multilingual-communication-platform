@@ -194,7 +194,7 @@ async def websocket_broadcast_endpoint(websocket: WebSocket):
         # Send initial confirmation
         await websocket.send_json({
             "type": "welcome",
-            "message": "Connected to MassCommAI Public Broadcast Service",
+            "message": "Connected to Civora Public Broadcast Service",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
         while True:

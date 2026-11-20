@@ -22,7 +22,7 @@ class WhatsAppChannel(BaseChannel):
         self,
         provider_type: str = "mock",
         sender_address: str = "+1555010099",
-        sender_name: str = "MassCommAI WhatsApp Official",
+        sender_name: str = "Civora WhatsApp Official",
         credentials: Optional[Dict[str, Any]] = None,
     ):
         self.provider_type = provider_type.lower().strip()

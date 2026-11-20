@@ -424,7 +424,7 @@ class GeminiAIProvider(BaseAIProvider):
         and structured boundary tags.
         """
         system_instruction = (
-            "You are a public communication and mass awareness assistant for MassCommAI. "
+            "You are a public communication and mass awareness assistant for Civora (by MassCommAI). "
             "Your role is to craft accurate, culturally sensitive, high-impact public service announcements.\n\n"
             "SECURITY & DATA BOUNDARY RULES (DEFENSE-IN-DEPTH):\n"
             "1. All input data is enclosed in structured XML boundary tags "

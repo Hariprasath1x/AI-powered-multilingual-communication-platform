@@ -87,7 +87,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Backend API for AI-Powered Multilingual Public Awareness and Mass Communication Platform",
+    description="Civora — by MassCommAI: AI-Powered Multilingual Public Awareness and Mass Communication Platform",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",

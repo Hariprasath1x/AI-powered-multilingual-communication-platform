@@ -157,10 +157,10 @@ export default function RegisterPage() {
               <UserPlus className="w-6 h-6" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Create your Account
+              Create your Civora Account
             </h1>
             <p className="text-sm text-slate-500">
-              Join the AI-Powered Multilingual Communication Platform
+              Civora — Bringing communities closer.
             </p>
           </div>
 

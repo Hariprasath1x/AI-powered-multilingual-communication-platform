@@ -118,13 +118,13 @@ export default function LandingPage() {
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-slate-800 border border-slate-200 shadow-2xs font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                <span>Infosys Springboard Virtual Internship &bull; Milestone 2</span>
+                <span>Civora &bull; by MassCommAI</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.15]">
-                AI-Powered Multilingual <br className="hidden sm:inline" />
+                Civora <br className="hidden sm:inline" />
                 <span className="text-blue-600">
-                  Public Awareness & Mass Communication
+                  Bringing communities closer.
                 </span>
               </h1>
 
@@ -246,7 +246,7 @@ export default function LandingPage() {
               Engineered for Linguistic Inclusivity & Precision Outreach
             </p>
             <p className="text-slate-600 text-base leading-relaxed">
-              Every component of MassCommAI is designed to simplify mass communication while eliminating linguistic misunderstandings during urgent and civic broadcasts.
+              Every component of Civora is designed to simplify mass communication while eliminating linguistic misunderstandings during urgent and civic broadcasts.
             </p>
           </div>
 

@@ -101,13 +101,13 @@ export const logDiagnosticHealth = async () => {
     const result = await checkHealth();
     if (result.healthy) {
       console.log(
-        `%c[MassCommAI]%c Backend connection established: status=${result.status}, database=${result.database}, version=${result.version}`,
+        `%c[Civora]%c Backend connection established: status=${result.status}, database=${result.database}, version=${result.version}`,
         'color: #4f46e5; font-weight: bold;',
         'color: #10b981;'
       );
     } else {
       console.warn(
-        `%c[MassCommAI]%c Backend health check reported degraded/disconnected state: status=${result.status}, database=${result.database} (${result.error || 'degraded'})`,
+        `%c[Civora]%c Backend health check reported degraded/disconnected state: status=${result.status}, database=${result.database} (${result.error || 'degraded'})`,
         'color: #4f46e5; font-weight: bold;',
         'color: #f59e0b;'
       );
@@ -115,7 +115,7 @@ export const logDiagnosticHealth = async () => {
     return result;
   } catch (err) {
     console.error(
-      `%c[MassCommAI]%c Health check probe failed: ${err.message}`,
+      `%c[Civora]%c Health check probe failed: ${err.message}`,
       'color: #4f46e5; font-weight: bold;',
       'color: #ef4444;'
     );

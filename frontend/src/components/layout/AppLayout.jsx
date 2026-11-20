@@ -29,11 +29,15 @@ export default function AppLayout() {
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-700">
-                MassCommAI
+                Civora
               </span>
               <span className="hidden md:inline text-slate-300">•</span>
               <span className="hidden md:inline text-slate-500">
-                Multilingual Public Awareness & Telephony Engine
+                by MassCommAI
+              </span>
+              <span className="hidden md:inline text-slate-300">•</span>
+              <span className="hidden md:inline text-slate-500">
+                Bringing communities closer.
               </span>
             </div>
             <div className="flex items-center gap-3 text-xs">

@@ -44,7 +44,7 @@ export default function AppHeader({ onOpenMobileMenu }) {
   }, []);
 
   const routeInfo = ROUTE_TITLES[location.pathname] || {
-    title: location.pathname.startsWith('/campaigns/') ? 'Campaign Details' : 'MassCommAI Platform',
+    title: location.pathname.startsWith('/campaigns/') ? 'Campaign Details' : 'Civora Platform',
     category: 'Communication',
   };
 
@@ -64,7 +64,7 @@ export default function AppHeader({ onOpenMobileMenu }) {
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="font-medium text-slate-600">MassCommAI</span>
+              <span className="font-medium text-slate-600">Civora</span>
               <span>/</span>
               <span className="text-slate-500">{routeInfo.category}</span>
             </div>

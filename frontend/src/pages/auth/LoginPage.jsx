@@ -96,10 +96,10 @@ export default function LoginPage() {
               <LogIn className="w-6 h-6" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Sign in to MassCommAI
+              Sign in to Civora
             </h1>
             <p className="text-sm text-slate-500">
-              Access your communication dashboard and campaign tools
+              Civora — Bringing communities closer.
             </p>
           </div>
 

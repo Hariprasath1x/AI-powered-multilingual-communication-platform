@@ -15,11 +15,11 @@ export default function Footer() {
                 <MessageSquareShare className="w-4 h-4" />
               </div>
               <span className="text-lg font-bold tracking-tight text-white">
-                MassComm<span className="text-blue-400">AI</span>
+                Civora <span className="text-xs font-normal text-slate-400 font-mono">— by MassCommAI</span>
               </span>
             </div>
             <p className="text-xs text-slate-400 max-w-md leading-relaxed">
-              AI-Powered Multilingual Public Awareness and Mass Communication Platform.
+              Bringing communities closer. AI-Powered Multilingual Public Awareness and Mass Communication Platform.
               Empowering civic authorities, educators, healthcare agencies, and public institutions
               to bridge linguistic barriers and deliver mission-critical announcements at scale.
             </p>
@@ -58,13 +58,13 @@ export default function Footer() {
 
         {/* Bottom Line */}
         <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-          <p>&copy; {new Date().getFullYear()} MassCommAI. Developed for Infosys Springboard Internship.</p>
+          <p>&copy; {new Date().getFullYear()} Civora — by MassCommAI. Developed for Infosys Springboard Internship.</p>
           <div className="flex items-center gap-4">
             <span className="inline-flex items-center gap-1">
               Backend Status: <span className="text-green-400 font-medium">PostgreSQL Ready</span>
             </span>
             <span>&bull;</span>
-            <span className="font-mono">Milestone 2</span>
+            <span className="font-mono">Milestone 3</span>
           </div>
         </div>
       </div>

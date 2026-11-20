@@ -187,7 +187,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center justify-between text-xs">
             <span className="text-slate-500">Department</span>
-            <span className="font-medium text-slate-800">{user?.organization || 'MassCommAI Platform'}</span>
+            <span className="font-medium text-slate-800">{user?.organization || 'Civora Platform'}</span>
           </div>
         </div>
       </div>

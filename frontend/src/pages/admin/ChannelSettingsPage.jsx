@@ -41,7 +41,7 @@ export default function ChannelSettingsPage() {
       is_enabled: true,
       provider_type: 'mock',
       sender_address: 'notifications@masscomm.gov.in',
-      sender_name: 'MassCommAI Citizen Communications',
+      sender_name: 'Civora Citizen Communications',
       credentials: {
         smtp_host: 'smtp.gov.in',
         smtp_port: '587',
@@ -67,7 +67,7 @@ export default function ChannelSettingsPage() {
       is_enabled: true,
       provider_type: 'mock',
       sender_address: '+1555010099',
-      sender_name: 'MassCommAI WhatsApp Official',
+      sender_name: 'Civora WhatsApp Official',
       credentials: {
         phone_number_id: '1000000001',
         waba_id: '2000000002',
@@ -82,7 +82,7 @@ export default function ChannelSettingsPage() {
       is_enabled: true,
       provider_type: 'mock',
       sender_address: 'masscommai-fcm-project',
-      sender_name: 'MassCommAI Citizen Push',
+      sender_name: 'Civora Citizen Push',
       credentials: {
         project_id: 'masscommai-fcm-project',
         client_email: '',
@@ -95,7 +95,7 @@ export default function ChannelSettingsPage() {
       is_enabled: true,
       provider_type: 'mock',
       sender_address: 'masscomm-broadcast-hub',
-      sender_name: 'MassCommAI Web Broadcast',
+      sender_name: 'Civora Web Broadcast',
       credentials: {},
     },
   });
@@ -131,7 +131,7 @@ export default function ChannelSettingsPage() {
           is_enabled: cfgMap.Email?.is_enabled ?? true,
           provider_type: cfgMap.Email?.provider_type ?? 'mock',
           sender_address: cfgMap.Email?.sender_address ?? 'notifications@masscomm.gov.in',
-          sender_name: cfgMap.Email?.sender_name ?? 'MassCommAI Citizen Communications',
+          sender_name: cfgMap.Email?.sender_name ?? 'Civora Citizen Communications',
           credentials: {
             ...prev.Email.credentials,
             ...(cfgMap.Email?.masked_credentials || {}),
@@ -151,7 +151,7 @@ export default function ChannelSettingsPage() {
           is_enabled: cfgMap.WhatsApp?.is_enabled ?? true,
           provider_type: cfgMap.WhatsApp?.provider_type ?? 'mock',
           sender_address: cfgMap.WhatsApp?.sender_address ?? '+1555010099',
-          sender_name: cfgMap.WhatsApp?.sender_name ?? 'MassCommAI WhatsApp Official',
+          sender_name: cfgMap.WhatsApp?.sender_name ?? 'Civora WhatsApp Official',
           credentials: {
             ...prev.WhatsApp.credentials,
             ...(cfgMap.WhatsApp?.masked_credentials || {}),
@@ -161,7 +161,7 @@ export default function ChannelSettingsPage() {
           is_enabled: cfgMap.Push?.is_enabled ?? true,
           provider_type: cfgMap.Push?.provider_type ?? 'mock',
           sender_address: cfgMap.Push?.sender_address ?? 'masscommai-fcm-project',
-          sender_name: cfgMap.Push?.sender_name ?? 'MassCommAI Citizen Push',
+          sender_name: cfgMap.Push?.sender_name ?? 'Civora Citizen Push',
           credentials: {
             ...prev.Push.credentials,
             ...(cfgMap.Push?.masked_credentials || {}),
@@ -171,7 +171,7 @@ export default function ChannelSettingsPage() {
           is_enabled: cfgMap.Web?.is_enabled ?? true,
           provider_type: cfgMap.Web?.provider_type ?? 'mock',
           sender_address: cfgMap.Web?.sender_address ?? 'masscomm-broadcast-hub',
-          sender_name: cfgMap.Web?.sender_name ?? 'MassCommAI Web Broadcast',
+          sender_name: cfgMap.Web?.sender_name ?? 'Civora Web Broadcast',
           credentials: {
             ...prev.Web.credentials,
             ...(cfgMap.Web?.masked_credentials || {}),
@@ -243,8 +243,8 @@ export default function ChannelSettingsPage() {
       const destination = testDestinations[activeTab];
       const res = await testChannel(activeTab, {
         destination,
-        message: `MassCommAI automated connectivity test via ${activeTab} channel.`,
-        subject: `[Test] MassCommAI ${activeTab} Gateway Health Verification`,
+        message: `Civora automated connectivity test via ${activeTab} channel.`,
+        subject: `[Test] Civora ${activeTab} Gateway Health Verification`,
       });
       setTestResult(res);
     } catch (err) {
@@ -408,7 +408,7 @@ export default function ChannelSettingsPage() {
                   </>
                 ) : (
                   <>
-                    <option value="mock">MassComm Real-time Broadcast Hub (WebSocket & SSE)</option>
+                    <option value="mock">Civora Real-time Broadcast Hub (WebSocket & SSE)</option>
                   </>
                 )}
               </select>
@@ -457,14 +457,14 @@ export default function ChannelSettingsPage() {
                   onChange={(e) => handleFieldChange(activeTab, 'sender_name', e.target.value)}
                   placeholder={
                     activeTab === 'Email'
-                      ? 'MassCommAI Citizen Portal'
+                      ? 'Civora Citizen Portal'
                       : activeTab === 'SMS'
                       ? 'Govt Citizen Alert'
                       : activeTab === 'WhatsApp'
-                      ? 'MassCommAI Official WhatsApp'
+                      ? 'Civora Official WhatsApp'
                       : activeTab === 'Push'
-                      ? 'MassCommAI Citizen Push'
-                      : 'MassCommAI Public Web Broadcast'
+                      ? 'Civora Citizen Push'
+                      : 'Civora Public Web Broadcast'
                   }
                   className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />

@@ -25,7 +25,7 @@ class EmailChannel(BaseChannel):
         self,
         provider_type: str = "mock",
         sender_address: str = "notifications@masscomm.gov.in",
-        sender_name: str = "MassCommAI Citizen Communications",
+        sender_name: str = "Civora Citizen Communications",
         credentials: Optional[Dict[str, Any]] = None,
     ):
         self.provider_type = provider_type.lower().strip()
@@ -98,7 +98,7 @@ class EmailChannel(BaseChannel):
         sender_addr = override.get("sender_address") or self.sender_address
         sender_nm = override.get("sender_name") or self.sender_name
         creds = override.get("credentials") or self.credentials
-        subj = subject or "MassCommAI Email Channel Connectivity Verification"
+        subj = subject or "Civora Email Channel Connectivity Verification"
         tracking_id = f"test_{uuid.uuid4().hex[:12]}"
 
         return await self._dispatch(
@@ -325,7 +325,7 @@ class EmailChannel(BaseChannel):
                     "custom_args": {"tracking_id": tracking_id},
                 }
             ],
-            "from": {"email": sender_address, "name": sender_name or "MassCommAI"},
+            "from": {"email": sender_address, "name": sender_name or "Civora"},
             "subject": subject,
             "content": [{"type": "text/plain", "value": body}],
         }

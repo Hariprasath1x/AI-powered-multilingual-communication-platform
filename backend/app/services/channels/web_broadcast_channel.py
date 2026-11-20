@@ -22,7 +22,7 @@ class WebBroadcastChannel(BaseChannel):
         self,
         provider_type: str = "mock",
         sender_address: str = "masscomm-broadcast-hub",
-        sender_name: str = "MassCommAI Web Broadcast",
+        sender_name: str = "Civora Web Broadcast",
         credentials: Optional[Dict[str, Any]] = None,
     ):
         self.provider_type = provider_type.lower().strip()
@@ -92,7 +92,7 @@ class WebBroadcastChannel(BaseChannel):
         payload = {
             "id": test_id,
             "campaign_id": 0,
-            "title": subject or "MassCommAI Public Web Alert (Test)",
+            "title": subject or "Civora Public Web Alert (Test)",
             "body": body,
             "language": "en",
             "is_emergency": False,

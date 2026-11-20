@@ -1007,7 +1007,7 @@ export default function ContentStudioPage() {
                       <div className="p-4 rounded-2xl bg-[#0b141a] text-white max-w-sm mx-auto shadow-inner space-y-3 font-sans">
                         <div className="text-[11px] text-emerald-400 flex items-center justify-between border-b border-slate-800 pb-2">
                           <span className="font-semibold flex items-center gap-1">
-                            MassCommAI Official <CheckCircle2 className="w-3 h-3 text-emerald-500 fill-emerald-500 text-slate-900" />
+                            Civora Official <CheckCircle2 className="w-3 h-3 text-emerald-500 fill-emerald-500 text-slate-900" />
                           </span>
                           <span className="text-slate-500 text-[10px]">Verified Account</span>
                         </div>

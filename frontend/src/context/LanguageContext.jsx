@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const TRANSLATIONS = {
   en: {
-    platformTitle: 'MassCommAI Platform',
+    platformTitle: 'Civora Platform',
     dashboard: 'Platform Dashboard',
     analytics: 'Analytics & Insights',
     audience: 'Audience Database',
@@ -26,7 +26,7 @@ const TRANSLATIONS = {
     overview: 'Overview',
   },
   hi: {
-    platformTitle: 'मासकॉम एआई मंच',
+    platformTitle: 'सिवोरा मंच',
     dashboard: 'मंच डैशबोर्ड',
     analytics: 'विश्लेषण एवं अंतर्दृष्टि',
     audience: 'नागरिक डेटाबेस',

@@ -31,7 +31,7 @@ class PushChannel(BaseChannel):
         self,
         provider_type: str = "mock",
         sender_address: str = "masscommai-fcm-project",
-        sender_name: str = "MassCommAI Citizen Push",
+        sender_name: str = "Civora Citizen Push",
         credentials: Optional[Dict[str, Any]] = None,
     ):
         self.provider_type = provider_type.lower().strip()

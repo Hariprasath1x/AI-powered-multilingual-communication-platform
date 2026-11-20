@@ -133,7 +133,7 @@ async def retry_single_message(
             self.tracking_id = m.tracking_id
             self.channel = m.channel
             self.language = m.language
-            self.subject = getattr(m, "subject", None) or (f"Notice: {m.campaign.name}" if getattr(m, "campaign", None) else "MassCommAI")
+            self.subject = getattr(m, "subject", None) or (f"Notice: {m.campaign.name}" if getattr(m, "campaign", None) else "Civora")
             self.title = self.subject
 
     retry_payload = _RetryMessagePayload(msg)

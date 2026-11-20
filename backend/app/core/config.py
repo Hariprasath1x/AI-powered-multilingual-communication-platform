@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    PROJECT_NAME: str = "MassCommAI"
+    PROJECT_NAME: str = "Civora"
     VERSION: str = "1.0.0"
     APP_ENV: str = "development"
     DEBUG: bool = True

@@ -58,7 +58,7 @@ def get_configured_channel(db: Session, channel_name: str) -> BaseChannel:
 
     provider_type = config.provider_type or "mock"
     sender_addr = config.sender_address or ("notifications@masscomm.gov.in" if c_name == "Email" else "GOVMSG")
-    sender_nm = config.sender_name or ("MassCommAI Citizen Communications" if c_name == "Email" else "Govt Citizen Alert")
+    sender_nm = config.sender_name or ("Civora Citizen Communications" if c_name == "Email" else "Govt Citizen Alert")
     creds = config.credentials or {}
 
     if c_name == "Email":
@@ -79,21 +79,21 @@ def get_configured_channel(db: Session, channel_name: str) -> BaseChannel:
         return WhatsAppChannel(
             provider_type=provider_type,
             sender_address=config.sender_address or "+1555010099",
-            sender_name=config.sender_name or "MassCommAI WhatsApp Official",
+            sender_name=config.sender_name or "Civora WhatsApp Official",
             credentials=creds,
         )
     elif c_name == "Push":
         return PushChannel(
             provider_type=provider_type,
             sender_address=config.sender_address or "masscommai-fcm-project",
-            sender_name=config.sender_name or "MassCommAI Citizen Push",
+            sender_name=config.sender_name or "Civora Citizen Push",
             credentials=creds,
         )
     elif c_name == "Web":
         return WebBroadcastChannel(
             provider_type=provider_type,
             sender_address=config.sender_address or "masscomm-broadcast-hub",
-            sender_name=config.sender_name or "MassCommAI Web Broadcast",
+            sender_name=config.sender_name or "Civora Web Broadcast",
             credentials=creds,
         )
     else:

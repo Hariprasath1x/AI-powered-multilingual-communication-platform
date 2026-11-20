@@ -95,12 +95,12 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
               <Radio className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-1">
-                <span className="text-base font-bold text-white tracking-tight">MassComm</span>
-                <span className="text-blue-400 text-base font-bold">AI</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-bold text-white tracking-tight">Civora</span>
+                <span className="text-[10px] text-blue-400 font-mono tracking-wide font-normal">by MassCommAI</span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
-                Public Awareness Platform
+                Bringing communities closer.
               </p>
             </div>
           </div>
@@ -172,8 +172,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         </div>
 
         <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
-          <span className="truncate max-w-[130px] text-[11px]" title={user?.organization || 'MassCommAI'}>
-            {user?.organization || 'MassCommAI'}
+          <span className="truncate max-w-[130px] text-[11px]" title={user?.organization || 'Civora'}>
+            {user?.organization || 'Civora'}
           </span>
           <button
             onClick={handleLogout}

@@ -48,11 +48,11 @@ class ChannelTestRequest(BaseModel):
 
     destination: str = Field(..., description="Target email or phone number for the test send")
     message: Optional[str] = Field(
-        default="This is an automated connectivity test message from MassCommAI.",
+        default="This is an automated connectivity test message from Civora.",
         description="Test body text",
     )
     subject: Optional[str] = Field(
-        default="MassCommAI Channel Test Notification",
+        default="Civora Channel Test Notification",
         description="Optional subject line (used for Email)",
     )
 

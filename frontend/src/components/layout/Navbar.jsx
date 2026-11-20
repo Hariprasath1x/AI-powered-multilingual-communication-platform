@@ -64,10 +64,10 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight text-slate-900">
-                MassComm<span className="text-blue-600">AI</span>
+                Civora
               </span>
               <span className="text-[10px] text-slate-500 font-medium tracking-wide uppercase -mt-1 font-mono">
-                Public Awareness Engine
+                by MassCommAI
               </span>
             </div>
           </Link>
@@ -191,7 +191,7 @@ export default function Navbar() {
                 <button
                   onClick={logout}
                   className="inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-lg transition"
-                  title="Sign out of MassCommAI"
+                  title="Sign out of Civora"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out

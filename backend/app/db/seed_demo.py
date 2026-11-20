@@ -71,7 +71,7 @@ DEMO_CHANNELS = [
         "is_enabled": True,
         "provider_type": "mock",
         "sender_address": "noreply@masscomm.gov.in",
-        "sender_name": "MassCommAI Civic Alerts",
+        "sender_name": "Civora Civic Alerts",
         "credentials": {"smtp_host": "smtp.masscomm.gov.in", "smtp_port": 587},
     },
     {
@@ -87,7 +87,7 @@ DEMO_CHANNELS = [
         "is_enabled": True,
         "provider_type": "mock",
         "sender_address": "+919876543210",
-        "sender_name": "MassComm Official Bot",
+        "sender_name": "Civora Official Bot",
         "credentials": {"phone_number_id": "wa_demo_pn_1001", "waba_id": "wa_demo_biz_2002"},
     },
     {
